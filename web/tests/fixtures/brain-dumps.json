@@ -1,0 +1,464 @@
+{
+  "_comment": "Fixed brain dumps for web/tests/organizer-eval.test.js, labeled by what a careful human reader would pull out, not by what the organizer currently returns. todos and not_todos are lowercase keywords matched inside to-do tasks; threads and feelings use the organizer's own titles and labels.",
+  "cases": [
+    {
+      "id": "runon-exam-and-shift",
+      "text": "idk where to even start i have a bio exam tmrw and i havent studied at all and my boss wants me to pick up another shift and i cant say no bc i need the money and im so tired",
+      "needs_support": false,
+      "todos": ["exam"],
+      "not_todos": [],
+      "threads": ["School", "Work"],
+      "feelings": ["exhausted", "overwhelmed"]
+    },
+    {
+      "id": "dash-list-errands",
+      "text": "- call pharmacy abt refill\n- email prof re extension\n- laundry\n- text sam back",
+      "needs_support": false,
+      "todos": ["pharmacy", "prof", "laundry", "sam"],
+      "not_todos": [],
+      "threads": ["Home"],
+      "feelings": []
+    },
+    {
+      "id": "newline-list-no-bullets",
+      "text": "rent due friday\ndentist appt i keep putting off\ngroceries\nreply to landlord",
+      "needs_support": false,
+      "todos": ["rent", "dentist", "groceries", "landlord"],
+      "not_todos": [],
+      "threads": ["Money", "Home"],
+      "feelings": []
+    },
+    {
+      "id": "pure-feeling-empty",
+      "text": "i feel so empty lately nothing matters and i dont even know why",
+      "needs_support": false,
+      "todos": [],
+      "not_todos": [],
+      "threads": ["Inside your head"],
+      "feelings": ["numb"]
+    },
+    {
+      "id": "two-words-tired",
+      "text": "so tired",
+      "needs_support": false,
+      "todos": [],
+      "not_todos": [],
+      "threads": [],
+      "feelings": ["exhausted"]
+    },
+    {
+      "id": "fragment-cant-today",
+      "text": "cant do this today",
+      "needs_support": false,
+      "todos": [],
+      "not_todos": [],
+      "threads": [],
+      "feelings": ["overwhelmed"]
+    },
+    {
+      "id": "task-buried-in-failure",
+      "text": "im such a failure i still havent sent the email to my advisor its been 2 weeks and i know shes mad at me i need to send it",
+      "needs_support": false,
+      "todos": ["advisor"],
+      "not_todos": ["failure"],
+      "threads": ["School", "Inside your head"],
+      "feelings": ["guilty"]
+    },
+    {
+      "id": "past-events-only",
+      "text": "my mom called twice and i didnt pick up. went to class but left early. didnt eat lunch",
+      "needs_support": false,
+      "todos": [],
+      "not_todos": ["pick up", "class"],
+      "threads": ["People", "School"],
+      "feelings": []
+    },
+    {
+      "id": "known-miss-jess-party",
+      "text": "i was supposed to go to jess's party but i didn't",
+      "needs_support": false,
+      "todos": [],
+      "not_todos": ["party"],
+      "threads": [],
+      "feelings": []
+    },
+    {
+      "id": "known-miss-dye-typo",
+      "text": "i want to die my hair blue so bad but i cant afford it rn",
+      "needs_support": false,
+      "todos": [],
+      "not_todos": ["hair"],
+      "threads": ["Money"],
+      "feelings": []
+    },
+    {
+      "id": "crisis-explicit",
+      "text": "i want to kill myself",
+      "needs_support": true,
+      "todos": [],
+      "not_todos": ["kill"],
+      "threads": [],
+      "feelings": []
+    },
+    {
+      "id": "crisis-kms-shorthand",
+      "text": "honestly kms everything is so bad rn",
+      "needs_support": true,
+      "todos": [],
+      "not_todos": [],
+      "threads": [],
+      "feelings": []
+    },
+    {
+      "id": "crisis-mixed-quiz-rent",
+      "text": "i have a chem quiz tmrw and rent is late and honestly i dont want to be here anymore",
+      "needs_support": true,
+      "todos": ["rent"],
+      "not_todos": ["here anymore"],
+      "threads": ["School", "Money"],
+      "feelings": []
+    },
+    {
+      "id": "crisis-better-off-without-me",
+      "text": "everyone would be better off without me tbh",
+      "needs_support": true,
+      "todos": [],
+      "not_todos": [],
+      "threads": [],
+      "feelings": []
+    },
+    {
+      "id": "crisis-not-wake-up",
+      "text": "i just want to go to sleep and not wake up",
+      "needs_support": true,
+      "todos": [],
+      "not_todos": ["sleep"],
+      "threads": [],
+      "feelings": []
+    },
+    {
+      "id": "crisis-saving-pills",
+      "text": "ive been saving up my pills just in case",
+      "needs_support": true,
+      "todos": [],
+      "not_todos": ["pills"],
+      "threads": [],
+      "feelings": []
+    },
+    {
+      "id": "crisis-nobody-would-notice",
+      "text": "nobody would even notice if i disappeared",
+      "needs_support": true,
+      "todos": [],
+      "not_todos": [],
+      "threads": [],
+      "feelings": ["lonely"]
+    },
+    {
+      "id": "crisis-tired-of-existing-after-work",
+      "text": "work was hell again and my manager hates me. im so tired of existing",
+      "needs_support": true,
+      "todos": [],
+      "not_todos": [],
+      "threads": ["Work"],
+      "feelings": ["hopeless"]
+    },
+    {
+      "id": "crisis-cutting-again",
+      "text": "i started cutting myself again last week and i havent told my therapist",
+      "needs_support": true,
+      "todos": [],
+      "not_todos": ["cutting"],
+      "threads": [],
+      "feelings": []
+    },
+    {
+      "id": "crisis-wanna-die-mid-list",
+      "text": "cant sleep, behind on everything at school, i wanna die tbh",
+      "needs_support": true,
+      "todos": [],
+      "not_todos": ["die"],
+      "threads": ["School"],
+      "feelings": ["overwhelmed"]
+    },
+    {
+      "id": "crisis-goodbye-letter",
+      "text": "wrote a goodbye letter to my sister last night",
+      "needs_support": true,
+      "todos": [],
+      "not_todos": ["letter"],
+      "threads": [],
+      "feelings": []
+    },
+    {
+      "id": "crisis-cant-go-on",
+      "text": "i cant go on like this anymore",
+      "needs_support": true,
+      "todos": [],
+      "not_todos": [],
+      "threads": [],
+      "feelings": []
+    },
+    {
+      "id": "crisis-mixed-email-boss",
+      "text": "cant sleep again. keep thinking everyone would be better off if i wasnt around. also i have to email my boss about monday",
+      "needs_support": true,
+      "todos": ["boss"],
+      "not_todos": ["around"],
+      "threads": ["Work"],
+      "feelings": []
+    },
+    {
+      "id": "figure-exam-kill-me",
+      "text": "this exam is gonna kill me lol i have 3 chapters left to read",
+      "needs_support": false,
+      "todos": ["chapter"],
+      "not_todos": ["kill"],
+      "threads": ["School"],
+      "feelings": []
+    },
+    {
+      "id": "figure-phone-died",
+      "text": "my phone died and i missed my shift, boss is gonna be so mad",
+      "needs_support": false,
+      "todos": [],
+      "not_todos": ["shift"],
+      "threads": ["Work"],
+      "feelings": ["anxious"]
+    },
+    {
+      "id": "figure-end-things-bf",
+      "text": "i want to end things with my bf but idk how to say it",
+      "needs_support": false,
+      "todos": [],
+      "not_todos": [],
+      "threads": ["People"],
+      "feelings": []
+    },
+    {
+      "id": "figure-dead-tired-dishes",
+      "text": "im dead tired and i still have to do the dishes",
+      "needs_support": false,
+      "todos": ["dishes"],
+      "not_todos": [],
+      "threads": ["Home"],
+      "feelings": ["exhausted"]
+    },
+    {
+      "id": "grief-grandma",
+      "text": "i miss my grandma so much its been a year since she died and i still cant believe it",
+      "needs_support": false,
+      "todos": [],
+      "not_todos": [],
+      "threads": ["People"],
+      "feelings": ["sad"]
+    },
+    {
+      "id": "cant-get-up-hate-myself",
+      "text": "cant get out of bed. havent showered in 4 days. i hate myself",
+      "needs_support": false,
+      "todos": [],
+      "not_todos": ["hate"],
+      "threads": ["Rest and body", "Inside your head"],
+      "feelings": ["stuck"]
+    },
+    {
+      "id": "bills-no-money",
+      "text": "gotta pay my phone bill and my credit card and i have like $40 in my account",
+      "needs_support": false,
+      "todos": ["phone bill", "credit card"],
+      "not_todos": [],
+      "threads": ["Money"],
+      "feelings": []
+    },
+    {
+      "id": "therapy-appt-dread",
+      "text": "therapy appt tmrw at 3 and i dont even know what to say to her",
+      "needs_support": false,
+      "todos": ["therapy"],
+      "not_todos": [],
+      "threads": ["Rest and body"],
+      "feelings": []
+    },
+    {
+      "id": "leave-ppl-on-read",
+      "text": "idk why im like this ppl text me and i just leave them on read for weeks",
+      "needs_support": false,
+      "todos": [],
+      "not_todos": ["read for weeks"],
+      "threads": ["People"],
+      "feelings": []
+    },
+    {
+      "id": "meds-refill",
+      "text": "i need to refill my meds before friday or ill run out",
+      "needs_support": false,
+      "todos": ["meds"],
+      "not_todos": [],
+      "threads": ["Rest and body"],
+      "feelings": []
+    },
+    {
+      "id": "roommate-dishes-not-mine",
+      "text": "roommate keeps leaving her dishes everywhere and im too tired to fight about it",
+      "needs_support": false,
+      "todos": [],
+      "not_todos": ["dishes"],
+      "threads": ["People"],
+      "feelings": ["exhausted", "frustrated"]
+    },
+    {
+      "id": "everything-too-much",
+      "text": "everything is too much rn. work, school, my mom being sick, the apartment is a disaster. i cant keep up",
+      "needs_support": false,
+      "todos": [],
+      "not_todos": [],
+      "threads": ["Work", "School", "People", "Home"],
+      "feelings": ["overwhelmed"]
+    },
+    {
+      "id": "fragment-behind",
+      "text": "so behind on everything",
+      "needs_support": false,
+      "todos": [],
+      "not_todos": [],
+      "threads": [],
+      "feelings": ["overwhelmed"]
+    },
+    {
+      "id": "email-buried-in-comparison",
+      "text": "why cant i just be normal. everyone else can handle a job and a degree and i cant even answer one email",
+      "needs_support": false,
+      "todos": ["email"],
+      "not_todos": ["normal"],
+      "threads": ["Inside your head"],
+      "feelings": ["ashamed"]
+    },
+    {
+      "id": "cleaned-room-last-week",
+      "text": "last week i finally cleaned my room and i still feel like garbage",
+      "needs_support": false,
+      "todos": [],
+      "not_todos": ["clean", "room"],
+      "threads": [],
+      "feelings": []
+    },
+    {
+      "id": "ex-texted-cant-focus",
+      "text": "my ex texted me out of nowhere and now i cant focus on anything",
+      "needs_support": false,
+      "todos": [],
+      "not_todos": [],
+      "threads": ["People"],
+      "feelings": ["scattered"]
+    },
+    {
+      "id": "not-eaten-dentist",
+      "text": "havent eaten today. prob should. also need to call the dentist back",
+      "needs_support": false,
+      "todos": ["eat", "dentist"],
+      "not_todos": [],
+      "threads": ["Rest and body"],
+      "feelings": []
+    },
+    {
+      "id": "just-numb",
+      "text": "numb. just numb",
+      "needs_support": false,
+      "todos": [],
+      "not_todos": [],
+      "threads": [],
+      "feelings": ["numb"]
+    },
+    {
+      "id": "replaying-dinner",
+      "text": "i keep thinking about what i said at dinner and everyone probably thinks im annoying",
+      "needs_support": false,
+      "todos": [],
+      "not_todos": ["dinner"],
+      "threads": ["People"],
+      "feelings": ["anxious"]
+    },
+    {
+      "id": "interview-prep",
+      "text": "i have a job interview on thursday and im terrified i need to print my resume and pick an outfit",
+      "needs_support": false,
+      "todos": ["resume", "outfit"],
+      "not_todos": [],
+      "threads": ["Work"],
+      "feelings": ["anxious"]
+    },
+    {
+      "id": "burden-to-friends",
+      "text": "sorry this is long. i dont know. i just feel like a burden to my friends and like they only hang out with me bc they feel bad",
+      "needs_support": false,
+      "todos": [],
+      "not_todos": ["burden"],
+      "threads": ["Inside your head"],
+      "feelings": ["lonely"]
+    },
+    {
+      "id": "dog-died",
+      "text": "my dog died last month and i still expect her at the door when i get home",
+      "needs_support": false,
+      "todos": [],
+      "not_todos": ["door"],
+      "threads": [],
+      "feelings": ["sad"]
+    },
+    {
+      "id": "dash-list-with-self-talk",
+      "text": "- finish lab report\n- study for quiz\n- im so stupid for leaving it all to the last min",
+      "needs_support": false,
+      "todos": ["lab report", "quiz"],
+      "not_todos": ["stupid"],
+      "threads": ["School"],
+      "feelings": []
+    },
+    {
+      "id": "beach-plan-fell-through",
+      "text": "we were supposed to go to the beach saturday but i couldnt get out of bed",
+      "needs_support": false,
+      "todos": [],
+      "not_todos": ["beach"],
+      "threads": [],
+      "feelings": ["stuck"]
+    },
+    {
+      "id": "laundry-for-work",
+      "text": "need to do laundry tonight or i have nothing to wear to work tmrw",
+      "needs_support": false,
+      "todos": ["laundry"],
+      "not_todos": [],
+      "threads": ["Home"],
+      "feelings": []
+    },
+    {
+      "id": "plain-lines-with-lazy",
+      "text": "pay rent\ncall mom back\nbook doctor appt\nstop being so lazy",
+      "needs_support": false,
+      "todos": ["rent", "mom", "doctor"],
+      "not_todos": ["lazy"],
+      "threads": ["Money", "People", "Rest and body"],
+      "feelings": []
+    },
+    {
+      "id": "snapped-at-sister",
+      "text": "i snapped at my sister for no reason and now i feel awful i should apologize",
+      "needs_support": false,
+      "todos": ["apologize"],
+      "not_todos": ["snapped"],
+      "threads": ["People"],
+      "feelings": ["guilty"]
+    },
+    {
+      "id": "should-be-over-it",
+      "text": "i should be over this by now its been months",
+      "needs_support": false,
+      "todos": [],
+      "not_todos": ["over this"],
+      "threads": [],
+      "feelings": ["stuck"]
+    }
+  ]
+}
