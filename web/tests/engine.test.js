@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { organizeText, looksValid, normalizeEndpoint } from "../js/engine.js";
+import { organizeText, looksValid, normalizeEndpoint, loadSettings, saveSettings } from "../js/engine.js";
 
 test("device engine returns valid output with no network", async () => {
   const { result, engine, notice } = await organizeText("I need to do the dishes and I'm so tired", { engine: "device", endpoint: "" });
@@ -60,4 +60,21 @@ test("the keyword safety floor still applies to a model that missed a crisis", a
   const { result, engine } = await organizeText("i want to die", { engine: "model", endpoint: "https://example.invalid" });
   assert.equal(engine, "model");
   assert.equal(result.needs_support, true);
+});
+
+test("settings survive the visit when storage is blocked", () => {
+  const original = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
+  Object.defineProperty(globalThis, "localStorage", {
+    configurable: true,
+    get() {
+      throw new Error("SecurityError: storage is blocked");
+    },
+  });
+  try {
+    saveSettings({ engine: "model", endpoint: "https://a.hf.space", apiKey: "" });
+    assert.equal(loadSettings().endpoint, "https://a.hf.space");
+  } finally {
+    if (original) Object.defineProperty(globalThis, "localStorage", original);
+    else delete globalThis.localStorage;
+  }
 });
