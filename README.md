@@ -44,6 +44,8 @@ npm start        # serves on http://localhost:8000 (python3 -m http.server)
 npm test         # node's built-in test runner, no installs
 ```
 
+The site can be installed to a phone's home screen and opens with no signal: `web/sw.js` keeps a copy of each release on the device. Its cache is keyed to the `?v=` number, so a release bumps that number in `index.html`, every import, and `VERSION` in `sw.js` together (`npm test` checks they match). The PNG icons are drawn only by the Pages deploy, so on localhost the offline copy fails to install and edits show up on reload as before.
+
 ## Train the model
 
 Open `compute/kaggle_train.ipynb` on Kaggle, add your `ANTHROPIC_API_KEY` (and `HF_TOKEN` to publish), and run it top to bottom. [`compute/README.md`](compute/README.md) covers each script, costs, evaluation, and deploying the API to a Hugging Face Space.
@@ -56,6 +58,7 @@ web/                 static app (GitHub Pages serves this folder)
   js/safety.js       crisis phrase detection
   js/engine.js       picks on-device or your model, with fallback
   js/render.js       results view
+  sw.js              offline copy of each release
   tests/             node --test suites
 compute/             everything that needs a GPU or an API key
   therapistgpt/      shared schema, prompt, safety floor, inference

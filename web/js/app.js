@@ -1,5 +1,6 @@
-// Every local import carries the same ?v= as index.html. Bump them all together on each release,
-// or a returning visitor can get a new app.js paired with a stale cached module that lacks an export.
+// Every local import carries the same ?v= as index.html. Bump them all together on each release, with
+// VERSION in sw.js, or a returning visitor can get a new app.js paired with a stale cached module that
+// lacks an export.
 import { organizeText, loadSettings, saveSettings, testConnection, normalizeEndpoint } from "./engine.js?v=3";
 import { renderResult, resultToText } from "./render.js?v=3";
 import { splitClauses } from "./organizer.js?v=3";
