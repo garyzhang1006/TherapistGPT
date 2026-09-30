@@ -81,7 +81,7 @@ const DUE_LATE = /^(?:my |the )?(rent|(?:\w+ )?bills?|tuition|credit card(?: bil
 const HEDGE_ONLY = /^(?:(?:prob|probably|maybe|def|definitely|really|actually|honestly|just|so|i|should|must|need|needs|to|have|has|gotta|got|do|it|too|now|yeah|ok|okay)\b\s*)+$/i;
 const PRONOUN_ONLY = /^\w+(?: up| out| back| in| off| over)? (?:it|that|this|those|these)(?: (?:up|out|back|in|off|over|now|already|too|asap|today|tonight|tomorrow|soon))?$/i;
 
-const SELF_CRITIC = /\b(feel like (a|an|the) (worst|failure|burden|fraud|mess|loser|bad \w+)|(i'?m|im|i am) (so |such an? |just |literally |a )?(stupid|lazy|useless|worthless|pathetic|failure|mess|terrible|the worst|burden|disgusting|weak|broken|idiot|loser|disappointment|not good enough|not smart enough|too much)|i (always|never) (mess|ruin|screw|fail|forget|let|disappoint|say the wrong|do anything right|get anything right)|i feel (so |really |completely )?(useless|worthless|stupid|pathetic|like such an? \w+)|i suck\b|i can'?t do anything|what'?s wrong with me|hate myself|i ruin|i mess (everything|it all) up|i'?m bad at)/i;
+const SELF_CRITIC = /\b(feel like (a|an|the) (worst|failure|burden|fraud|mess|loser|bad \w+)|(i'?m|im|i am) (so |such an? |just |literally |a )?(stupid|lazy|useless|worthless|pathetic|failure|mess|terrible|the worst|burden|disgusting|weak|broken|idiot|loser|disappointment|not good enough|not smart enough|too much)|i (always|never) (mess|ruin|screw|fail|forget|let|disappoint|say the wrong|do anything right|get anything right)|i feel (so |really |completely )?(useless|worthless|stupid|pathetic|like such an? \w+)|i suck\b|i can'?t (even )?do anything|what'?s wrong with me|hate myself|i ruin|i mess (everything|it all) up|i'?m bad at)/i;
 
 // True for the harsh self-talk that gets a kinder view, so other views can keep it out of sight too.
 export function isSelfCritical(text) {
@@ -94,7 +94,7 @@ const REFRAMES = [
   [/burden|too much/i, "People who care about you usually want to know when you're struggling. Needing support isn't the same as being a burden."],
   [/worthless|useless|pathetic|failure|loser|disappointment/i, "A hard stretch changes how you see yourself. It doesn't change what you're worth."],
   [/hate myself/i, "Being this hard on yourself shows how much pain you're in. It isn't a verdict on who you are."],
-  [/can'?t do anything/i, "Days where nothing feels doable say how heavy things are, not how hard you try."],
+  [/can'?t (even )?do anything/i,"Days where nothing feels doable say how heavy things are, not how hard you try."],
   [/always|never/i, "Words like always and never make a hard day feel permanent. It can feel true right now without being the whole story."],
   [/worst|terrible|mess|ruin/i, "One hard moment is not the whole of you."],
 ];
@@ -334,7 +334,9 @@ function unmetTask(clause) {
   if (!m) return null;
   const verb = BASE_VERB[m[1].toLowerCase()] || m[1].toLowerCase();
   let object = trimTail(m[2]).trim();
-  if (NO_OBJECT.test(object)) {
+  // "I haven't done anything productive" or "can't even do anything right" is a verdict on the
+  // day, not a thing waiting to be done, so a quantifier counts as no object at all.
+  if (NO_OBJECT.test(object) || /^(?:anything|nothing|much|enough)\b/i.test(object)) {
     const thing = clause.match(HAVE_THING);
     if (verb === "eat") object = "something";
     else if (thing) object = `${/^(study|prepare|practice)$/.test(verb) ? "for " : ""}the ${thing[1]}`;

@@ -117,6 +117,15 @@ test("a to-do keeps the task and leaves the feeling about it behind", () => {
   assert.equal(to_dos[0].task, "Finish my thesis chapter");
 });
 
+test("a verdict on the day is not a to-do, but a named thing still waiting is", () => {
+  for (const text of ["i cant even do anything right", "i havent done anything productive today", "i havent done anything all day"]) {
+    assert.deepEqual(organize(text).to_dos, [], text);
+  }
+  assert.equal(organize("i cant even do anything right").kinder_view.length, 1);
+  assert.equal(organize("i havent eaten anything all day").to_dos[0].task, "Eat something");
+  assert.equal(organize("i still havent emailed my advisor").to_dos[0].task, "Email my advisor");
+});
+
 test("blank input still gets one gentle thread", () => {
   assert.equal(organize("   \n\t ").threads.length, 1);
 });
