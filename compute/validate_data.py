@@ -18,6 +18,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from therapistgpt.safety import mentions_crisis  # noqa: E402
 from therapistgpt.schema import SchemaError, validate  # noqa: E402
 
+
 def check_row(row: dict) -> list[str]:
     problems = []
     if set(row) != {"input", "output"}:
