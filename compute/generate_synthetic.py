@@ -8,7 +8,9 @@ Usage:
     python generate_synthetic.py --n 2000 --out data/synthetic.jsonl   # rerun resumes where it stopped
 
 Rough cost: each example is about 2.5k input and 1k output tokens, so 2,000 examples on
-claude-opus-5-5 ($4 in / $20 out per million) is roughly $60. Try --n 20 first.
+claude-opus-5-5 ($4 in / $20 out per million) is roughly $60 before thinking tokens, which the
+model always uses and bills as output. Rows dropped later are paid for too. Run --n 20 first:
+the script prints the tokens it used, so you can price the full run from real numbers.
 """
 
 from __future__ import annotations
@@ -22,7 +24,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 import anthropic
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -127,25 +129,32 @@ The brain dump must read like a real person typing to themselves, not like a wri
     return prompt, crisis
 
 
-def generate_one(client: anthropic.Anthropic, model: str, prompt: str, crisis: bool) -> dict | None:
-    response = client.messages.parse(
-        model=model,
-        max_tokens=16000,
-        messages=[{"role": "user", "content": prompt}],
-        output_format=Example,
-    )
-    if response.stop_reason == "refusal":
-        return None
+def generate_one(
+    client: anthropic.Anthropic, model: str, effort: str, prompt: str, crisis: bool
+) -> tuple[dict | None, int, int]:
+    """Returns (row or None, input tokens, output tokens)."""
+    try:
+        response = client.messages.parse(
+            model=model,
+            max_tokens=16000,
+            messages=[{"role": "user", "content": prompt}],
+            output_format=Example,
+            output_config={"effort": effort},
+        )
+    except ValidationError:
+        # parse() validates eagerly, so a refusal or a max_tokens cut-off with partial JSON lands here.
+        return None, 0, 0
+    used = (response.usage.input_tokens, response.usage.output_tokens)
     example = response.parsed_output
-    if example is None:
-        return None
+    if response.stop_reason == "refusal" or example is None:
+        return None, *used
     row = {"input": example.brain_dump.strip(), "output": example.organized.model_dump()}
     validate(row["output"])
     # Indirect crisis dumps often contain no keyword, so validate_data can't catch a wrong label.
     # Trust the label we asked for and drop the row if the teacher disagreed.
     if row["output"]["needs_support"] != crisis:
-        return None
-    return row
+        return None, *used
+    return row, *used
 
 
 def main() -> int:
@@ -154,6 +163,10 @@ def main() -> int:
     parser.add_argument("--out", type=Path, default=HERE / "data" / "synthetic.jsonl")
     parser.add_argument("--seeds", type=Path, default=HERE / "data" / "seed.jsonl")
     parser.add_argument("--model", default="claude-opus-5-5")
+    parser.add_argument(
+        "--effort", default="medium", choices=["low", "medium", "high"],
+        help="thinking effort; low is cheaper, medium (the API default) writes more careful examples",
+    )
     parser.add_argument("--workers", type=int, default=8)
     parser.add_argument("--crisis-rate", type=float, default=0.08)
     parser.add_argument("--seed", type=int, default=0)
@@ -179,18 +192,26 @@ def main() -> int:
     requests = [build_request(rng, seeds, args.crisis_rate) for _ in range(todo)]
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
+    # A hard kill can leave a half-written last line; start on a fresh line so the next row isn't glued to it.
+    if args.out.exists() and args.out.stat().st_size and not args.out.read_bytes().endswith(b"\n"):
+        with args.out.open("a", encoding="utf-8") as fh:
+            fh.write("\n")
     lock = threading.Lock()
-    written = failed = 0
+    written = failed = tokens_in = tokens_out = 0
     with args.out.open("a", encoding="utf-8") as fh, ThreadPoolExecutor(max_workers=args.workers) as pool:
-        futures = [pool.submit(generate_one, client, args.model, prompt, crisis) for prompt, crisis in requests]
+        futures = [
+            pool.submit(generate_one, client, args.model, args.effort, prompt, crisis) for prompt, crisis in requests
+        ]
         for future in as_completed(futures):
             try:
-                row = future.result()
+                row, used_in, used_out = future.result()
             # Catch everything per row: one bad reply must not abort a run whose other calls are already paid for.
             except Exception as exc:
                 failed += 1
                 print(f"skipped one example: {type(exc).__name__}: {exc}", file=sys.stderr)
                 continue
+            tokens_in += used_in
+            tokens_out += used_out
             if row is None:
                 failed += 1
                 continue
@@ -202,6 +223,7 @@ def main() -> int:
                     print(f"{written}/{todo} written, {failed} skipped")
 
     print(f"done: {written} written, {failed} skipped -> {args.out}")
+    print(f"tokens used: {tokens_in:,} input, {tokens_out:,} output (thinking included)")
     print("next: python validate_data.py", args.out)
     return 0
 

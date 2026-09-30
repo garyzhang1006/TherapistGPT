@@ -49,7 +49,7 @@ python merge_and_export.py --adapter outputs/therapistgpt-lora/final --push your
 
 These are estimates, not measurements, so check the 20-example run first.
 
-- Synthetic data: about 2.5k input and 1k output tokens per example. 2,000 examples on `claude-opus-5-5` comes to roughly $60. Pass `--model claude-sonnet-5-5` to halve that.
+- Synthetic data: about 2.5k input and 1k output tokens per example, so 2,000 examples on `claude-opus-5-5` come to roughly $60 before thinking tokens, which are billed as output and can add a lot. The script prints its token totals at the end, so price the full run from the 20-example one. `--model claude-sonnet-5-5` halves the per-token price, and `--effort low` trims thinking.
 - Training: 2,000 examples for 3 epochs on one T4 should take 40 to 70 minutes.
 - Evaluation: about 5 to 15 seconds per example on a T4 with greedy decoding.
 
