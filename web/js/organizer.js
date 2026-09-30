@@ -219,12 +219,16 @@ function crisisSpan(part) {
 
 // "i have a chem quiz tmrw and rent is late and i dont want to be here anymore": only the crisis
 // clause goes under Inside your head, and the quiz and the rent keep their own topics. Breaks that
-// fall inside the crisis phrase itself ("sleep and never wake up") are left alone.
+// fall inside the crisis phrase itself ("sleep and never wake up") are left alone, and so is a
+// break whose cleaned clause would lose the phrase: in "sleep, and never wake up" the comma sits
+// right before "and", which cleanClause strips as filler, leaving a calm-looking "Never wake up".
 function splitAroundCrisis(part) {
   const span = crisisSpan(part);
   if (!span) return [part];
   const breaks = [...part.matchAll(BREAK)];
-  const before = breaks.filter((m) => m.index + m[0].length <= span.start).pop();
+  const before = breaks
+    .filter((m) => m.index + m[0].length <= span.start && mentionsCrisis(cleanClause(part.slice(m.index + m[0].length, span.end))))
+    .pop();
   const after = breaks.find((m) => m.index >= span.end);
   return [
     ...(before ? splitLoose(part.slice(0, before.index)) : []),

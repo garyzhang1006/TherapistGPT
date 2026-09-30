@@ -64,11 +64,17 @@ test("the keyword safety floor still applies to a model that missed a crisis", a
 });
 
 test("device results never print a crisis sentence back and stay renderable", async () => {
-  for (const text of ["i want to kill myself", "i have a chem quiz tmrw and rent is late and honestly i dont want to be here anymore"]) {
+  for (const text of [
+    "i want to kill myself",
+    "i have a chem quiz tmrw and rent is late and honestly i dont want to be here anymore",
+    "i just want to sleep, and never wake up",
+  ]) {
     const { result } = await organizeText(text, { engine: "device", endpoint: "" });
     assert.ok(looksValid(result), text);
     assert.equal(result.needs_support, true, text);
     assert.ok(result.threads.every((t) => t.points.length && t.points.every((p) => !mentionsCrisis(p))), text);
+    // A clause split off from its crisis phrase can look calm to mentionsCrisis, so check the words too.
+    assert.ok(result.threads.every((t) => t.points.every((p) => !/wake up/i.test(p))), text);
   }
 });
 

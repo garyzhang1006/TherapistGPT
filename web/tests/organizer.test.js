@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { organize, splitClauses, isSelfCritical } from "../js/organizer.js";
+import { mentionsCrisis } from "../js/safety.js";
 
 const seeds = readFileSync(new URL("../../compute/data/seed.jsonl", import.meta.url), "utf8")
   .trim()
@@ -157,4 +158,9 @@ test("crisis words sit under Inside your head, not the topic they mention", () =
   const out = organize("i have to pay rent. i just want to sleep and never wake up");
   const home = out.threads.find((t) => t.points.some((p) => /never wake up/.test(p)));
   assert.equal(home.title, "Inside your head");
+});
+
+test("a comma before a crisis phrase does not split off a calm-looking piece of it", () => {
+  const points = organize("i just want to sleep, and never wake up").threads.flatMap((t) => t.points);
+  assert.ok(points.filter((p) => /wake up/i.test(p)).every(mentionsCrisis), points.join(" | "));
 });
