@@ -1,0 +1,65 @@
+name: Compute smoke
+
+# Runs the whole compute pipeline on CPU with a tiny random Qwen2, to prove the scripts and the pinned
+# libraries still fit together. The model learns nothing, so the checks cover plumbing, not quality.
+on:
+  pull_request:
+    paths:
+      - "compute/**"
+      - ".github/workflows/smoke.yml"
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: compute
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+      TINY_MODEL: trl-internal-testing/tiny-Qwen2ForCausalLM-2.5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            compute/requirements.txt
+            .github/workflows/smoke.yml
+
+      # torch 2.13.0 is what transformers v5.17.0 builds its own test image with
+      # (docker/transformers-all-latest-gpu/Dockerfile), and the CPU index skips the CUDA wheels.
+      # httpx2 is what starlette's TestClient imports; fastapi does not install it.
+      - name: Install CPU torch and the pinned requirements
+        run: |
+          pip install torch==2.13.0 --index-url https://download.pytorch.org/whl/cpu
+          pip install -r requirements.txt httpx2==2.13.1
+
+      - name: Split the seed data
+        run: python split_data.py --inputs data/seed.jsonl
+
+      - name: Dry run
+        run: python train_lora.py --dry-run
+
+      - name: Train two steps on CPU
+        run: python train_lora.py --smoke
+
+      - name: Check the adapter was saved
+        run: test -f outputs/smoke/final/adapter_config.json
+
+      # Seed rows only ever go to train, so the test split is empty here; score a few train rows instead.
+      - name: Evaluate the smoke adapter
+        run: |
+          python evaluate.py --model "$TINY_MODEL" --adapter outputs/smoke/final \
+            --test data/train.jsonl --limit 2 --report outputs/smoke/eval_report.json
+          python tests/smoke_check.py report outputs/smoke/eval_report.json
+
+      - name: Merge the smoke adapter
+        run: |
+          python merge_and_export.py --model "$TINY_MODEL" --adapter outputs/smoke/final --out outputs/smoke/merged
+          python tests/smoke_check.py merged outputs/smoke/merged
+
+      - name: Serve the merged model
+        run: python tests/smoke_check.py serve outputs/smoke/merged
