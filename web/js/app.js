@@ -3,7 +3,7 @@
 // lacks an export.
 import { organizeText, loadSettings, saveSettings, testConnection, normalizeEndpoint } from "./engine.js?v=4";
 import { renderResult, resultToText } from "./render.js?v=4";
-import { splitClauses } from "./organizer.js?v=4";
+import { splitClauses, isSelfCritical } from "./organizer.js?v=4";
 import { mentionsCrisis } from "./safety.js?v=4";
 
 const $ = (id) => document.getElementById(id);
@@ -228,14 +228,16 @@ updatePrivacyNote();
 
 // Fragments of the person's own words drift up and settle before the calm version appears.
 // Purely decorative: skipped for reduced-motion users, and for crisis text so painful words
-// never drift across the screen.
+// never drift across the screen. Harsh self-talk is left out for the same reason.
 function settle(text) {
   if (reduceMotion.matches || mentionsCrisis(text)) return Promise.resolve();
   const stage = $("settle");
   const box = dump.getBoundingClientRect();
   // The textarea can be partly scrolled away on a phone; keep every fragment on screen.
   const clamp = (value, max) => Math.min(Math.max(value, 8), Math.max(max, 8));
-  const fragments = splitClauses(text).slice(0, 12);
+  const fragments = splitClauses(text)
+    .filter((fragment) => !isSelfCritical(fragment))
+    .slice(0, 12);
   const motes = fragments.map((fragment, i) => {
     const mote = document.createElement("span");
     mote.className = "mote";
