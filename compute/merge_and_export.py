@@ -38,8 +38,10 @@ def main() -> int:
 
     base_id = yaml.safe_load(args.config.read_text(encoding="utf-8"))["base_model"]
     adapter_path = Path(args.adapter)
-    if not adapter_path.exists() and "/" not in args.adapter:
-        print(f"error: adapter {args.adapter} is neither a local folder nor a Hub id", file=sys.stderr)
+    # A Hub id has exactly one slash (user/name); anything else that doesn't exist is a mistyped path,
+    # which would otherwise fail later with a confusing Hub lookup error.
+    if not adapter_path.exists() and args.adapter.count("/") != 1:
+        print(f"error: adapter {args.adapter} is neither a local folder nor a Hub id like user/name", file=sys.stderr)
         return 2
 
     # Save merged weights in bf16: same size as fp16 but without Qwen2.5's fp16 overflow risk.
