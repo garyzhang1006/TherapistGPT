@@ -444,6 +444,7 @@ kbd {
   font-size: clamp(2rem, 5.2vw, 2.9rem);
 }
 
+main:focus,
 .results-head h1:focus,
 .card-label:focus,
 .dialog-body h2:focus {
