@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- App icon. The background fills every pixel so Android can cut it to any mask shape, and the
+       orb stays well inside the central circle (radius 40% of the icon) that masks never crop.
+       The Pages workflow renders the PNG sizes from this file. -->
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#c3b6e3" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#c3b6e3" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="orb" cx="38%" cy="34%" r="70%">
+      <stop offset="0" stop-color="#f4e9dc"/>
+      <stop offset="0.55" stop-color="#cdbfe6"/>
+      <stop offset="1" stop-color="#8fae98"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" fill="#16151d"/>
+  <circle cx="256" cy="256" r="204" fill="url(#glow)"/>
+  <circle cx="256" cy="256" r="150" fill="url(#orb)"/>
+</svg>
