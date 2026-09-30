@@ -120,3 +120,15 @@ test("feelings come from feeling words, not colors or objects", () => {
   assert.deepEqual(organize("wore my grey hoodie, got a flat tire, told him to leave me alone").feelings, []);
   assert.ok(organize("i miss sam so much").feelings.includes("sad"));
 });
+
+test("too many topics fold into Everything else without losing any topic", () => {
+  const out = organize("my exam is monday. my boss yelled. rent is due. my mom called. i can't sleep. my room is a mess");
+  assert.equal(out.threads.length, 5);
+  assert.equal(out.threads[4].title, "Everything else");
+  assert.equal(out.threads.flatMap((t) => t.points).length, 6);
+});
+
+test("not eating comes before anything else in the one small step", () => {
+  const out = organize("i need to email my professor. i haven't eaten since breakfast");
+  assert.match(out.one_small_step, /food/);
+});

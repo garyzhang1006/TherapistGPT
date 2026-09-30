@@ -15,6 +15,7 @@ const TOPICS = [
   { title: "Home", words: /\b(room|dishes|laundry|clean|cleaning|mess|messy|apartment|house|home|groceries|move|moving|boxes|kitchen|trash)\b/i },
 ];
 const FALLBACK_TOPIC = "Inside your head";
+const OVERFLOW_TOPIC = "Everything else";
 
 const FEELINGS = [
   ["exhausted", /\b(tired|exhausted|drained|worn out|no energy|sleepy|fatigue)\b/i],
@@ -190,6 +191,7 @@ function toTask(clause) {
     // "Finish the chapter and I haven't opened it" is one task plus a feeling about it.
     .replace(/\s+(?:and|but|so)\s+(?:I|I'm|I've|I'd)\b.*$/i, "")
     .replace(/^(?:I|I've|we) (?:have|got) (?=(?:the|a|an|my|this|that)\b)/i, "")
+    .replace(/\s+(I guess|I think|probably|maybe|lol|idk)$/i, "")
     .replace(/\s+(at some point|asap|soon|today|tomorrow|tonight|this week)$/i, "");
   return capitalize(task);
 }
@@ -227,14 +229,21 @@ function buildSummary(threadTitles, feelings, hasCritic, clauseCount) {
   if (clauseCount <= 1 && !feelings.length) {
     return "Thanks for putting this into words. Here it is, laid out a little more gently.";
   }
-  const topics = threadTitles.filter((t) => t !== FALLBACK_TOPIC).map((t) => t.toLowerCase());
+  // "with school and rest on your mind" reads better than "rest and body".
+  const topics = threadTitles
+    .filter((t) => t !== FALLBACK_TOPIC && t !== OVERFLOW_TOPIC)
+    .map((t) => (t === "Rest and body" ? "rest" : t.toLowerCase()));
   const feelingPart = feelings.length ? `It sounds like you're feeling ${joinList(feelings.slice(0, 2))}` : "A lot is going on for you";
   const topicPart = topics.length ? `, with ${joinList(topics.slice(0, 3))} on your mind` : "";
   const criticPart = hasCritic ? ", and some harsh thoughts are pointed at yourself" : "";
   return `${feelingPart}${topicPart}${criticPart}.`;
 }
 
-function pickSmallStep(todos, feelings) {
+const NOT_EATEN = /\b(haven'?t|havent|didn'?t|didnt|forgot to|not) (eaten|eat|had (any )?(food|breakfast|lunch|dinner))\b|\bskipp(ed|ing) (meals?|breakfast|lunch|dinner)\b/i;
+
+function pickSmallStep(todos, feelings, lower) {
+  const meds = todos.find((t) => STEP_PRIORITY[0].test(t.task));
+  if (!meds && NOT_EATEN.test(lower)) return "Only this, for now: grab the easiest food within reach, even a few crackers.";
   for (const pattern of STEP_PRIORITY) {
     const hit = todos.find((t) => pattern.test(t.task));
     if (hit) return `Only this, for now: ${hit.first_step.charAt(0).toLowerCase()}${hit.first_step.slice(1)}.`;
@@ -279,13 +288,15 @@ export function organize(text) {
     }
   }
 
-  // Biggest groups first; anything past the fifth folds into one catch-all thread.
+  // Biggest groups first. Past the limit, the smallest groups share one "Everything else" thread
+  // instead of being tucked under an unrelated title, and each keeps at least one point.
   const ordered = [...groups.entries()].sort((a, b) => b[1].length - a[1].length);
-  const threads = ordered.slice(0, LIMITS.threads).map(([title, points]) => ({ title, points: points.slice(0, LIMITS.points) }));
-  const overflow = ordered.slice(LIMITS.threads).flatMap(([, points]) => points);
-  if (overflow.length) {
-    const last = threads[threads.length - 1];
-    last.points = [...last.points, ...overflow].slice(0, LIMITS.points);
+  const keep = ordered.length > LIMITS.threads ? LIMITS.threads - 1 : LIMITS.threads;
+  const threads = ordered.slice(0, keep).map(([title, points]) => ({ title, points: points.slice(0, LIMITS.points) }));
+  const rest = ordered.slice(keep);
+  if (rest.length) {
+    const points = [...rest.map(([, p]) => p[0]), ...rest.flatMap(([, p]) => p.slice(1))];
+    threads.push({ title: OVERFLOW_TOPIC, points: points.slice(0, LIMITS.points) });
   }
 
   const needsSupport = mentionsCrisis(text);
@@ -295,7 +306,7 @@ export function organize(text) {
     threads,
     to_dos: todos,
     kinder_view: needsSupport ? [] : reframes,
-    one_small_step: needsSupport ? CRISIS_STEP : pickSmallStep(todos, feelings),
+    one_small_step: needsSupport ? CRISIS_STEP : pickSmallStep(todos, feelings, lower),
     needs_support: needsSupport,
   };
 }
