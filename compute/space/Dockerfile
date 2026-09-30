@@ -8,8 +8,10 @@ USER user
 ENV HOME=/home/user PATH=/home/user/.local/bin:$PATH
 WORKDIR /home/user/app
 
-# CPU wheels keep the image small; switch the index URL to a CUDA one for a GPU Space.
-RUN pip install --no-cache-dir --user torch --index-url https://download.pytorch.org/whl/cpu
+# CPU wheels keep the image small. On GPU Space hardware, set the build argument
+# TORCH_INDEX=https://download.pytorch.org/whl/cu128 so requests finish well inside the app's 60s timeout.
+ARG TORCH_INDEX=https://download.pytorch.org/whl/cpu
+RUN pip install --no-cache-dir --user torch --index-url ${TORCH_INDEX}
 RUN pip install --no-cache-dir --user transformers==5.17.0 peft==0.21.1 pyyaml fastapi==0.142.1 uvicorn==0.54.0
 
 COPY --chown=user therapistgpt ./therapistgpt
