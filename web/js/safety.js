@@ -54,10 +54,12 @@ export const CRISIS_SUMMARY =
 export const CRISIS_STEP =
   "Call or text 988 (US and Canada) or your local crisis line now, or tell someone near you that you're not safe.";
 
-// Same override the server applies: a keyword hit always wins over the model's judgment.
+// Same override the server applies: a keyword hit always wins over the model's judgment, and
+// a crisis phrase never comes back as a to-do, whatever the model decided.
 export function applySafetyFloor(text, output) {
+  const to_dos = output.to_dos.filter((todo) => !mentionsCrisis(`${todo.task} ${todo.first_step}`));
   if (mentionsCrisis(text) && !output.needs_support) {
-    return { ...output, needs_support: true, summary: CRISIS_SUMMARY, one_small_step: CRISIS_STEP, kinder_view: [] };
+    return { ...output, to_dos, needs_support: true, summary: CRISIS_SUMMARY, one_small_step: CRISIS_STEP, kinder_view: [] };
   }
-  return output;
+  return { ...output, to_dos };
 }

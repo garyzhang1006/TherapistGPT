@@ -102,13 +102,13 @@ export async function organizeText(text, settings = loadSettings()) {
     } catch (error) {
       const reason = error.name === "AbortError" ? "Your model took too long to answer." : error.message;
       return {
-        result: organizeOnDevice(text),
+        result: applySafetyFloor(text, organizeOnDevice(text)),
         engine: "device",
         notice: `${reason} This was organized on your device instead.`,
       };
     }
   }
-  return { result: organizeOnDevice(text), engine: "device", notice: "" };
+  return { result: applySafetyFloor(text, organizeOnDevice(text)), engine: "device", notice: "" };
 }
 
 export async function testConnection(endpoint) {

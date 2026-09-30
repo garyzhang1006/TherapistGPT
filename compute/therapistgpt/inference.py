@@ -21,6 +21,9 @@ CRISIS_STEP = "Call or text 988 (US and Canada) or your local crisis line now, o
 
 def apply_safety_floor(brain_dump: str, output: dict[str, Any]) -> dict[str, Any]:
     """Force the crisis response when the keyword detector fires, even if the model missed it."""
+    # A crisis phrase must never come back as a to-do, even when the model flagged the crisis itself.
+    to_dos = [t for t in output["to_dos"] if not mentions_crisis(f"{t['task']} {t['first_step']}")]
+    output = {**output, "to_dos": to_dos}
     if mentions_crisis(brain_dump) and not output["needs_support"]:
         output = {
             **output,

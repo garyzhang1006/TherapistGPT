@@ -70,6 +70,11 @@ class SafetyTests(unittest.TestCase):
         self.assertTrue(out["needs_support"])
         self.assertIn("988", out["one_small_step"])
 
+    def test_floor_drops_crisis_todos_even_when_model_flagged_it(self):
+        todos = [{"task": "End it all", "first_step": "Start small"}, {"task": "Do laundry", "first_step": "Gather clothes"}]
+        out = apply_safety_floor("i have to end it all", {**EXAMPLE_OUTPUT, "needs_support": True, "to_dos": todos})
+        self.assertEqual([t["task"] for t in out["to_dos"]], ["Do laundry"])
+
 
 class PromptTests(unittest.TestCase):
     def test_inference_messages_have_no_assistant_turn(self):

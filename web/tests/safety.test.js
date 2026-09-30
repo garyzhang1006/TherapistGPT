@@ -37,3 +37,12 @@ test("safety floor overrides a model that missed the crisis", () => {
   assert.equal(out.needs_support, true);
   assert.match(out.one_small_step, /988/);
 });
+
+test("safety floor drops crisis to-dos even when the model flagged the crisis itself", () => {
+  const modelOut = {
+    summary: "x", feelings: [], threads: [], kinder_view: [], one_small_step: "y", needs_support: true,
+    to_dos: [{ task: "End it all", first_step: "Start small" }, { task: "Do laundry", first_step: "Gather the clothes" }],
+  };
+  const out = applySafetyFloor("i have to end it all and do laundry", modelOut);
+  assert.deepEqual(out.to_dos.map((t) => t.task), ["Do laundry"]);
+});
