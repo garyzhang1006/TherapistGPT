@@ -36,6 +36,9 @@ function write(key, value) {
   }
 }
 
+// Mac keyboards send Cmd+Enter; the handler below accepts both, the hint should say the right one.
+if (/mac|iphone|ipad/i.test(navigator.userAgentData?.platform || navigator.platform || "")) $("mod-key").textContent = "⌘";
+
 // ---------- draft autosave ----------
 
 dump.value = read(DRAFT_KEY, "");
@@ -105,7 +108,15 @@ function syncThemeColor() {
   });
 }
 
+// The button's name says what pressing it will do, so screen readers hear the current state too.
+function labelThemeButton() {
+  const label = currentTheme() === "dark" ? "Switch to light theme" : "Switch to dark theme";
+  $("theme-label").textContent = label;
+  $("theme-toggle").title = label;
+}
+
 syncThemeColor();
+labelThemeButton();
 
 $("theme-toggle").addEventListener("click", () => {
   const next = currentTheme() === "dark" ? "light" : "dark";
@@ -113,6 +124,7 @@ $("theme-toggle").addEventListener("click", () => {
   prefs.theme = next;
   write(PREFS_KEY, prefs);
   syncThemeColor();
+  labelThemeButton();
 });
 
 sizeToggle.addEventListener("click", () => {
