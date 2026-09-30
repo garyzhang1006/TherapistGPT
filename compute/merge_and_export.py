@@ -42,9 +42,10 @@ def main() -> int:
         print(f"error: adapter {args.adapter} is neither a local folder nor a Hub id", file=sys.stderr)
         return 2
 
-    # Merge in fp16: the merged weights are shipped for inference, where fp16 is the common format.
+    # Save merged weights in bf16: same size as fp16 but without Qwen2.5's fp16 overflow risk.
+    # The merge itself is plain tensor math, so it works on CPU or GPU.
     print(f"loading {base_id} and applying {args.adapter}")
-    base = AutoModelForCausalLM.from_pretrained(base_id, dtype=torch.float16)
+    base = AutoModelForCausalLM.from_pretrained(base_id, dtype=torch.bfloat16)
     merged = PeftModel.from_pretrained(base, args.adapter).merge_and_unload()
     tokenizer = AutoTokenizer.from_pretrained(args.adapter)
 
