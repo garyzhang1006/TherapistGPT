@@ -61,6 +61,7 @@ function clearWithUndo() {
   undo.className = "link";
   undo.textContent = "Undo";
   undo.addEventListener("click", () => {
+    clearTimeout(undoTimer);
     dump.value = removed;
     write(DRAFT_KEY, removed);
     writeStatus.textContent = "";
@@ -69,6 +70,13 @@ function clearWithUndo() {
   writeStatus.append(undo);
   undoTimer = setTimeout(() => (writeStatus.textContent = ""), 12000);
 }
+
+// Once the person starts writing again, Undo would overwrite the new words, so it goes away.
+dump.addEventListener("input", () => {
+  if (!writeStatus.querySelector("button")) return;
+  clearTimeout(undoTimer);
+  writeStatus.textContent = "";
+});
 
 $("clear-btn").addEventListener("click", () => {
   clearWithUndo();
