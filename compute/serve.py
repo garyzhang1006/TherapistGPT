@@ -66,7 +66,8 @@ app.add_middleware(
 
 def check_key(given: str | None) -> None:
     expected = os.environ.get("API_KEY")
-    if expected and not hmac.compare_digest(given or "", expected):
+    # Compare bytes: compare_digest raises TypeError on non-ASCII str, which would surface as a 500.
+    if expected and not hmac.compare_digest((given or "").encode(), expected.encode()):
         raise HTTPException(status_code=401, detail="missing or wrong X-API-Key")
 
 
