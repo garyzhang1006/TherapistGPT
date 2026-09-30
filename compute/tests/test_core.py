@@ -54,6 +54,13 @@ class SafetyTests(unittest.TestCase):
                      "I can‘t go on", "i can`t do this anymore", "I canʼt go on", "I can＇t go on"]:
             self.assertTrue(mentions_crisis(text), text)
 
+    def test_shared_cases_match_the_web_detector(self):
+        cases = json.loads((HERE / "tests" / "crisis_cases.json").read_text(encoding="utf-8"))
+        for text in cases["should_flag"]:
+            self.assertTrue(mentions_crisis(text), text)
+        for text in cases["should_not_flag"]:
+            self.assertFalse(mentions_crisis(text), text)
+
     def test_ignores_figures_of_speech(self):
         for text in ["this exam will kill me", "I want to end things with him", "my phone died"]:
             self.assertFalse(mentions_crisis(text), text)

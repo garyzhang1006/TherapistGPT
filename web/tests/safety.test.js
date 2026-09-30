@@ -15,6 +15,16 @@ test("catches direct and indirect crisis language, including curly apostrophes",
   }
 });
 
+const CASES = JSON.parse(readFileSync(new URL("../../compute/tests/crisis_cases.json", import.meta.url), "utf8"));
+
+test("flags every shared crisis case, including indirect phrasings", () => {
+  for (const text of CASES.should_flag) assert.equal(mentionsCrisis(text), true, text);
+});
+
+test("leaves every shared figure-of-speech case alone", () => {
+  for (const text of CASES.should_not_flag) assert.equal(mentionsCrisis(text), false, text);
+});
+
 test("ignores common figures of speech", () => {
   for (const text of ["this exam will kill me lol", "I'm dying to see that movie", "my phone died", "I want to end things with my boyfriend"]) {
     assert.equal(mentionsCrisis(text), false, text);
