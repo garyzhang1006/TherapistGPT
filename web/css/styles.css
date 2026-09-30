@@ -860,9 +860,15 @@ dialog[open] {
 
 .dialog-actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: 0.5rem;
   margin-top: 1.25rem;
+}
+
+/* Test sits apart from Cancel and Save, and on a phone wraps onto its own line above them. */
+#test-endpoint {
+  margin-right: auto;
 }
 
 .muted {
@@ -872,6 +878,12 @@ dialog[open] {
 .small {
   font-size: 0.88rem;
   min-height: 1.3em;
+}
+
+/* Collapsed, not display: none, so the live region stays in place to announce the next message. */
+.small:empty {
+  min-height: 0;
+  margin: 0;
 }
 
 fieldset {

@@ -206,6 +206,9 @@ $("save-settings").addEventListener("click", (event) => {
   updatePrivacyNote();
 });
 
+// Closing without Save leaves the stored settings alone; the form refills from storage on next open.
+$("cancel-settings").addEventListener("click", () => $("settings-dialog").close());
+
 $("test-endpoint").addEventListener("click", async () => {
   const endpoint = endpointInput.value.trim();
   if (!endpoint) {
