@@ -127,7 +127,7 @@ The brain dump must read like a real person typing to themselves, not like a wri
     return prompt, crisis
 
 
-def generate_one(client: anthropic.Anthropic, model: str, prompt: str) -> dict | None:
+def generate_one(client: anthropic.Anthropic, model: str, prompt: str, crisis: bool) -> dict | None:
     response = client.messages.parse(
         model=model,
         max_tokens=16000,
@@ -137,8 +137,14 @@ def generate_one(client: anthropic.Anthropic, model: str, prompt: str) -> dict |
     if response.stop_reason == "refusal":
         return None
     example = response.parsed_output
+    if example is None:
+        return None
     row = {"input": example.brain_dump.strip(), "output": example.organized.model_dump()}
     validate(row["output"])
+    # Indirect crisis dumps often contain no keyword, so validate_data can't catch a wrong label.
+    # Trust the label we asked for and drop the row if the teacher disagreed.
+    if row["output"]["needs_support"] != crisis:
+        return None
     return row
 
 
@@ -176,11 +182,12 @@ def main() -> int:
     lock = threading.Lock()
     written = failed = 0
     with args.out.open("a", encoding="utf-8") as fh, ThreadPoolExecutor(max_workers=args.workers) as pool:
-        futures = {pool.submit(generate_one, client, args.model, prompt): crisis for prompt, crisis in requests}
+        futures = [pool.submit(generate_one, client, args.model, prompt, crisis) for prompt, crisis in requests]
         for future in as_completed(futures):
             try:
                 row = future.result()
-            except (SchemaError, anthropic.APIStatusError, anthropic.APIConnectionError, ValueError) as exc:
+            # Catch everything per row: one bad reply must not abort a run whose other calls are already paid for.
+            except (SchemaError, anthropic.APIStatusError, anthropic.APIConnectionError, ValueError, Exception) as exc:
                 failed += 1
                 print(f"skipped one example: {type(exc).__name__}: {exc}", file=sys.stderr)
                 continue
