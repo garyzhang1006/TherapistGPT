@@ -69,12 +69,16 @@ def main() -> int:
         print("error: pass --adapter, --model, or --base-only", file=sys.stderr)
         return 2
 
-    base = yaml.safe_load(args.config.read_text(encoding="utf-8"))["base_model"]
-    organizer = Organizer(args.model or base, adapter=args.adapter)
-
     rows = [json.loads(line) for line in args.test.read_text(encoding="utf-8").splitlines() if line.strip()]
     if args.limit:
         rows = rows[: args.limit]
+    # Checked before loading the model so an empty split fails in a second, not after a download.
+    if not rows:
+        print(f"error: {args.test} has no rows; generate synthetic data and rerun split_data.py", file=sys.stderr)
+        return 2
+
+    base = yaml.safe_load(args.config.read_text(encoding="utf-8"))["base_model"]
+    organizer = Organizer(args.model or base, adapter=args.adapter)
 
     totals = {"valid_json": 0, "valid_schema": 0, "grounding": 0.0, "feeling_overlap": 0.0}
     tp = fp = fn = 0
