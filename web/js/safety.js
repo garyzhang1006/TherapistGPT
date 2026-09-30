@@ -4,9 +4,10 @@
 export const CRISIS_PATTERNS = [
   /\bkill(ing)? my ?self\b/i,
   /\bsuicid(e|al)\b/i,
-  // "i want to die my hair" means dye. A line break collapses to a space before matching, so a verb
-  // after "hair" (die\nmy hair is falling out) still flags, and so does "die. my hair".
-  /\b(want(ed|s)? to|wanna|wish i could) die\b(?! (my|your|his|her|their) hair\b(?! (is|isn'?t|was|keeps|kept|has|had|looks|won'?t|falls|fell|falling)\b))/i,
+  // "i want to die my hair blue" means dye. Only a color, "again", "back" or the end of the text
+  // after "hair" counts as dye, because a line break collapses to a space and "die\nmy hair's
+  // falling out" must still flag; a false alarm is cheap. "die. my hair" flags on the period.
+  /\b(want(ed|s)? to|wanna|wish i could) die\b(?! (my|your|his|her|their) hair( (blue|red|pink|purple|green|black|blonde|blond|brown|silver|white|orange|grey|gray|again|back)\b|$))/i,
   /\bwish i (was|were) (dead|gone|never born)\b/i,
   /\bwish i('d| had)? never (been born|existed|woken up)\b/i,
   /\bend(ing)? (it all|my life|my own life)\b/i,

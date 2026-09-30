@@ -12,9 +12,10 @@ import re
 CRISIS_PATTERNS = [
     r"\bkill(ing)? my ?self\b",
     r"\bsuicid(e|al)\b",
-    # "i want to die my hair" means dye. A line break collapses to a space before matching, so a verb
-    # after "hair" (die\nmy hair is falling out) still flags, and so does "die. my hair".
-    r"\b(want(ed|s)? to|wanna|wish i could) die\b(?! (my|your|his|her|their) hair\b(?! (is|isn'?t|was|keeps|kept|has|had|looks|won'?t|falls|fell|falling)\b))",
+    # "i want to die my hair blue" means dye. Only a color, "again", "back" or the end of the text
+    # after "hair" counts as dye, because a line break collapses to a space and "die\nmy hair's
+    # falling out" must still flag; a false alarm is cheap. "die. my hair" flags on the period.
+    r"\b(want(ed|s)? to|wanna|wish i could) die\b(?! (my|your|his|her|their) hair( (blue|red|pink|purple|green|black|blonde|blond|brown|silver|white|orange|grey|gray|again|back)\b|$))",
     r"\bwish i (was|were) (dead|gone|never born)\b",
     r"\bwish i('d| had)? never (been born|existed|woken up)\b",
     r"\bend(ing)? (it all|my life|my own life)\b",
