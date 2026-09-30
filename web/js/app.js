@@ -1,7 +1,9 @@
-import { organizeText, loadSettings, saveSettings, testConnection, normalizeEndpoint } from "./engine.js";
-import { renderResult, resultToText } from "./render.js";
-import { splitClauses } from "./organizer.js";
-import { mentionsCrisis } from "./safety.js";
+// Every local import carries the same ?v= as index.html. Bump them all together on each release,
+// or a returning visitor can get a new app.js paired with a stale cached module that lacks an export.
+import { organizeText, loadSettings, saveSettings, testConnection, normalizeEndpoint } from "./engine.js?v=3";
+import { renderResult, resultToText } from "./render.js?v=3";
+import { splitClauses } from "./organizer.js?v=3";
+import { mentionsCrisis } from "./safety.js?v=3";
 
 const $ = (id) => document.getElementById(id);
 const DRAFT_KEY = "therapistgpt.draft";
