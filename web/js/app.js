@@ -329,12 +329,12 @@ async function run() {
     clearTimeout(saveTimer);
     write(DRAFT_KEY, null);
     // After crisis words, "a little quieter" and a privacy footnote read as cheerful and beside the point.
+    // A fallback notice still shows, so nobody thinks their own model wrote this when it was skipped.
     const crisis = outcome.result.needs_support;
     $("result-title").textContent = crisis ? "Thank you for writing this down." : "Here it is, a little quieter.";
-    $("engine-note").textContent = crisis
-      ? ""
-      : outcome.notice ||
-        (outcome.engine === "model" ? "Sorted by your TherapistGPT model." : "Sorted on this device. Nothing left your browser.");
+    $("engine-note").textContent =
+      outcome.notice ||
+      (crisis ? "" : outcome.engine === "model" ? "Sorted by your TherapistGPT model." : "Sorted on this device. Nothing left your browser.");
     status.textContent = "";
     writeStatus.textContent = "";
     writeView.hidden = true;
