@@ -17,7 +17,9 @@ function section(label, className) {
 function crisisCard() {
   const card = el("section", "card crisis");
   card.setAttribute("role", "alert");
-  card.append(el("h2", "card-label", "You don't have to hold this alone"));
+  const heading = el("h2", "card-label", "You don't have to hold this alone");
+  heading.tabIndex = -1;
+  card.append(heading);
   card.append(
     el("p", "crisis-lead", "Thoughts like these deserve real support. You can talk or text with a person right now, free and confidential, any time.")
   );

@@ -1,6 +1,7 @@
 import { organizeText, loadSettings, saveSettings, testConnection } from "./engine.js";
 import { renderResult, resultToText } from "./render.js";
 import { splitClauses } from "./organizer.js";
+import { mentionsCrisis } from "./safety.js";
 
 const $ = (id) => document.getElementById(id);
 const DRAFT_KEY = "therapistgpt.draft";
@@ -148,9 +149,10 @@ updatePrivacyNote();
 // ---------- the settling animation ----------
 
 // Fragments of the person's own words drift up and settle before the calm version appears.
-// Purely decorative: skipped entirely for reduced-motion users.
+// Purely decorative: skipped for reduced-motion users, and for crisis text so painful words
+// never drift across the screen.
 function settle(text) {
-  if (reduceMotion.matches) return Promise.resolve();
+  if (reduceMotion.matches || mentionsCrisis(text)) return Promise.resolve();
   const stage = $("settle");
   const box = dump.getBoundingClientRect();
   const fragments = splitClauses(text).slice(0, 12);
@@ -214,7 +216,9 @@ async function run() {
     writeView.hidden = true;
     resultView.hidden = false;
     window.scrollTo({ top: 0 });
-    $("result-title").focus();
+    // Land on the crisis card when there is one, so screen readers announce it first.
+    const crisisHeading = document.querySelector(".crisis .card-label");
+    (crisisHeading || $("result-title")).focus();
   } finally {
     organizeBtn.disabled = false;
     organizeBtn.textContent = "Sort my thoughts";
