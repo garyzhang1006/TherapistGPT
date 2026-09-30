@@ -184,8 +184,8 @@ function updatePrivacyNote() {
   const settings = loadSettings();
   $("privacy-text").textContent =
     settings.engine === "model" && settings.endpoint
-      ? "Sent only to your own model's address, and never saved there."
-      : "Stays on this device. Nothing is sent anywhere.";
+      ? "Sent only to your own model. Your draft is erased once sorted."
+      : "Nothing leaves this device. Your draft is erased once sorted.";
 }
 
 $("save-settings").addEventListener("click", (event) => {
@@ -294,6 +294,10 @@ async function run() {
     const [outcome] = await Promise.all([organizeText(text), settle(text)]);
     lastResult = outcome.result;
     renderResult($("result-cards"), outcome.result);
+    // Once sorted, the words should not wait in storage to greet the next reload. They stay in the
+    // textarea for "Back to my words", and typing there saves a new draft.
+    clearTimeout(saveTimer);
+    write(DRAFT_KEY, null);
     // After crisis words, "a little quieter" and a privacy footnote read as cheerful and beside the point.
     const crisis = outcome.result.needs_support;
     $("result-title").textContent = crisis ? "Thank you for writing this down." : "Here it is, a little quieter.";
