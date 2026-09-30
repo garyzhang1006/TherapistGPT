@@ -10,7 +10,6 @@ WORKDIR /home/user/app
 
 # CPU wheels keep the image small; switch the index URL to a CUDA one for a GPU Space.
 RUN pip install --no-cache-dir --user torch --index-url https://download.pytorch.org/whl/cpu
-COPY --chown=user requirements.txt .
 RUN pip install --no-cache-dir --user transformers==5.17.0 peft==0.21.1 pyyaml fastapi==0.142.1 uvicorn==0.54.0
 
 COPY --chown=user therapistgpt ./therapistgpt

@@ -1,6 +1,5 @@
 ---
 title: TherapistGPT API
-emoji: 🌙
 colorFrom: indigo
 colorTo: gray
 sdk: docker
