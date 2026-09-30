@@ -1,5 +1,5 @@
 # Hugging Face Docker Space for the TherapistGPT API.
-# Build context is the compute/ folder: run `huggingface-cli upload` or copy compute/ into the Space repo
+# Build context is the compute/ folder: run `hf upload <user>/<space> . --repo-type space` or copy compute/ into the Space repo
 # and move this Dockerfile to its root (see compute/README.md, "Deploy the API").
 FROM python:3.12-slim
 
