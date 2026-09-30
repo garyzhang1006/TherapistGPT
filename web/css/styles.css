@@ -393,7 +393,8 @@ h1 {
 textarea {
   display: block;
   width: 100%;
-  min-height: clamp(240px, 42vh, 460px);
+  /* Short enough that "Sort my thoughts" stays on a 375x667 screen; it grows by dragging. */
+  min-height: clamp(180px, 34vh, 460px);
   resize: vertical;
   border: 0;
   border-radius: var(--radius);
@@ -410,8 +411,11 @@ textarea:focus {
   outline: none;
 }
 
+/* The textarea has no outline of its own, so this ring is the only focus sign; a full-strength
+   2px edge clears the 3:1 minimum for non-text contrast in both themes. */
 .dump-form:focus-within {
-  border-color: color-mix(in srgb, var(--sage) 45%, transparent);
+  border-color: var(--focus);
+  box-shadow: 0 0 0 1px var(--focus);
 }
 
 textarea::placeholder {
