@@ -70,8 +70,9 @@ const BASE_VERB = {
 // "I have a bio exam tmrw and I haven't studied at all".
 const HAVE_THING = /\b(?:I have|I've got|I got|there'?s) (?:a|an|my|the|this|that) ((?:\w+ ){0,2}?(?:exam|test|quiz|midterm|final|essay|paper|report|assignment|project|presentation|interview|form|application|homework|reading))\b/i;
 const NO_OBJECT = /^(?:(?:at|all|yet|anything|a|thing|much|any|of|it|them|that|this|either|still|even|lately|really)\b\s*)*$/i;
-// "I have 3 chapters left to read" names its own verb.
-const LEFT_TO = /\b(?:I|we)(?:'ve| have)?\s+(?:still\s+)?(?:have|got)\s+((?:\d+|a few|a couple(?: of)?|two|three|four|five|six|so many|some|a bunch of|like \d+)\s+(?:\w+\s+)?\w+)\s+left\s+to\s+(\w+)/i;
+// "I have 3 chapters left to read" names its own verb. Only chore verbs count, because "a few days
+// left to live" is not a chore.
+const LEFT_TO = /\b(?:I|we)(?:'ve| have)?\s+(?:still\s+)?(?:have|got)\s+((?:\d+|a few|a couple(?: of)?|two|three|four|five|six|so many|some|a bunch of|like \d+)\s+(?:\w+\s+)?\w+)\s+left\s+to\s+(read|write|do|finish|study|grade|watch|pay|submit|pack|unpack|clean|review|edit|answer|wash|fold)\b/i;
 // "Roommate keeps leaving her dishes everywhere" is a complaint about someone else's chore.
 const SOMEONE_ELSES = /^(?:my |the |our )?(?:roommates?|flatmates?|housemates?|partner|husband|wife|bf|gf|boyfriend|girlfriend|mom|mum|dad|mother|father|sister|brother|kids?|son|daughter|boss|coworkers?|landlord|he|she|they|someone|somebody|everyone|nobody|no one)\s+(?:\w+\s+)?(?:keeps?|never|always|won'?t|doesn'?t|refuses? to|left|leaves|leaving|forgot|forgets)\b/i;
 const MY_INTENT = /\b(?:I|we)\s+(?:really\s+|still\s+)?(?:need|have|gotta|got|should|must)\b/i;
