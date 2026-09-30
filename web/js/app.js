@@ -1,4 +1,4 @@
-import { organizeText, loadSettings, saveSettings, testConnection } from "./engine.js";
+import { organizeText, loadSettings, saveSettings, testConnection, normalizeEndpoint } from "./engine.js";
 import { renderResult, resultToText } from "./render.js";
 import { splitClauses } from "./organizer.js";
 import { mentionsCrisis } from "./safety.js";
@@ -138,6 +138,15 @@ const settingsForm = $("settings-form");
 const endpointInput = $("endpoint");
 const apiKeyInput = $("api-key");
 const endpointStatus = $("endpoint-status");
+const modelFields = $("model-fields");
+
+// The address fields only matter for the model engine, so they stay out of sight otherwise.
+function showModelFields() {
+  modelFields.hidden = settingsForm.elements.engine.value !== "model";
+  $("test-endpoint").hidden = modelFields.hidden;
+}
+
+settingsForm.addEventListener("change", showModelFields);
 
 function fillSettings() {
   const settings = loadSettings();
@@ -145,6 +154,7 @@ function fillSettings() {
   endpointInput.value = settings.endpoint;
   apiKeyInput.value = settings.apiKey;
   endpointStatus.textContent = "";
+  showModelFields();
 }
 
 function updatePrivacyNote() {
@@ -157,12 +167,17 @@ function updatePrivacyNote() {
 
 $("save-settings").addEventListener("click", (event) => {
   const engine = settingsForm.elements.engine.value || "device";
-  const endpoint = endpointInput.value.trim();
-  if (engine === "model" && !endpoint) {
-    event.preventDefault();
-    endpointStatus.textContent = "Add your model's address first, or choose This device.";
-    endpointInput.focus();
-    return;
+  let endpoint = endpointInput.value.trim();
+  if (engine === "model") {
+    try {
+      if (!endpoint) throw new Error("Add your model's address first, or choose This device.");
+      endpoint = normalizeEndpoint(endpoint);
+    } catch (error) {
+      event.preventDefault();
+      endpointStatus.textContent = error.message;
+      endpointInput.focus();
+      return;
+    }
   }
   saveSettings({ engine, endpoint, apiKey: apiKeyInput.value.trim() });
   updatePrivacyNote();

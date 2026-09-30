@@ -117,7 +117,7 @@
     </dialog>
 
     <dialog id="settings-dialog" aria-labelledby="settings-title">
-      <form method="dialog" class="dialog-body" id="settings-form">
+      <form method="dialog" class="dialog-body" id="settings-form" novalidate>
         <h2 id="settings-title" tabindex="-1" autofocus>Settings</h2>
         <fieldset>
           <legend>Who sorts your thoughts</legend>
@@ -130,14 +130,16 @@
             <span><strong>Your TherapistGPT model</strong><small>Sends your text to the server address below, then shows the answer.</small></span>
           </label>
         </fieldset>
-        <label class="field" for="endpoint">
-          <span>Model address</span>
-          <input id="endpoint" name="endpoint" type="url" inputmode="url" placeholder="https://your-space.hf.space" />
-        </label>
-        <label class="field" for="api-key">
-          <span>Access key (only if your server has one)</span>
-          <input id="api-key" name="api-key" type="password" autocomplete="off" />
-        </label>
+        <div class="model-fields" id="model-fields">
+          <label class="field" for="endpoint">
+            <span>Model address</span>
+            <input id="endpoint" name="endpoint" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://your-space.hf.space" />
+          </label>
+          <label class="field" for="api-key">
+            <span>Access key (only if your server has one)</span>
+            <input id="api-key" name="api-key" type="password" autocomplete="off" />
+          </label>
+        </div>
         <p class="muted small" id="endpoint-status" role="status" aria-live="polite"></p>
         <div class="dialog-actions">
           <button type="button" class="ghost" id="test-endpoint">Test connection</button>
