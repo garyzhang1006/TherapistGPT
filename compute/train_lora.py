@@ -146,11 +146,13 @@ def main() -> int:
     trainer.train()
 
     final_dir = HERE / t["output_dir"] / "final"
-    trainer.save_model(str(final_dir))
+    # Not trainer.save_model(): with push_to_hub on, it also calls trainer.push_to_hub(), which uploads all of
+    # output_dir, final/ included (transformers 5.17.0 trainer.py, end of save_model).
+    trainer.model.save_pretrained(str(final_dir))
     trainer.processing_class.save_pretrained(str(final_dir))
     print(f"saved LoRA adapter to {final_dir}")
     if push:
-        # trainer.push_to_hub() uploads all of output_dir, which would add a second copy under final/.
+        # Push the adapter alone, for the same reason as above.
         trainer.model.push_to_hub(cfg["hub"]["model_id"], commit_message="Final TherapistGPT LoRA adapter")
         trainer.processing_class.push_to_hub(cfg["hub"]["model_id"])
         print(f"pushed adapter to https://huggingface.co/{cfg['hub']['model_id']}")
