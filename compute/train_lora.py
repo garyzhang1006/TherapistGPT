@@ -5,6 +5,7 @@ Run on a GPU box (Kaggle T4, Colab, a cloud VM), never on a laptop CPU.
 Usage:
     python train_lora.py --config config.yaml
     python train_lora.py --config config.yaml --dry-run   # format data and print one example, no model load
+    python train_lora.py --config config.yaml --smoke     # 2 CPU steps on a tiny random model (CI plumbing check)
 """
 
 from __future__ import annotations
@@ -21,6 +22,9 @@ from therapistgpt.prompt import build_messages  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 REQUIRED = {"base_model", "data", "lora", "train", "hub"}
+# A 2-layer, randomly initialized Qwen2 that TRL's own test suite trains on. Its tokenizer ships the exact
+# Qwen2.5 chat template, so assistant_only_loss takes the same patched-template path as the real run.
+SMOKE_MODEL = "trl-internal-testing/tiny-Qwen2ForCausalLM-2.5"
 
 
 def load_config(path: Path) -> dict:
@@ -48,10 +52,21 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--config", type=Path, default=HERE / "config.yaml")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument(
+        "--smoke", action="store_true", help=f"train 2 steps of {SMOKE_MODEL} on CPU to prove the pipeline runs"
+    )
     args = parser.parse_args()
 
     cfg = load_config(args.config)
     t = cfg["train"]
+    base_model = cfg["base_model"]
+    push = cfg["hub"]["push"]
+    if args.smoke:
+        base_model = SMOKE_MODEL
+        push = False  # a random model must never reach the Hub
+        # Not shorter: the system prompt and a seed dump alone come to roughly 650 tokens, and TRL drops rows
+        # whose assistant turn is cut off entirely, which could leave nothing to train on.
+        t = {**t, "output_dir": "outputs/smoke", "batch_size": 1, "grad_accum": 1, "max_length": 1024}
     train_ds = load_split(HERE / cfg["data"]["train"])
     val_path = HERE / cfg["data"]["val"]
     val_ds = load_split(val_path) if val_path.exists() and val_path.stat().st_size else None
@@ -66,14 +81,20 @@ def main() -> int:
     from peft import LoraConfig
     from trl import SFTConfig, SFTTrainer
 
-    if not torch.cuda.is_available():
-        raise SystemExit("No CUDA GPU found. Run this on Kaggle/Colab/a GPU VM (see compute/README.md).")
+    if args.smoke:
+        # Plain fp32 on CPU: fp16 AMP needs a GPU, and SFTConfig turns bf16 on unless told otherwise.
+        use_bf16 = use_fp16 = False
+        dtype = torch.float32
+    else:
+        if not torch.cuda.is_available():
+            raise SystemExit("No CUDA GPU found. Run this on Kaggle/Colab/a GPU VM (see compute/README.md).")
 
-    # T4s have no bf16. There we keep fp32 weights and let AMP run fp16 math, which avoids
-    # the "Attempting to unscale FP16 gradients" error you get from fp16 weights.
-    # is_bf16_supported() says yes on a T4 too (it counts slow emulation), so ask for sm_80+ directly.
-    use_bf16 = torch.cuda.get_device_capability()[0] >= 8
-    dtype = torch.bfloat16 if use_bf16 else torch.float32
+        # T4s have no bf16. There we keep fp32 weights and let AMP run fp16 math, which avoids
+        # the "Attempting to unscale FP16 gradients" error you get from fp16 weights.
+        # is_bf16_supported() says yes on a T4 too (it counts slow emulation), so ask for sm_80+ directly.
+        use_bf16 = torch.cuda.get_device_capability()[0] >= 8
+        use_fp16 = not use_bf16
+        dtype = torch.bfloat16 if use_bf16 else torch.float32
 
     lora = cfg["lora"]
     peft_config = LoraConfig(
@@ -98,7 +119,7 @@ def main() -> int:
         assistant_only_loss=True,
         gradient_checkpointing=True,
         bf16=use_bf16,
-        fp16=not use_bf16,
+        fp16=use_fp16,
         model_init_kwargs={"dtype": dtype},
         logging_steps=t["logging_steps"],
         eval_strategy="steps" if has_val else "no",
@@ -109,12 +130,14 @@ def main() -> int:
         load_best_model_at_end=has_val,
         report_to="none",
         seed=t["seed"],
-        push_to_hub=cfg["hub"]["push"],
-        hub_model_id=cfg["hub"]["model_id"] if cfg["hub"]["push"] else None,
+        push_to_hub=push,
+        hub_model_id=cfg["hub"]["model_id"] if push else None,
+        # max_steps overrides num_train_epochs when positive; -1 is the TrainingArguments default.
+        max_steps=2 if args.smoke else -1,
     )
 
     trainer = SFTTrainer(
-        model=cfg["base_model"],
+        model=base_model,
         args=sft_args,
         train_dataset=train_ds,
         eval_dataset=val_ds if has_val else None,
@@ -126,12 +149,12 @@ def main() -> int:
     trainer.save_model(str(final_dir))
     trainer.processing_class.save_pretrained(str(final_dir))
     print(f"saved LoRA adapter to {final_dir}")
-    if cfg["hub"]["push"]:
+    if push:
         # trainer.push_to_hub() uploads all of output_dir, which would add a second copy under final/.
         trainer.model.push_to_hub(cfg["hub"]["model_id"], commit_message="Final TherapistGPT LoRA adapter")
         trainer.processing_class.push_to_hub(cfg["hub"]["model_id"])
         print(f"pushed adapter to https://huggingface.co/{cfg['hub']['model_id']}")
-    print("next: python evaluate.py --adapter", final_dir)
+    print("next: python evaluate.py --adapter", final_dir, *(["--model", SMOKE_MODEL] if args.smoke else []))
     return 0
 
 
