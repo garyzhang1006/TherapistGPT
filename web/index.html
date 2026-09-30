@@ -8,6 +8,10 @@
     <meta name="theme-color" content="#16151d" media="(prefers-color-scheme: dark)" />
     <meta name="theme-color" content="#f3eee6" media="(prefers-color-scheme: light)" />
     <link rel="icon" href="assets/moon.svg" type="image/svg+xml" />
+    <!-- .json, not .webmanifest: GitHub Pages serves .json as application/json, which browsers accept for manifests. -->
+    <link rel="manifest" href="manifest.json" />
+    <!-- Rendered from assets/icon.svg by the Pages workflow; iOS before Safari 15.4 ignores manifest icons. -->
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
     <link rel="preload" href="fonts/atkinson-hyperlegible-next-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="css/styles.css?v=3" />
