@@ -777,6 +777,24 @@ main:focus,
   font-size: 0.9rem;
 }
 
+/* After a crisis the other pieces wait behind plain text, not another card. */
+/* Left as a list-item so browsers keep their own disclosure triangle; the padding makes a 44px row. */
+.rest > summary {
+  padding: 0.6rem 0;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.rest > summary:hover {
+  color: var(--text);
+}
+
+.rest-cards {
+  display: grid;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
 .result-actions {
   display: flex;
   flex-wrap: wrap;
