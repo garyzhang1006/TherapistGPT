@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# Training artifacts (these live on Kaggle / the Hugging Face Hub, never in git)
+outputs/
+checkpoints/
+wandb/
+*.safetensors
+*.bin
+*.gguf
+*.onnx
+
+# Generated data (seed data is committed, synthetic data is not)
+compute/data/synthetic*.jsonl
+compute/data/train.jsonl
+compute/data/val.jsonl
+compute/data/test.jsonl
+
+# Secrets
+.env
+*.key
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+node_modules/
