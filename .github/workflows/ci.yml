@@ -30,3 +30,6 @@ jobs:
         run: python -m py_compile compute/*.py compute/therapistgpt/*.py
       - name: Validate seed data against the schema
         run: python compute/validate_data.py compute/data/seed.jsonl
+      - name: Unit tests
+        working-directory: compute
+        run: python -m unittest discover -s tests
