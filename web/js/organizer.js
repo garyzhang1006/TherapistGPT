@@ -2,7 +2,7 @@
 // the model is trained to produce (compute/therapistgpt/schema.py), so the UI renders either.
 // No network, no storage. Pure functions only, so it runs under `node --test` as well.
 
-import { mentionsCrisis, CRISIS_SUMMARY, CRISIS_STEP } from "./safety.js?v=4";
+import { mentionsCrisis, CRISIS_PATTERNS, CRISIS_SUMMARY, CRISIS_STEP } from "./safety.js?v=4";
 
 const LIMITS = { threads: 5, points: 6, todos: 6, reframes: 3, feelings: 6 };
 
@@ -10,7 +10,7 @@ const TOPICS = [
   { title: "School", words: /\b(class|classes|school|exam|exams|test|quiz|homework|essay|professor|teacher|grade|grades|lab|lecture|assignment|college|study|studying|semester|course|thesis|advisor)\b/i },
   { title: "Work", words: /\b(work|job|boss|manager|shift|coworkers?|meeting|office|fired|client|clients|interview|career|promotion|deadline)\b/i },
   { title: "Money", words: /\b(money|rent|bills?|pay|paid|bank|debt|afford|loan|broke|budget|paycheck|credit card)\b/i },
-  { title: "People", words: /\b(mom|dad|mother|father|sister|brother|friends?|partner|boyfriend|girlfriend|husband|wife|ex|family|parents|roommate|kids?|son|daughter|grandma|grandpa|everyone|nobody|people|texted|text back|miss(ing)? (you|him|her|them|[a-z]+ so much))\b/i },
+  { title: "People", words: /\b(mom|mum|dad|mother|father|sister|brother|friends?|partner|boyfriend|girlfriend|husband|wife|hubby|ex|family|fam|parents|roommates?|kids?|son|daughter|grandma|grandpa|cousins?|aunt|uncle|everyone|nobody|people|bf|gf|bff|bffs|bestie|besties|ppl|texted|text back|miss(ing)? (you|him|her|them|[a-z]+ so much))\b/i },
   { title: "Rest and body", words: /\b(sleep|slept|asleep|insomnia|tired|exhausted|eat|ate|eaten|eating|food|hungry|meals?|breakfast|lunch|dinner|shower|showered|sick|pain|headache|meds|medication|pills?|doctor|dentist|therapy|therapist|bed|body|weight)\b/i },
   { title: "Home", words: /\b(room|dishes|laundry|clean|cleaning|mess|messy|apartment|house|home|groceries|move|moving|boxes|kitchen|trash)\b/i },
 ];
@@ -154,13 +154,70 @@ function splitRunOn(part) {
   return pieces;
 }
 
+const BREAK = /,\s*|\s+(?:and|but|so|because|bc|cuz)\s+/gi;
+
+// Breaks at every comma or conjunction whose next piece names something on its own.
+function splitLoose(part) {
+  const breaks = [...part.matchAll(BREAK)];
+  const pieces = [];
+  let start = 0;
+  breaks.forEach((m, k) => {
+    const next = part.slice(m.index + m[0].length, k + 1 < breaks.length ? breaks[k + 1].index : part.length);
+    if (!hasAnchor(next)) return;
+    pieces.push(part.slice(start, m.index));
+    start = m.index + m[0].length;
+  });
+  pieces.push(part.slice(start));
+  return pieces;
+}
+
+function crisisSpan(part) {
+  let best = null;
+  for (const pattern of CRISIS_PATTERNS) {
+    const m = part.match(pattern);
+    if (m && (!best || m.index < best.start)) best = { start: m.index, end: m.index + m[0].length };
+  }
+  return best;
+}
+
+// "i have a chem quiz tmrw and rent is late and i dont want to be here anymore": only the crisis
+// clause goes under Inside your head, and the quiz and the rent keep their own topics. Breaks that
+// fall inside the crisis phrase itself ("sleep and never wake up") are left alone.
+function splitAroundCrisis(part) {
+  const span = crisisSpan(part);
+  if (!span) return [part];
+  const breaks = [...part.matchAll(BREAK)];
+  const before = breaks.filter((m) => m.index + m[0].length <= span.start).pop();
+  const after = breaks.find((m) => m.index >= span.end);
+  return [
+    ...(before ? splitLoose(part.slice(0, before.index)) : []),
+    part.slice(before ? before.index + before[0].length : 0, after ? after.index : part.length),
+    ...(after ? splitPart(part.slice(after.index + after[0].length)) : []),
+  ];
+}
+
+// "work, school, my mom being sick, the apartment is a disaster" lists separate worries, so each
+// keeps its own topic. A list after an intent ("need to do laundry, groceries, the form") stays
+// whole so it becomes one to-do per chore.
+function splitList(part) {
+  if ((part.match(/,/g) || []).length < 2 || INTENT.test(part)) return [part];
+  const pieces = part.split(/,\s*(?:and\s+)?/).filter((p) => p.trim());
+  const topics = new Set(pieces.filter((p) => TOPICS.some((t) => t.words.test(p))).map(topicFor));
+  return topics.size >= 2 ? pieces : [part];
+}
+
+function splitPart(part) {
+  if (mentionsCrisis(part)) return splitAroundCrisis(part);
+  return splitRunOn(part).flatMap(splitList);
+}
+
 export function splitClauses(text) {
   const parts = normalize(text)
     // Sentence ends become line breaks first. A lookbehind would do it in one regex, but Safari
     // before 16.4 can't parse lookbehinds, and one bad regex stops the whole page from loading.
     .replace(/([.!?;])\s+/g, "$1\n")
     .split(/\n+|\s+(?:and then|but also|and also|oh and|plus|anyway|anyways)\s+/i)
-    .flatMap(splitRunOn);
+    .flatMap(splitPart);
   const clauses = [];
   const seen = new Set();
   for (const part of parts) {
@@ -177,15 +234,20 @@ export function splitClauses(text) {
   return clauses;
 }
 
+// On a tie the topic named first wins: "do laundry or I have nothing to wear to work" is about
+// the laundry, and work is only the reason.
 function topicFor(clause) {
   let best = null;
   let bestScore = 0;
+  let bestAt = Infinity;
   for (const topic of TOPICS) {
-    const matches = clause.match(new RegExp(topic.words.source, "gi"));
-    const score = matches ? matches.length : 0;
-    if (score > bestScore) {
+    const matches = [...clause.matchAll(new RegExp(topic.words.source, "gi"))];
+    const score = matches.length;
+    const at = score ? matches[0].index : Infinity;
+    if (score > bestScore || (score && score === bestScore && at < bestAt)) {
       best = topic.title;
       bestScore = score;
+      bestAt = at;
     }
   }
   return best || FALLBACK_TOPIC;
