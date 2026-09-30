@@ -27,7 +27,7 @@ from pydantic import BaseModel
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from therapistgpt.prompt import SYSTEM_PROMPT  # noqa: E402
-from therapistgpt.schema import SchemaError, validate  # noqa: E402
+from therapistgpt.schema import validate  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 
@@ -187,7 +187,7 @@ def main() -> int:
             try:
                 row = future.result()
             # Catch everything per row: one bad reply must not abort a run whose other calls are already paid for.
-            except (SchemaError, anthropic.APIStatusError, anthropic.APIConnectionError, ValueError, Exception) as exc:
+            except Exception as exc:
                 failed += 1
                 print(f"skipped one example: {type(exc).__name__}: {exc}", file=sys.stderr)
                 continue
