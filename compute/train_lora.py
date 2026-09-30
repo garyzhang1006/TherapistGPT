@@ -127,7 +127,9 @@ def main() -> int:
     trainer.processing_class.save_pretrained(str(final_dir))
     print(f"saved LoRA adapter to {final_dir}")
     if cfg["hub"]["push"]:
-        trainer.push_to_hub()
+        # trainer.push_to_hub() uploads all of output_dir, which would add a second copy under final/.
+        trainer.model.push_to_hub(cfg["hub"]["model_id"], commit_message="Final TherapistGPT LoRA adapter")
+        trainer.processing_class.push_to_hub(cfg["hub"]["model_id"])
         print(f"pushed adapter to https://huggingface.co/{cfg['hub']['model_id']}")
     print("next: python evaluate.py --adapter", final_dir)
     return 0
