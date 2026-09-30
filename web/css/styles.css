@@ -131,8 +131,10 @@
   color-scheme: light;
 }
 
+/* Scaling the root, not only --text-size, so every rem-sized line (footer, hints, labels, chips)
+   grows too. 17px x 1.175 is about 20px body text. */
 :root[data-size="large"] {
-  --text-size: 1.25rem;
+  font-size: 117.5%;
 }
 
 *,
@@ -920,6 +922,11 @@ legend {
 /* ---------- small screens ---------- */
 
 @media (max-width: 560px) {
+  /* Larger text widens the help button; a tighter gap keeps the bar on one line at 375px. */
+  .topbar {
+    gap: 0.5rem;
+  }
+
   .help-now {
     padding: 0.5rem 0.8rem;
     font-size: 0.85rem;
