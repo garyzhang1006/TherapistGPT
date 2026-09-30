@@ -86,11 +86,25 @@ function currentTheme() {
   return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
 }
 
+// The browser bar color follows the chosen theme, not only the system one.
+const THEME_COLORS = { dark: "#16151d", light: "#f3eee6" };
+
+function syncThemeColor() {
+  const chosen = document.documentElement.dataset.theme;
+  document.querySelectorAll('meta[name="theme-color"]').forEach((meta) => {
+    const system = meta.media.includes("dark") ? "dark" : "light";
+    meta.content = THEME_COLORS[chosen || system];
+  });
+}
+
+syncThemeColor();
+
 $("theme-toggle").addEventListener("click", () => {
   const next = currentTheme() === "dark" ? "light" : "dark";
   document.documentElement.dataset.theme = next;
   prefs.theme = next;
   write(PREFS_KEY, prefs);
+  syncThemeColor();
 });
 
 sizeToggle.addEventListener("click", () => {
