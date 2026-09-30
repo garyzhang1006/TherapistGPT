@@ -7,7 +7,7 @@ import { applySafetyFloor } from "./safety.js";
 
 const SETTINGS_KEY = "therapistgpt.settings";
 const REMOTE_TIMEOUT_MS = 60000;
-const DEFAULTS = { engine: "device", endpoint: "" };
+const DEFAULTS = { engine: "device", endpoint: "", apiKey: "" };
 
 export function loadSettings() {
   try {
@@ -63,13 +63,20 @@ async function fetchWithTimeout(url, options, timeoutMs) {
   }
 }
 
-async function organizeRemote(text, endpoint) {
+const STATUS_REASONS = {
+  401: "Your model needs the right access key (see Settings).",
+  503: "Your model is busy with another request right now.",
+};
+
+async function organizeRemote(text, endpoint, apiKey) {
+  const headers = { "Content-Type": "application/json" };
+  if (apiKey) headers["X-API-Key"] = apiKey;
   const response = await fetchWithTimeout(
     `${normalizeEndpoint(endpoint)}/organize`,
-    { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }) },
+    { method: "POST", headers, body: JSON.stringify({ text }) },
     REMOTE_TIMEOUT_MS
   );
-  if (!response.ok) throw new Error(`Your model answered with status ${response.status}.`);
+  if (!response.ok) throw new Error(STATUS_REASONS[response.status] || `Your model answered with status ${response.status}.`);
   const out = await response.json();
   if (!looksValid(out)) throw new Error("Your model sent back something this page couldn't read.");
   return out;
@@ -78,7 +85,7 @@ async function organizeRemote(text, endpoint) {
 export async function organizeText(text, settings = loadSettings()) {
   if (settings.engine === "model" && settings.endpoint) {
     try {
-      const out = await organizeRemote(text, settings.endpoint);
+      const out = await organizeRemote(text, settings.endpoint, settings.apiKey);
       return { result: applySafetyFloor(text, out), engine: "model", notice: "" };
     } catch (error) {
       const reason = error.name === "AbortError" ? "Your model took too long to answer." : error.message;

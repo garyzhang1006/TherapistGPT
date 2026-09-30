@@ -59,7 +59,7 @@
 
         <form id="dump-form" class="dump-form">
           <label for="dump" class="sr">Your brain dump</label>
-          <textarea id="dump" name="dump" rows="10" maxlength="6000" spellcheck="false" autocomplete="off" placeholder="nothing has to make sense here..."></textarea>
+          <textarea id="dump" name="dump" rows="10" maxlength="3000" spellcheck="false" autocomplete="off" placeholder="nothing has to make sense here..."></textarea>
           <div class="dump-row">
             <p class="privacy" id="privacy-note">
               <svg aria-hidden="true" viewBox="0 0 24 24" width="15" height="15"><rect x="5" y="10.5" width="14" height="10" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
@@ -132,6 +132,10 @@
         <label class="field" for="endpoint">
           <span>Model address</span>
           <input id="endpoint" name="endpoint" type="url" inputmode="url" placeholder="https://your-space.hf.space" />
+        </label>
+        <label class="field" for="api-key">
+          <span>Access key (only if your server has one)</span>
+          <input id="api-key" name="api-key" type="password" autocomplete="off" />
         </label>
         <p class="muted small" id="endpoint-status" role="status" aria-live="polite"></p>
         <div class="dialog-actions">

@@ -122,12 +122,14 @@ document.querySelectorAll("dialog").forEach((dialog) => {
 
 const settingsForm = $("settings-form");
 const endpointInput = $("endpoint");
+const apiKeyInput = $("api-key");
 const endpointStatus = $("endpoint-status");
 
 function fillSettings() {
   const settings = loadSettings();
   settingsForm.elements.engine.value = settings.engine;
   endpointInput.value = settings.endpoint;
+  apiKeyInput.value = settings.apiKey;
   endpointStatus.textContent = "";
 }
 
@@ -148,7 +150,7 @@ $("save-settings").addEventListener("click", (event) => {
     endpointInput.focus();
     return;
   }
-  saveSettings({ engine, endpoint });
+  saveSettings({ engine, endpoint, apiKey: apiKeyInput.value.trim() });
   updatePrivacyNote();
 });
 
