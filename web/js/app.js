@@ -278,16 +278,17 @@ function showWrite() {
 }
 
 async function run() {
-  // Ctrl+Enter can fire while a request is already in flight.
-  if (organizeBtn.disabled) return;
+  // Ctrl+Enter can fire while a request is already in flight. aria-disabled, not disabled, so focus
+  // stays on the button instead of dropping to the page.
+  if (organizeBtn.getAttribute("aria-disabled") === "true") return;
   const text = dump.value.trim();
   if (!text) {
     writeStatus.textContent = "Even one word is enough to start.";
     dump.focus();
     return;
   }
-  writeStatus.textContent = "";
-  organizeBtn.disabled = true;
+  writeStatus.textContent = "Sorting your thoughts...";
+  organizeBtn.setAttribute("aria-disabled", "true");
   organizeBtn.textContent = "Sorting...";
   try {
     const [outcome] = await Promise.all([organizeText(text), settle(text)]);
@@ -301,6 +302,7 @@ async function run() {
       : outcome.notice ||
         (outcome.engine === "model" ? "Sorted by your TherapistGPT model." : "Sorted on this device. Nothing left your browser.");
     status.textContent = "";
+    writeStatus.textContent = "";
     writeView.hidden = true;
     resultView.hidden = false;
     window.scrollTo({ top: 0 });
@@ -312,7 +314,7 @@ async function run() {
     console.error(error);
     writeStatus.textContent = "Something went wrong while sorting. Your words are still here, so you can try again.";
   } finally {
-    organizeBtn.disabled = false;
+    organizeBtn.removeAttribute("aria-disabled");
     organizeBtn.textContent = "Sort my thoughts";
   }
 }
