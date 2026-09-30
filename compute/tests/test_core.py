@@ -50,7 +50,8 @@ class SchemaTests(unittest.TestCase):
 
 class SafetyTests(unittest.TestCase):
     def test_flags_crisis_language(self):
-        for text in ["I don’t want to be here", "kms", "i keep cutting myself", "no point in living"]:
+        for text in ["I don’t want to be here", "kms", "i keep cutting myself", "no point in living",
+                     "I can‘t go on", "i can`t do this anymore", "I canʼt go on", "I can＇t go on"]:
             self.assertTrue(mentions_crisis(text), text)
 
     def test_ignores_figures_of_speech(self):

@@ -10,7 +10,7 @@ test("JS crisis patterns match the Python list exactly", () => {
 });
 
 test("catches direct and indirect crisis language, including curly apostrophes", () => {
-  for (const text of ["I don’t want to be here", "i keep cutting myself", "thinking about suicide", "they'd be better off without me", "honestly kms", "i cant go on like this", "i just want to disappear forever"]) {
+  for (const text of ["I don’t want to be here", "i keep cutting myself", "thinking about suicide", "they'd be better off without me", "honestly kms", "i cant go on like this", "i just want to disappear forever", "I can‘t go on", "i can`t do this anymore", "I canʼt go on", "I can＇t go on"]) {
     assert.equal(mentionsCrisis(text), true, text);
   }
 });

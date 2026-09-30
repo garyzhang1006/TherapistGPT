@@ -35,6 +35,6 @@ _COMPILED = [re.compile(p, re.IGNORECASE) for p in CRISIS_PATTERNS]
 
 
 def mentions_crisis(text: str) -> bool:
-    # Normalize curly apostrophes so "don’t" matches the same as "don't".
-    normalized = text.replace("’", "'")
+    # Phones and keyboards type apostrophes many ways: ‘ ’ ʼ ` ´ and fullwidth ＇. Same set as safety.js.
+    normalized = re.sub("[\u2018\u2019\u02bc\u0060\u00b4\uff07]", "'", text)
     return any(p.search(normalized) for p in _COMPILED)

@@ -24,7 +24,8 @@ export const CRISIS_PATTERNS = [
 ];
 
 export function mentionsCrisis(text) {
-  const normalized = String(text).replace(/’/g, "'");
+  // Phones and keyboards type apostrophes many ways: ‘ ’ ʼ ` ´ and fullwidth ＇.
+  const normalized = String(text).replace(/[\u2018\u2019\u02BC\u0060\u00B4\uFF07]/g, "'");
   return CRISIS_PATTERNS.some((pattern) => pattern.test(normalized));
 }
 
