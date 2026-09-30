@@ -42,7 +42,11 @@
     "i want to die\nmy hair is falling out",
     "i want to die\nmy hair's falling out",
     "i want to die\nmy hair got cut wrong",
-    "i want to die\nmy hair, my face, everything"
+    "i want to die\nmy hair, my face, everything",
+    "whats the point of living",
+    "what's the point in living",
+    "what is the point of being alive",
+    "no point in living"
   ],
   "should_not_flag": [
     "this exam will kill me lol",
@@ -74,6 +78,7 @@
     "it would be better off if I was here earlier",
     "I tend to not wake up before 10",
     "i want to die my hair",
-    "i want to die my hair blue so bad"
+    "i want to die my hair blue so bad",
+    "what's the point of this class"
   ]
 }

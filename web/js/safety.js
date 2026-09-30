@@ -38,6 +38,8 @@ export const CRISIS_PATTERNS = [
   /\bstop existing\b/i,
   /\b(notice|care|miss me) if i (died|disappeared|was gone|were gone|wasn'?t here|weren'?t here)\b/i,
   /\bno point (in )?living\b/i,
+  // "what's the point of this class" stays calm: only living, being alive or existing flags.
+  /\b(what'?s|what is) the point (of|in) (even )?(living|being alive|staying alive|existing|life anymore)\b/i,
   /\b(not|isn'?t|is not) worth living\b/i,
   /\bnothing (left )?to live for\b/i,
   /\btired of (living|being alive|existing)\b/i,

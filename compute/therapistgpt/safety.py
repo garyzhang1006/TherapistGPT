@@ -46,6 +46,8 @@ CRISIS_PATTERNS = [
     r"\bstop existing\b",
     r"\b(notice|care|miss me) if i (died|disappeared|was gone|were gone|wasn'?t here|weren'?t here)\b",
     r"\bno point (in )?living\b",
+    # "what's the point of this class" stays calm: only living, being alive or existing flags.
+    r"\b(what'?s|what is) the point (of|in) (even )?(living|being alive|staying alive|existing|life anymore)\b",
     r"\b(not|isn'?t|is not) worth living\b",
     r"\bnothing (left )?to live for\b",
     r"\btired of (living|being alive|existing)\b",
