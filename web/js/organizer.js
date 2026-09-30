@@ -17,20 +17,22 @@ const TOPICS = [
 const FALLBACK_TOPIC = "Inside your head";
 const OVERFLOW_TOPIC = "Everything else";
 
+// Each feeling also lists the everyday ways people say it without naming it: "idk where to even
+// start" is overwhelm, "everyone probably thinks im annoying" is anxiety, "my dog died" is sadness.
 const FEELINGS = [
   ["exhausted", /\b(tired|exhausted|drained|worn out|no energy|sleepy|fatigue)\b/i],
-  ["overwhelmed", /\b((overwhelm\w*|too much|drowning|so much to do|can'?t keep up|falling behind|behind on everything)\b|i just can'?t\b(?!\s+\w))/i],
-  ["anxious", /\b(anxious|anxiety|worried|worry|scared|afraid|nervous|panic\w*|terrified|what if)\b/i],
-  ["sad", /\b(sad|crying|cried|cry|tears|heartbroken|grief|miss(ing)? (you|him|her|them|[a-z]+ so much)|miss my (mom|dad|mother|father|friends?|family|home|ex|dog|cat|grandma|grandpa|sister|brother|partner))\b/i],
-  ["lonely", /\b(lonely|(so|all|feel|feeling|completely|totally) alone|isolated|nobody|no one|no friends)\b/i],
-  ["guilty", /\b(guilty|guilt|my fault|should have|shouldn'?t have|feel bad)\b/i],
-  ["ashamed", /\b(ashamed|shame|embarrass\w*|humiliat\w*|pathetic)\b/i],
+  ["overwhelmed", /\b((overwhelm\w*|too much|drowning|so much to do|can'?t keep up|falling behind|behind on everything|(idk|don'?t know|dont know|no idea) where (to|do i) (even )?(start|begin)|where do i (even )?(start|begin)|can'?t (do|deal with|handle|cope with) (this|it|any of this|all of this|everything)|can'?t cope|too many things)\b|i just can'?t\b(?!\s+\w))/i],
+  ["anxious", /\b(anxious|anxiety|worried|worry|scared|afraid|nervous|panic\w*|terrified|what if|overthink\w*|replay\w*|keep thinking about|can'?t stop thinking about|(gonna|going to) (be (so )?(mad|pissed|angry|upset|furious|disappointed)|hate me|fire me)|(everyone|they|people|he|she) (probably |prob |must )?(thinks?|hates?) (i'?m|im|me))\b/i],
+  ["sad", /\b(sad|crying|cried|cry|tears|heartbroken|grief|miss(ing)? (you|him|her|them|[a-z]+ so much)|miss my (mom|dad|mother|father|friends?|family|home|ex|dog|cat|grandma|grandpa|sister|brother|partner)|(dog|cat|pet|puppy|kitten|bird|hamster|horse|grandma|grandpa|grandmother|grandfather|nana|mom|mum|dad|mother|father|brother|sister|friend|uncle|aunt|cousin|husband|wife|partner) (just |recently )?(died|passed away)|passed away|funeral|lost my (dog|cat|pet|mom|mum|dad|mother|father|grandma|grandpa|brother|sister|friend|best friend|husband|wife|partner|baby))\b/i],
+  ["lonely", /\b(lonely|(so|all|feel|feeling|completely|totally) alone|isolated|nobody|no one|no friends|(only|never) (hangs? out|hanging out|talks?|texts?|invites?)( with| to)? me|left out|(don'?t|dont|do not) have anyone)\b/i],
+  ["guilty", /\b(guilty|guilt|my fault|should have|shouldn'?t have|feel bad|(snapped|yelled|lashed out|blew up) at|was (so )?(mean|rude|harsh) to|feel (so )?(awful|terrible|horrible)|should (apologize|say sorry)|(mad|upset|angry|annoyed) (at|with) me)\b/i],
+  ["ashamed", /\b(ashamed|shame|embarrass\w*|humiliat\w*|pathetic|why can'?t i (just )?(be|act|feel) (normal|okay|ok|like everyone)|everyone else (can|has|is|seems|gets|manages)|(not|never) (good|smart) enough)\b/i],
   ["numb", /\b(numb|empty|nothing matters|feel nothing|feel flat|hollow)\b/i],
-  ["hopeless", /\b(hopeless|pointless|what'?s the point|no point|never get better|give up)\b/i],
+  ["hopeless", /\b(hopeless|pointless|what'?s the point|no point|never get better|give up|(tired|sick) of (existing|living|being alive|life|everything|it all|trying)|never (going to|gonna) get better|nothing (will|is going to|ever) change|nothing ever changes)\b/i],
   ["angry", /\b(angry|mad|furious|pissed|rage|annoyed|irritated)\b/i],
-  ["stuck", /\b(stuck|can'?t (do|start|move|get up)|frozen|froze|paralyzed)\b/i],
+  ["stuck", /\b(stuck|(can'?t|cannot|couldn'?t|could not) (do|start|move|get up|get out of bed|make myself|bring myself|get myself|get over|move on|let go)|frozen|froze|paralyzed|should (be over|have gotten over|have moved on)|still not over|(haven'?t|havent) (gotten over|moved on))\b/i],
   ["disappointed", /\b(disappoint\w*|let (him|her|them|everyone|myself) down|failed)\b/i],
-  ["frustrated", /\b(frustrat\w*|fed up|sick of)\b/i],
+  ["frustrated", /\b(frustrat\w*|fed up|sick of|keeps (leaving|forgetting|ignoring|interrupting|borrowing|taking|eating|using|making|yelling|breaking|asking|bugging))\b/i],
   ["scattered", /\b(can'?t (focus|concentrate|think straight)|brain fog|foggy|scattered|all over the place)\b/i],
 ];
 
