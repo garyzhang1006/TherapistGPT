@@ -39,21 +39,21 @@ const TASK_LEAD = /^(and |so |but |also |i |im |i'?m |i am |really |still )*(nee
 const SELF_CRITIC = /\b(feel like (a|an|the) (worst|failure|burden|fraud|mess|loser|bad \w+)|(i'?m|im|i am) (so |such an? |just |literally |a )?(stupid|lazy|useless|worthless|pathetic|failure|mess|terrible|the worst|burden|disgusting|weak|broken|idiot|loser|disappointment|not good enough|not smart enough|too much)|i (always|never) |i can'?t do anything|what'?s wrong with me|hate myself|i ruin|i mess (everything|it all) up|i'?m bad at)/i;
 
 const REFRAMES = [
-  [/lazy/i, "Struggling to start things is one of the most common parts of depression. That's heaviness, not laziness."],
-  [/stupid|idiot|dumb|not smart/i, "Everyone gets things wrong sometimes. One moment doesn't measure how capable you are."],
+  [/lazy/i, "Struggling to start things is common when you're running low. That's heaviness, not laziness."],
+  [/stupid|idiot|dumb|not smart/i, "One moment of getting something wrong doesn't measure how capable you are."],
   [/burden|too much/i, "People who care about you usually want to know when you're struggling. Needing support isn't the same as being a burden."],
-  [/worthless|useless|pathetic|failure|loser|disappointment/i, "A hard stretch doesn't cancel out your worth. You're still here and still trying, and that counts."],
+  [/worthless|useless|pathetic|failure|loser|disappointment/i, "A hard stretch changes how you see yourself. It doesn't change what you're worth."],
   [/hate myself/i, "Being this hard on yourself shows how much pain you're in. It isn't a verdict on who you are."],
-  [/can'?t do anything/i, "Days where nothing feels doable are part of depression. They say how heavy things are, not how hard you try."],
+  [/can'?t do anything/i, "Days where nothing feels doable say how heavy things are, not how hard you try."],
   [/always|never/i, "Words like always and never make a hard day feel permanent. It can feel true right now without being the whole story."],
-  [/worst|terrible|mess|ruin/i, "One hard moment doesn't define you. Caring this much about doing right by people says something good about you."],
+  [/worst|terrible|mess|ruin/i, "One hard moment is not the whole of you."],
 ];
 const DEFAULT_REFRAME = "You'd likely speak more gently to a friend who said this about themselves. You deserve that gentleness too.";
 
 const FIRST_STEPS = [
   [/\bemail/i, "Open a new email and write only the subject line"],
   [/\b(call|phone)/i, "Find the number and save it where you'll see it"],
-  [/\btext/i, "Type one short line, even just \"hey, sorry I've been quiet\""],
+  [/\btext/i, "Type one short line, even just \"hey, thinking of you\""],
   [/\b(essay|report|paper|homework|assignment|thesis|slides|project)/i, "Open the file and write one sentence, any sentence"],
   [/\bform\b/i, "Put the form and a pen on the table"],
   [/\b(exam|test|quiz|study)/i, "Put your notes on the table, open to the first page"],
@@ -175,9 +175,9 @@ function buildSummary(threadTitles, feelings, hasCritic, clauseCount) {
     return "Thanks for putting this into words. Here it is, laid out a little more gently.";
   }
   const topics = threadTitles.filter((t) => t !== FALLBACK_TOPIC).map((t) => t.toLowerCase());
-  const feelingPart = feelings.length ? `You're feeling ${joinList(feelings.slice(0, 2))}` : "A lot is going on for you";
+  const feelingPart = feelings.length ? `It sounds like you're feeling ${joinList(feelings.slice(0, 2))}` : "A lot is going on for you";
   const topicPart = topics.length ? `, with ${joinList(topics.slice(0, 3))} on your mind` : "";
-  const criticPart = hasCritic ? ", and you're being really hard on yourself" : "";
+  const criticPart = hasCritic ? ", and some harsh thoughts are pointed at yourself" : "";
   return `${feelingPart}${topicPart}${criticPart}.`;
 }
 
