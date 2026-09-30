@@ -158,8 +158,8 @@ body {
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
-  /* Background only: fading the text color too left light text on the already-light cards mid-switch. */
-  transition: background-color 0.6s ease;
+  /* No background transition: text colors switch at once, so any fade left text at about 1.3:1
+     mid-switch. One clean cut is calmer. */
 }
 
 /* Two slow glows: depth without anything that demands attention. */
@@ -211,7 +211,7 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  width: min(100% - 32px, 920px);
+  width: min(100% - 32px, 760px);
   margin: 0 auto;
   padding: 1.25rem 0 0.5rem;
 }
@@ -930,11 +930,6 @@ legend {
   .help-now {
     padding: 0.5rem 0.8rem;
     font-size: 0.85rem;
-  }
-
-  .icon {
-    width: 38px;
-    height: 38px;
   }
 
   .wordmark {
