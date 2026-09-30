@@ -40,12 +40,15 @@ function write(key, value) {
 }
 
 // Ticked to-dos, keyed by task text, live in sessionStorage so they survive "Back to my words" and a
-// reload but never outlast the tab.
+// reload but never outlast the tab. They are stored with the words that were sorted, so a later,
+// different dump that yields the same task text does not arrive already ticked.
 const TICKS_KEY = "therapistgpt.ticks";
+let sortedText = "";
 
 function readTicks() {
   try {
-    return new Set(JSON.parse(sessionStorage.getItem(TICKS_KEY) || "[]"));
+    const saved = JSON.parse(sessionStorage.getItem(TICKS_KEY) || "null");
+    return new Set(saved?.text === sortedText ? saved.tasks : []);
   } catch {
     return new Set();
   }
@@ -53,7 +56,7 @@ function readTicks() {
 
 function writeTicks(ticks) {
   try {
-    sessionStorage.setItem(TICKS_KEY, JSON.stringify([...ticks]));
+    sessionStorage.setItem(TICKS_KEY, JSON.stringify({ text: sortedText, tasks: [...ticks] }));
   } catch {
     // ignore: the ticks just won't survive a reload
   }
@@ -318,6 +321,7 @@ async function run() {
   try {
     const [outcome] = await Promise.all([organizeText(text), settle(text)]);
     lastResult = outcome.result;
+    sortedText = text;
     renderResult($("result-cards"), outcome.result);
     restoreTicks();
     // Once sorted, the words should not wait in storage to greet the next reload. They stay in the
