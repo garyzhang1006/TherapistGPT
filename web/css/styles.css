@@ -422,7 +422,9 @@ kbd {
   font-size: clamp(2rem, 5.2vw, 2.9rem);
 }
 
-.results-head h1:focus {
+.results-head h1:focus,
+.card-label:focus,
+.dialog-body h2:focus {
   outline: none;
 }
 
