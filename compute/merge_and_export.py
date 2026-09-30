@@ -5,6 +5,8 @@ A merged model loads without peft and is what serve.py and GGUF conversion expec
 Usage:
     python merge_and_export.py --adapter outputs/therapistgpt-lora/final --out outputs/therapistgpt-merged
     python merge_and_export.py --adapter outputs/therapistgpt-lora/final --push your-hf-username/therapistgpt-1.5b
+    python merge_and_export.py --adapter outputs/smoke/final --model trl-internal-testing/tiny-Qwen2ForCausalLM-2.5 \
+        --out outputs/smoke/merged    # the train_lora.py --smoke adapter
 
 Optional GGUF (for llama.cpp / Ollama), run on the same remote box afterwards:
     git clone --depth 1 https://github.com/ggml-org/llama.cpp
@@ -27,6 +29,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--adapter", required=True, help="LoRA adapter path or Hub id")
     parser.add_argument("--config", type=Path, default=HERE / "config.yaml")
+    parser.add_argument("--model", help="base model id or path the adapter was trained on; defaults to base_model from config")
     parser.add_argument("--out", type=Path, default=HERE / "outputs" / "therapistgpt-merged")
     parser.add_argument("--push", metavar="HUB_ID", help="also upload the merged model to this Hub repo")
     parser.add_argument("--private", action="store_true", help="create the Hub repo as private")
@@ -36,7 +39,7 @@ def main() -> int:
     from peft import PeftModel
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
-    base_id = yaml.safe_load(args.config.read_text(encoding="utf-8"))["base_model"]
+    base_id = args.model or yaml.safe_load(args.config.read_text(encoding="utf-8"))["base_model"]
     adapter_path = Path(args.adapter)
     # A Hub id has exactly one slash (user/name); anything else that doesn't exist is a mistyped path,
     # which would otherwise fail later with a confusing Hub lookup error.
