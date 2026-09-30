@@ -15,14 +15,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from therapistgpt.safety import mentions_crisis  # noqa: E402
 from therapistgpt.schema import SchemaError, validate  # noqa: E402
-
-CRISIS_TERMS = (
-    "kill myself", "suicide", "suicidal", "want to die", "end it", "don't want to be here",
-    "dont want to be here", "better off without me", "hurt myself", "cutting", "self harm",
-    "self-harm", "scratching my arms", "not wake up",
-)
-
 
 def check_row(row: dict) -> list[str]:
     problems = []
@@ -37,8 +31,7 @@ def check_row(row: dict) -> list[str]:
         problems.append(str(exc))
         return problems
     # A crisis phrase with needs_support false is the most dangerous label error, so flag it loudly.
-    text = row["input"].lower()
-    if any(term in text for term in CRISIS_TERMS) and not row["output"]["needs_support"]:
+    if mentions_crisis(row["input"]) and not row["output"]["needs_support"]:
         problems.append("input contains a crisis phrase but needs_support is false")
     return problems
 
