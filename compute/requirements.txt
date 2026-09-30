@@ -1,0 +1,18 @@
+# Pinned to the versions whose APIs the scripts were written against (checked 2026-09-29).
+# torch is not listed: Kaggle and Colab images already ship a CUDA build of it.
+
+# training / eval / export
+transformers==5.17.0
+trl==1.14.1
+peft==0.21.1
+datasets==5.0.1
+accelerate==1.15.0
+pyyaml>=6.0
+
+# synthetic data
+anthropic==1.9.0
+pydantic>=2.13,<3
+
+# serving
+fastapi==0.142.1
+uvicorn==0.54.0
