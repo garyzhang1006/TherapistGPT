@@ -120,7 +120,7 @@ Write ONE new, realistic brain dump and its organized version.
 - Writer: {rng.choice(WRITERS)}
 - On their mind: {", ".join(topics)}
 - Writing style: {rng.choice(STYLES)}
-- Length: about {rng.choice([25, 50, 80, 120, 180, 250])} words
+- Length: about {rng.choice([25, 50, 80, 120, 180, 250, 400])} words
 - {crisis_line}
 
 The brain dump must read like a real person typing to themselves, not like a writing exercise. Invent specific but ordinary details (names, days, small tasks). The organized version must follow every organizer rule, use only facts from the brain dump, and stay within the list limits."""
