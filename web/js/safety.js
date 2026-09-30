@@ -37,7 +37,7 @@ export const CRISIS_STEP =
 // Same override the server applies: a keyword hit always wins over the model's judgment.
 export function applySafetyFloor(text, output) {
   if (mentionsCrisis(text) && !output.needs_support) {
-    return { ...output, needs_support: true, summary: CRISIS_SUMMARY, one_small_step: CRISIS_STEP };
+    return { ...output, needs_support: true, summary: CRISIS_SUMMARY, one_small_step: CRISIS_STEP, kinder_view: [] };
   }
   return output;
 }
