@@ -57,10 +57,10 @@ These are estimates, not measurements, so check the 20-example run first.
 
 1. Create a new Space on Hugging Face with the **Docker** SDK.
 2. Copy `therapistgpt/`, `serve.py` and `config.yaml` into it, then put `space/Dockerfile` and `space/README.md` at the Space root.
-3. In the Space settings add the variables `MODEL_ID` (your merged model) and `ALLOWED_ORIGINS` (your GitHub Pages URL).
-4. In the web app, open **Settings**, paste the Space URL, and switch the engine to **Your model**.
+3. In the Space settings add the variables `MODEL_ID` (your merged model) and `ALLOWED_ORIGINS` (your GitHub Pages URL), plus a secret `API_KEY`.
+4. In the web app, open **Settings**, paste the Space URL and the access key, and switch the engine to **Your TherapistGPT model**.
 
-A free CPU Space works but a 1.5B model will take 30 seconds or more per request there; a small GPU Space is much faster.
+A free CPU Space works but a 1.5B model will take 30 seconds or more per request there; a small GPU Space with `TORCH_INDEX` set (see `space/README.md`) is much faster. The server handles one request at a time and answers "busy" to the rest, and the web app falls back to its on-device organizer whenever the model is busy, slow, or down.
 
 ## Safety design
 
