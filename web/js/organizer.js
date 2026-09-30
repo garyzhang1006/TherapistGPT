@@ -37,9 +37,9 @@ const FEELINGS = [
 ];
 
 // Only explicit intentions and concrete chores count as to-dos. "I didn't pick up" is a memory, not a task.
-const TASK_CUE = /\b(need to|needs to|have to|has to|gotta|got to|should(?! have| be)|supposed to(?! be)|must(?! be)|forgot to|due(?! to)|deadline|appointment|refill|reschedul\w*|laundry|dishes|groceries|bills?|rent)\b/i;
+const TASK_CUE = /\b(need to|needs to|have to|has to|gotta|got to|should(?! have| be)|supposed to(?! be)|must(?! be)|forgot to|due(?! to)|deadline|appointments?|appts?|refill|reschedul\w*|laundry|dishes|groceries|bills?|rent)\b/i;
 // A clause that starts with a chore verb is a task even without "need to": "call mom", "pay rent".
-const IMPERATIVE = /^(call|email|text|pay|finish|book|clean|buy|send|submit|schedule|refill|reply to|write|return|cancel|pick up|fill out)\b(?!\s+(from|with|was|is|went|that)\b)/i;
+const IMPERATIVE = /^(call|email|text|pay|finish|book|clean|buy|send|submit|schedule|refill|reply to|write|return|cancel|pick up|fill out|study|read|print|prep|prepare|practice|apply|renew|register|order|wash|fold|take out)\b(?!\s+(from|with|was|is|went|that)\b)/i;
 // Explicit intent found anywhere in a clause; what follows it is the task.
 const INTENT = /\b(need to|needs to|have to|has to|gotta|got to|should|must|supposed to|forgot to)\b/i;
 const INTENT_AT = /\b(?:need to|needs to|have to|has to|gotta|got to|should(?: really)?|supposed to|must|forgot to)\s+(.+)$/i;
@@ -53,6 +53,33 @@ const PAST_PLAN = /\b(?:was|were) supposed to\b/i;
 const FELL_THROUGH = /\b(?:but|and)\s+(?:I|we)\s+(?:didn'?t|couldn'?t|did not|could not|never|wasn'?t able to|weren'?t able to)\b/i;
 const FELL_THROUGH_LEAD = /^(?:I|we)\s+(?:didn'?t|couldn'?t|did not|could not|never|wasn'?t able to|weren'?t able to)\b/i;
 const TASK_LEAD = /^(and |so |but |also |i |im |i'?m |i am |really |still )*(need to|needs to|have to|has to|gotta|got to|should( really)?|am supposed to|supposed to|must|forgot to|want to|also need to)\s+/i;
+// "I still haven't emailed my advisor" is an obligation still open, so it is a to-do without any
+// "need to". Only the writer's own (I, we, or no subject): "she hasn't paid me back" is hers.
+const UNMET = /(?:^|\b(?:I|we)\s+)(?:still\s+|just\s+|really\s+)?(?:haven'?t|havent|have not)(?:\s+(?:even|yet|still|actually))?\s+(emailed|called|texted|messaged|paid|studied|started|replied|answered|sent|submitted|finished|booked|scheduled|responded|returned|filed|mailed|applied|renewed|done|written|cleaned|picked|gotten|reached|checked|opened|read|signed|registered|made|eaten)\b(.*)$/i;
+// "I can't even answer one email" names the thing that is waiting.
+const CANT_EVEN = /(?:^|\b(?:I|we)\s+)(?:still\s+|just\s+)?(?:can'?t|cant|cannot)\s+even\s+(answer|reply|respond|call|text|email|open|pay|finish|start|send|return|read|do)\b(.*)$/i;
+const BASE_VERB = {
+  emailed: "email", called: "call", texted: "text", messaged: "message", paid: "pay", studied: "study",
+  started: "start", replied: "reply", answered: "answer", sent: "send", submitted: "submit", finished: "finish",
+  booked: "book", scheduled: "schedule", responded: "respond", returned: "return", filed: "file", mailed: "mail",
+  applied: "apply", renewed: "renew", done: "do", written: "write", cleaned: "clean", picked: "pick", gotten: "get",
+  reached: "reach", checked: "check", opened: "open", read: "read", signed: "sign", registered: "register",
+  made: "make", eaten: "eat",
+};
+// With nothing after the verb, the thing it is about was usually named first:
+// "I have a bio exam tmrw and I haven't studied at all".
+const HAVE_THING = /\b(?:I have|I've got|I got|there'?s) (?:a|an|my|the|this|that) ((?:\w+ ){0,2}?(?:exam|test|quiz|midterm|final|essay|paper|report|assignment|project|presentation|interview|form|application|homework|reading))\b/i;
+const NO_OBJECT = /^(?:(?:at|all|yet|anything|a|thing|much|any|of|it|them|that|this|either|still|even|lately|really)\b\s*)*$/i;
+// "I have 3 chapters left to read" names its own verb.
+const LEFT_TO = /\b(?:I|we)(?:'ve| have)?\s+(?:still\s+)?(?:have|got)\s+((?:\d+|a few|a couple(?: of)?|two|three|four|five|six|so many|some|a bunch of|like \d+)\s+(?:\w+\s+)?\w+)\s+left\s+to\s+(\w+)/i;
+// "Roommate keeps leaving her dishes everywhere" is a complaint about someone else's chore.
+const SOMEONE_ELSES = /^(?:my |the |our )?(?:roommates?|flatmates?|housemates?|partner|husband|wife|bf|gf|boyfriend|girlfriend|mom|mum|dad|mother|father|sister|brother|kids?|son|daughter|boss|coworkers?|landlord|he|she|they|someone|somebody|everyone|nobody|no one)\s+(?:\w+\s+)?(?:keeps?|never|always|won'?t|doesn'?t|refuses? to|left|leaves|leaving|forgot|forgets)\b/i;
+const MY_INTENT = /\b(?:I|we)\s+(?:really\s+|still\s+)?(?:need|have|gotta|got|should|must)\b/i;
+// "Rent is late" means pay it.
+const DUE_LATE = /^(?:my |the )?(rent|(?:\w+ )?bills?|tuition|credit card(?: bill)?|loan|car payment)(?: payment)? (?:is|are) (?:late|overdue|past due)\b.*$/i;
+// "Send it" or "Prob should" leans on the sentence before it and says nothing on its own.
+const HEDGE_ONLY = /^(?:(?:prob|probably|maybe|def|definitely|really|actually|honestly|just|so|i|should|must|need|needs|to|have|has|gotta|got|do|it|too|now|yeah|ok|okay)\b\s*)+$/i;
+const PRONOUN_ONLY = /^\w+(?: up| out| back| in| off| over)? (?:it|that|this|those|these)(?: (?:up|out|back|in|off|over|now|already|too|asap|today|tonight|tomorrow|soon))?$/i;
 
 const SELF_CRITIC = /\b(feel like (a|an|the) (worst|failure|burden|fraud|mess|loser|bad \w+)|(i'?m|im|i am) (so |such an? |just |literally |a )?(stupid|lazy|useless|worthless|pathetic|failure|mess|terrible|the worst|burden|disgusting|weak|broken|idiot|loser|disappointment|not good enough|not smart enough|too much)|i (always|never) (mess|ruin|screw|fail|forget|let|disappoint|say the wrong|do anything right|get anything right)|i feel (so |really |completely )?(useless|worthless|stupid|pathetic|like such an? \w+)|i suck\b|i can'?t do anything|what'?s wrong with me|hate myself|i ruin|i mess (everything|it all) up|i'?m bad at)/i;
 
@@ -75,6 +102,7 @@ const FIRST_STEPS = [
   [/\b(essay|report|paper|homework|assignment|thesis|slides|project)/i, "Open the file and write one sentence, any sentence"],
   [/\bform\b/i, "Put the form and a pen on the table"],
   [/\b(exam|test|quiz|study)/i, "Put your notes on the table, open to the first page"],
+  [/\b(read|chapters?)\b/i, "Open to the page and read one paragraph"],
   [/\bdishes/i, "Carry one dish to the sink"],
   [/\blaundry/i, "Gather the clothes into one pile"],
   [/\b(clean|room|mess|tidy)/i, "Pick up five things, then stop if you want"],
@@ -104,7 +132,8 @@ function normalize(text) {
     .trim();
 }
 
-const FILLER_LEAD = /^(and|so|but|also|like|ok so|okay so|ok|okay|idk|anyway|anyways|plus|then|oh and|um|uh)[,\s]+/i;
+// "idk" is filler, except in "idk why im like this" or "idk where to start", where it is the point.
+const FILLER_LEAD = /^(and|so|but|also|like|ok so|okay so|ok|okay|idk(?![,\s]+(?:where|why|how|what|if|whether)\b)|anyway|anyways|plus|then|oh and|um|uh)[,\s]+/i;
 
 function cleanClause(raw) {
   let s = raw
@@ -132,13 +161,16 @@ function hasAnchor(s) {
     FEELINGS.some(([, pattern]) => pattern.test(s)) ||
     TASK_CUE.test(s) ||
     SELF_CRITIC.test(s) ||
-    mentionsCrisis(s)
+    mentionsCrisis(s) ||
+    unmetTask(s) !== null ||
+    LEFT_TO.test(s)
   );
 }
 
 // Long unpunctuated run-ons break before "and/but/so" when a new subject follows, except after a
 // comma (", and the trash" ends a list) or when the next piece names nothing on its own
-// ("and I haven't even started" belongs with the report it is about).
+// ("and I haven't even started" belongs with the report it is about). A short "and my credit
+// card" continues a list ("pay my phone bill and my credit card"), so it stays too.
 function splitRunOn(part) {
   if (part.split(/\s+/).length < 10) return [part];
   const cuts = [...part.matchAll(RUN_ON)].filter((m) => !m[1]);
@@ -146,7 +178,7 @@ function splitRunOn(part) {
   let start = 0;
   cuts.forEach((m, k) => {
     const next = part.slice(m.index + m[0].length, k + 1 < cuts.length ? cuts[k + 1].index : part.length);
-    if (!hasAnchor(next)) return;
+    if (!hasAnchor(next) || /^(?:my|the)\s+\S+(?:\s+\S+)?$/i.test(next.trim())) return;
     pieces.push(part.slice(start, m.index));
     start = m.index + m[0].length;
   });
@@ -206,9 +238,20 @@ function splitList(part) {
   return topics.size >= 2 ? pieces : [part];
 }
 
+// "im such a failure i still havent sent the email" is a harsh thought and then a task, so the
+// task is not lost with the thought.
+function splitSelfTalk(part) {
+  const m = part.match(SELF_CRITIC);
+  if (!m) return [part];
+  const end = m.index + m[0].length;
+  const rest = part.slice(end);
+  if (!/^\s+(?:i|i'm|im|i've|ive|my)\b/i.test(rest) || rest.trim().split(/\s+/).length < 3) return [part];
+  return [part.slice(0, end), ...splitSelfTalk(rest.trim())];
+}
+
 function splitPart(part) {
   if (mentionsCrisis(part)) return splitAroundCrisis(part);
-  return splitRunOn(part).flatMap(splitList);
+  return splitRunOn(part).flatMap(splitSelfTalk).flatMap(splitList);
 }
 
 export function splitClauses(text) {
@@ -216,6 +259,10 @@ export function splitClauses(text) {
     // Sentence ends become line breaks first. A lookbehind would do it in one regex, but Safari
     // before 16.4 can't parse lookbehinds, and one bad regex stops the whole page from loading.
     .replace(/([.!?;])\s+/g, "$1\n")
+    // Texting ends sentences with "lol" or "tbh" instead of a period, and "idk where to even
+    // start" is a thought of its own before whatever follows it.
+    .replace(/\s+(lol|lmao|lmfao|haha\w*|tbh|ngl)\s+(?=(?:i|i'm|im|i've|ive|my)\b)/gi, " $1\n")
+    .replace(/\b((?:idk|i don'?t know|i dont know) where (?:to|do i) (?:even )?(?:start|begin))\s+(?=(?:i|i'm|im|i've|ive|my)\b)/gi, "$1\n")
     .split(/\n+|\s+(?:and then|but also|and also|oh and|plus|anyway|anyways)\s+/i)
     .flatMap(splitPart);
   const clauses = [];
@@ -253,16 +300,57 @@ function topicFor(clause) {
   return best || FALLBACK_TOPIC;
 }
 
-function toTask(clause) {
-  const intent = clause.match(INTENT_AT);
-  let task = intent ? intent[1] : clause.replace(TASK_LEAD, "");
-  task = task
+// What follows a task is usually how the person feels about it or why it is late, and the task
+// reads kinder without it: "Text Sam back, I've been ignoring them for a week" is "Text Sam back".
+function trimTail(task) {
+  let s = task
     // "Finish the chapter and I haven't opened it" is one task plus a feeling about it.
     .replace(/\s+(?:and|but|so)\s+(?:I|I'm|I've|I'd)\b.*$/i, "")
-    .replace(/^(?:I|I've|we) (?:have|got) (?=(?:the|a|an|my|this|that)\b)/i, "")
+    .replace(/,\s*(?:I|I'm|I've|I'd|I'll|it|it's|its|they|they're|she|she's|he|he's|we)\b.*$/i, "")
+    .replace(/\s+(?:because|bc|cuz|cause|since|even though|otherwise|or else|or (?:I|I'll|ill|I'm|else))\b.*$/i, "")
+    .replace(/\s+(?:that |which )?(?:I|I've|ive)\s+(?:keep|kept|been|have been)\s+\w+ing\b.*$/i, "")
+    .replace(/\s+it'?s been\b.*$/i, "")
+    .replace(/\s+(?:in|for) (?:a|an|\d+|two|three|four|five|a few|a couple of|several|like \d+) (?:days?|weeks?|months?|years?|ages)\b.*$/i, "");
+  const harsh = s.search(SELF_CRITIC);
+  if (harsh > 0) s = s.slice(0, harsh);
+  return s
     .replace(/\s+(I guess|I think|probably|maybe|lol|idk)$/i, "")
-    .replace(/\s+(at some point|asap|soon|today|tomorrow|tonight|this week)$/i, "");
+    .replace(/\s+(at some point|asap|soon|today|tomorrow|tonight|this week)$/i, "")
+    .replace(/[\s,;:.!?-]+$/, "");
+}
+
+// The to-do inside an unmet obligation, or null when it names nothing to do.
+function unmetTask(clause) {
+  const m = clause.match(UNMET) || clause.match(CANT_EVEN);
+  if (!m) return null;
+  const verb = BASE_VERB[m[1].toLowerCase()] || m[1].toLowerCase();
+  let object = trimTail(m[2]).trim();
+  if (NO_OBJECT.test(object)) {
+    const thing = clause.match(HAVE_THING);
+    if (verb === "eat") object = "something";
+    else if (thing) object = `${/^(study|prepare|practice)$/.test(verb) ? "for " : ""}the ${thing[1]}`;
+    else return null;
+  }
+  const task = capitalize(`${verb} ${object}`);
+  return isFragment(task) ? null : task;
+}
+
+function toTask(clause) {
+  const intent = clause.match(INTENT_AT);
+  if (!intent) {
+    const unmet = unmetTask(clause);
+    if (unmet) return unmet;
+    const left = clause.match(LEFT_TO);
+    if (left) return capitalize(`${left[2].toLowerCase()} ${left[1]}`);
+  }
+  const task = trimTail(intent ? intent[1] : clause.replace(TASK_LEAD, ""))
+    .replace(/^(?:I|I've|we) (?:have|got) (?=(?:the|a|an|my|this|that)\b)/i, "")
+    .replace(DUE_LATE, (_, bill) => `Pay ${bill.toLowerCase()}`);
   return capitalize(task);
+}
+
+function isFragment(task) {
+  return HEDGE_ONLY.test(task) || PRONOUN_ONLY.test(task);
 }
 
 // "Laundry, groceries, the school form" is three chores, not one.
@@ -343,15 +431,19 @@ export function organize(text) {
     if (SELF_CRITIC.test(clause) && reframes.length < LIMITS.reframes) {
       reframes.push({ thought: clause, reframe: reframeFor(clause) });
     }
+    // "haven't sent it" says the thing is still waiting, whatever else in the clause is past.
+    const unmet = unmetTask(clause) !== null;
     const isTask =
-      (TASK_CUE.test(clause) || IMPERATIVE.test(clause)) &&
-      !(PAST.test(clause) && !INTENT.test(clause)) &&
+      (TASK_CUE.test(clause) || IMPERATIVE.test(clause) || unmet || LEFT_TO.test(clause)) &&
+      !(PAST.test(clause) && !INTENT.test(clause) && !unmet) &&
       !(PAST_PLAN.test(clause) && (FELL_THROUGH.test(clause) || FELL_THROUGH_LEAD.test(clauses[i + 1] || ""))) &&
+      !(SOMEONE_ELSES.test(clause) && !MY_INTENT.test(clause)) &&
       !SELF_CRITIC.test(clause) &&
       !NOT_A_TASK.test(clause) &&
       !mentionsCrisis(clause);
     if (isTask && todos.length < LIMITS.todos) {
       for (const task of splitTaskList(toTask(clause))) {
+        if (!task.trim() || isFragment(task)) continue;
         if (todos.length < LIMITS.todos && !todos.some((t) => t.task.toLowerCase() === task.toLowerCase())) {
           todos.push({ task, first_step: firstStepFor(task) });
         }
