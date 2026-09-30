@@ -1,0 +1,33 @@
+# Training config for TherapistGPT. Every key is read by train_lora.py; unknown keys raise an error.
+
+# Qwen2.5-1.5B-Instruct: Apache-2.0, strong at JSON for its size, and small enough for a free
+# Kaggle T4 (16 GB). TRL ships a patched chat template for Qwen2.5, which assistant_only_loss needs.
+base_model: Qwen/Qwen2.5-1.5B-Instruct
+
+data:
+  train: data/train.jsonl
+  val: data/val.jsonl
+
+lora:
+  r: 16
+  alpha: 32
+  dropout: 0.05
+  target_modules: all-linear
+
+train:
+  output_dir: outputs/therapistgpt-lora
+  epochs: 3
+  batch_size: 4
+  grad_accum: 4          # effective batch size 16
+  learning_rate: 1.0e-4  # adapters train well around 1e-4 (TRL docs)
+  warmup: 0.05           # fraction of total steps
+  max_length: 2048       # system prompt + dump + JSON fit well under this
+  eval_steps: 50
+  save_steps: 50
+  logging_steps: 10
+  seed: 42
+
+hub:
+  push: false
+  # Set push: true and fill this in to upload the adapter; needs HF_TOKEN with write access.
+  model_id: your-hf-username/therapistgpt-1.5b-lora
