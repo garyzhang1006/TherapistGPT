@@ -398,14 +398,19 @@ function buildSummary(threadTitles, feelings, hasCritic, clauseCount) {
 
 const NOT_EATEN = /\b(haven'?t|havent|didn'?t|didnt|forgot to|not) (eaten|eat|had (any )?(food|breakfast|lunch|dinner))\b|\bskipp(ed|ing) (meals?|breakfast|lunch|dinner)\b/i;
 
+// Names the task, so "Text Sam back: type one short line" still makes sense read on its own.
+function stepFor(todo) {
+  return `${todo.task}: ${todo.first_step.charAt(0).toLowerCase()}${todo.first_step.slice(1)}.`;
+}
+
 function pickSmallStep(todos, feelings, lower) {
   const meds = todos.find((t) => STEP_PRIORITY[0].test(t.task));
   if (!meds && NOT_EATEN.test(lower)) return "Only this, for now: grab the easiest food within reach, even a few crackers.";
   for (const pattern of STEP_PRIORITY) {
     const hit = todos.find((t) => pattern.test(t.task));
-    if (hit) return `Only this, for now: ${hit.first_step.charAt(0).toLowerCase()}${hit.first_step.slice(1)}.`;
+    if (hit) return stepFor(hit);
   }
-  if (todos.length) return `Only this, for now: ${todos[0].first_step.charAt(0).toLowerCase()}${todos[0].first_step.slice(1)}.`;
+  if (todos.length) return stepFor(todos[0]);
   if (feelings.includes("exhausted")) return "Rest your eyes for five minutes with your phone face down.";
   return "Drink a glass of water and take three slow breaths.";
 }

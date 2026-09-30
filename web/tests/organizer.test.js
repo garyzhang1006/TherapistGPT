@@ -144,6 +144,10 @@ test("not eating comes before anything else in the one small step", () => {
   assert.match(out.one_small_step, /food/);
 });
 
+test("the one small step names the to-do it comes from", () => {
+  assert.match(organize("- laundry\n- text sam back").one_small_step, /^Text sam back: type one short line/);
+});
+
 test("crisis words sit under Inside your head, not the topic they mention", () => {
   const out = organize("i have to pay rent. i just want to sleep and never wake up");
   const home = out.threads.find((t) => t.points.some((p) => /never wake up/.test(p)));
