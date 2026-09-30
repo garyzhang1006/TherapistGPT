@@ -11,14 +11,14 @@ const TOPICS = [
   { title: "Work", words: /\b(work|job|boss|manager|shift|coworkers?|meeting|office|fired|client|clients|interview|career|promotion|deadline)\b/i },
   { title: "Money", words: /\b(money|rent|bills?|pay|paid|bank|debt|afford|loan|broke|budget|paycheck|credit card)\b/i },
   { title: "People", words: /\b(mom|dad|mother|father|sister|brother|friends?|partner|boyfriend|girlfriend|husband|wife|ex|family|parents|roommate|kids?|son|daughter|grandma|grandpa|everyone|nobody|people|texted|text back)\b/i },
-  { title: "Rest and body", words: /\b(sleep|slept|asleep|insomnia|tired|exhausted|eat|ate|eating|food|hungry|shower|showered|sick|pain|headache|meds|medication|pills?|doctor|dentist|therapy|therapist|bed|body|weight)\b/i },
+  { title: "Rest and body", words: /\b(sleep|slept|asleep|insomnia|tired|exhausted|eat|ate|eaten|eating|food|hungry|meals?|breakfast|lunch|dinner|shower|showered|sick|pain|headache|meds|medication|pills?|doctor|dentist|therapy|therapist|bed|body|weight)\b/i },
   { title: "Home", words: /\b(room|dishes|laundry|clean|cleaning|mess|messy|apartment|house|home|groceries|move|moving|boxes|kitchen|trash)\b/i },
 ];
 const FALLBACK_TOPIC = "Inside your head";
 
 const FEELINGS = [
   ["exhausted", /\b(tired|exhausted|drained|worn out|no energy|sleepy|fatigue)\b/i],
-  ["overwhelmed", /\b(overwhelm\w*|too much|drowning|so much to do|can'?t keep up)\b/i],
+  ["overwhelmed", /\b((overwhelm\w*|too much|drowning|so much to do|can'?t keep up|falling behind|behind on everything)\b|i just can'?t\b(?!\s+\w))/i],
   ["anxious", /\b(anxious|anxiety|worried|worry|scared|afraid|nervous|panic\w*|terrified|what if)\b/i],
   ["sad", /\b(sad|crying|cried|cry|tears|heartbroken|grief|miss (him|her|them))\b/i],
   ["lonely", /\b(lonely|alone|isolated|nobody|no one|no friends)\b/i],
@@ -33,7 +33,14 @@ const FEELINGS = [
 ];
 
 // Only explicit intentions and concrete chores count as to-dos. "I didn't pick up" is a memory, not a task.
-const TASK_CUE = /\b(need to|needs to|have to|has to|gotta|got to|should(?! have)|supposed to(?! be)|must|forgot to|due|deadline|appointment|refill|reschedul\w*|laundry|dishes|groceries|bills?|rent)\b/i;
+const TASK_CUE = /\b(need to|needs to|have to|has to|gotta|got to|should(?! have| be)|supposed to(?! be)|must(?! be)|forgot to|due(?! to)|deadline|appointment|refill|reschedul\w*|laundry|dishes|groceries|bills?|rent)\b/i;
+// A clause that starts with a chore verb is a task even without "need to": "call mom", "pay rent".
+const IMPERATIVE = /^(call|email|text|pay|finish|book|clean|buy|send|submit|schedule|refill|reply to|write|return|cancel|pick up|fill out)\b(?!\s+(from|with|was|is|went|that)\b)/i;
+// Explicit intent found anywhere in a clause; what follows it is the task.
+const INTENT = /\b(need to|needs to|have to|has to|gotta|got to|should|must|supposed to|forgot to)\b/i;
+const INTENT_AT = /\b(?:need to|needs to|have to|has to|gotta|got to|should(?: really)?|supposed to|must|forgot to)\s+(.+)$/i;
+// Things that already happened are memories unless an intent is stated: "I finally did laundry".
+const PAST = /\b(did|finally|already|yesterday|last (night|week|month|year)|missed|went|was|were)\b/i;
 // Crisis words never become chores: "I should just kill myself" is not a to-do.
 const NOT_A_TASK = /\b(disappear|exist|existing|die|dead|kill|hurt|end it|stop being)\b/i;
 const TASK_LEAD = /^(and |so |but |also |i |im |i'?m |i am |really |still )*(need to|needs to|have to|has to|gotta|got to|should( really)?|am supposed to|supposed to|must|forgot to|want to|also need to)\s+/i;
@@ -91,7 +98,11 @@ function normalize(text) {
 const FILLER_LEAD = /^(and|so|but|also|like|ok so|okay so|ok|okay|idk|anyway|anyways|plus|then|oh and|um|uh)[,\s]+/i;
 
 function cleanClause(raw) {
-  let s = raw.trim().replace(/\s+/g, " ");
+  let s = raw
+    .trim()
+    .replace(/\s+/g, " ")
+    .replace(/^(?:[-*•·–—>]+\s*|\d+[.)]\s+)/, "")
+    .replace(/^(things to do|to-?do( list)?)\s*:\s*/i, "");
   let prev;
   do {
     prev = s;
@@ -99,7 +110,7 @@ function cleanClause(raw) {
   } while (s !== prev);
   s = s.replace(/^[,;:\-\s]+|[,;:\-\s.!?]+$/g, "");
   // Lowercase " i " reads as a typo in a tidied list; fix the common forms only.
-  s = s.replace(/\bi\b/g, "I").replace(/\bim\b/gi, "I'm").replace(/\bi'm\b/g, "I'm").replace(/\bdont\b/gi, "don't").replace(/\bcant\b/gi, "can't").replace(/\bdidnt\b/gi, "didn't").replace(/\bhavent\b/gi, "haven't").replace(/\bwont\b/gi, "won't").replace(/\bits been\b/gi, "it's been").replace(/^its\b/i, "It's").replace(/\btheres\b/gi, "there's");
+  s = s.replace(/\bi\b/g, "I").replace(/\bim\b(?=\s+(so|not|just|really|still|always|never|literally|such|a|an|the|in|on|at|gonna|going|fine|ok|okay|tired|sad|scared|sorry|done|worried|afraid|stuck|lost|broke|sick|\w+ing)\b)/gi, "I'm").replace(/\bi'm\b/g, "I'm").replace(/\bdont\b/gi, "don't").replace(/\bcant\b/gi, "can't").replace(/\bdidnt\b/gi, "didn't").replace(/\bhavent\b/gi, "haven't").replace(/\bwont\b/gi, "won't").replace(/\bits been\b/gi, "it's been").replace(/^its\b/i, "It's").replace(/\btheres\b/gi, "there's");
   return capitalize(s);
 }
 
@@ -146,13 +157,14 @@ export function splitClauses(text) {
   for (const part of parts) {
     const clause = cleanClause(part);
     const key = clause.toLowerCase();
-    if (clause.split(/\s+/).filter(Boolean).length < 2 || seen.has(key)) continue;
+    const oneWordOk = TASK_CUE.test(clause) || TOPICS.some((t) => t.words.test(clause));
+    if (!clause || (clause.split(/\s+/).length < 2 && !oneWordOk) || seen.has(key)) continue;
     seen.add(key);
     clauses.push(clause);
   }
-  // A one-word dump ("tired") still deserves a response, and punctuation alone ("...") gets a
-  // gentle placeholder instead of an empty bullet.
-  if (!clauses.length && normalize(text)) clauses.push(cleanClause(normalize(text)) || "Something you haven't found words for yet");
+  // A one-word dump ("tired") still deserves a response, and punctuation or blank space gets a
+  // gentle placeholder instead of an empty thread.
+  if (!clauses.length) clauses.push(cleanClause(normalize(text)) || "Something you haven't found words for yet");
   return clauses;
 }
 
@@ -171,20 +183,28 @@ function topicFor(clause) {
 }
 
 function toTask(clause) {
-  let task = clause.replace(TASK_LEAD, "").replace(/^(I|I'm|I am)\s+(still\s+)?(need|have) to\s+/i, "");
-  task = task.replace(/\s+(at some point|asap|soon|today|tomorrow|tonight|this week)$/i, (m) => m);
+  const intent = clause.match(INTENT_AT);
+  let task = intent ? intent[1] : clause.replace(TASK_LEAD, "");
+  task = task
+    // "Finish the chapter and I haven't opened it" is one task plus a feeling about it.
+    .replace(/\s+(?:and|but|so)\s+(?:I|I'm|I've|I'd)\b.*$/i, "")
+    .replace(/^(?:I|I've|we) (?:have|got) (?=(?:the|a|an|my|this|that)\b)/i, "")
+    .replace(/\s+(at some point|asap|soon|today|tomorrow|tonight|this week)$/i, "");
   return capitalize(task);
 }
 
 // "Laundry, groceries, the school form" is three chores, not one.
 function splitTaskList(task) {
   const verbJoin = /\s+and\s+(?=(?:call|book|email|text|pay|clean|do|finish|get|buy|make|send|check|refill|start|reply|submit|schedule)\b)/i;
-  if (verbJoin.test(task)) return task.split(verbJoin).map((t) => capitalize(t.trim()));
+  if (verbJoin.test(task)) return task.split(verbJoin).map((t) => capitalize(t.trim().replace(/[,;]+$/, "")));
   if ((task.match(/,/g) || []).length < 2) return [task];
-  return task
+  const parts = task
     .split(/,\s*(?:and\s+)?|\s+and\s+/i)
-    .map((t) => capitalize(t.trim()))
+    .map((t) => t.trim())
     .filter((t) => t.length > 2);
+  // "Do the dishes, the laundry" means do both: carry the first verb onto bare nouns.
+  const verb = (parts[0] || "").match(/^(do|clean|buy|get|pay|finish|wash|fold|pick up|take out)\b/i);
+  return parts.map((t, k) => capitalize(k && verb && /^(the|my|a|an|some|our)\b/i.test(t) ? `${verb[1].toLowerCase()} ${t}` : t));
 }
 
 function firstStepFor(task) {
@@ -242,7 +262,12 @@ export function organize(text) {
     if (SELF_CRITIC.test(clause) && reframes.length < LIMITS.reframes) {
       reframes.push({ thought: clause, reframe: reframeFor(clause) });
     }
-    const isTask = TASK_CUE.test(clause) && !SELF_CRITIC.test(clause) && !NOT_A_TASK.test(clause) && !mentionsCrisis(clause);
+    const isTask =
+      (TASK_CUE.test(clause) || IMPERATIVE.test(clause)) &&
+      !(PAST.test(clause) && !INTENT.test(clause)) &&
+      !SELF_CRITIC.test(clause) &&
+      !NOT_A_TASK.test(clause) &&
+      !mentionsCrisis(clause);
     if (isTask && todos.length < LIMITS.todos) {
       for (const task of splitTaskList(toTask(clause))) {
         if (todos.length < LIMITS.todos && !todos.some((t) => t.task.toLowerCase() === task.toLowerCase())) {

@@ -84,3 +84,27 @@ test("crisis words never become to-dos", () => {
     assert.deepEqual(organize(text).to_dos, [], text);
   }
 });
+
+test("list lines become separate to-dos without their bullets", () => {
+  assert.deepEqual(organize("- call mom\n- pay rent\n- groceries").to_dos.map((t) => t.task), ["Call mom", "Pay rent", "Groceries"]);
+  assert.deepEqual(
+    organize("things to do: email professor, call landlord, book dentist").to_dos.map((t) => t.task),
+    ["Email professor", "Call landlord", "Book dentist"]
+  );
+  assert.deepEqual(organize("i gotta do the dishes, the laundry, and the trash").to_dos.map((t) => t.task), ["Do the dishes", "Do the laundry", "Do the trash"]);
+});
+
+test("memories and self-judgments are not to-dos", () => {
+  for (const text of ["I finally did laundry yesterday", "I should be happier", "I must be broken", "Due to the rain I stayed in", "Text from my sister made me cry"]) {
+    assert.deepEqual(organize(text).to_dos, [], text);
+  }
+});
+
+test("a to-do keeps the task and leaves the feeling about it behind", () => {
+  const { to_dos } = organize("I need to finish my thesis chapter and I haven't opened it in a week");
+  assert.equal(to_dos[0].task, "Finish my thesis chapter");
+});
+
+test("blank input still gets one gentle thread", () => {
+  assert.equal(organize("   \n\t ").threads.length, 1);
+});
