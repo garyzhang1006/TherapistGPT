@@ -44,7 +44,8 @@ class Organizer:
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
         # Qwen2.5 can overflow in fp16, so use bf16 where the GPU has it and fp32 otherwise
         # (1.5B in fp32 is about 6 GB, which still fits a T4).
-        use_bf16 = self.device == "cuda" and torch.cuda.is_bf16_supported()
+        # is_bf16_supported() also says yes on a T4 through slow emulation, so ask for sm_80+ directly.
+        use_bf16 = self.device == "cuda" and torch.cuda.get_device_capability()[0] >= 8
         dtype = torch.bfloat16 if use_bf16 else torch.float32
         tokenizer_source = adapter or model_id
         self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_source)

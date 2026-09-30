@@ -71,7 +71,8 @@ def main() -> int:
 
     # T4s have no bf16. There we keep fp32 weights and let AMP run fp16 math, which avoids
     # the "Attempting to unscale FP16 gradients" error you get from fp16 weights.
-    use_bf16 = torch.cuda.is_bf16_supported()
+    # is_bf16_supported() says yes on a T4 too (it counts slow emulation), so ask for sm_80+ directly.
+    use_bf16 = torch.cuda.get_device_capability()[0] >= 8
     dtype = torch.bfloat16 if use_bf16 else torch.float32
 
     lora = cfg["lora"]
