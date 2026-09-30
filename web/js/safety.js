@@ -59,12 +59,21 @@ export const CRISIS_SUMMARY =
 export const CRISIS_STEP =
   "Call or text 988 (US and Canada) or your local crisis line now, or tell someone near you that you're not safe.";
 
+// Stands in when every thread point was a crisis sentence, since the results need at least one thread.
+export const CRISIS_THREAD = { title: "Inside your head", points: ["Something very heavy, and it deserves real support."] };
+
 // Same override the server applies: a keyword hit always wins over the model's judgment, and
-// a crisis phrase never comes back as a to-do, whatever the model decided.
+// a crisis phrase never comes back as a to-do, whatever the model decided. Thread points that
+// mention a crisis go too: the crisis card already answers those words, and printing someone's
+// worst sentence back to them is unkind.
 export function applySafetyFloor(text, output) {
   const to_dos = output.to_dos.filter((todo) => !mentionsCrisis(`${todo.task} ${todo.first_step}`));
+  let threads = output.threads
+    .map((thread) => ({ ...thread, points: thread.points.filter((point) => !mentionsCrisis(point)) }))
+    .filter((thread) => thread.points.length);
+  if (!threads.length && output.threads.length) threads = [{ ...CRISIS_THREAD, points: [...CRISIS_THREAD.points] }];
   if (mentionsCrisis(text) && !output.needs_support) {
-    return { ...output, to_dos, needs_support: true, summary: CRISIS_SUMMARY, one_small_step: CRISIS_STEP, kinder_view: [] };
+    return { ...output, threads, to_dos, needs_support: true, summary: CRISIS_SUMMARY, one_small_step: CRISIS_STEP, kinder_view: [] };
   }
-  return { ...output, to_dos };
+  return { ...output, threads, to_dos };
 }

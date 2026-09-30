@@ -17,13 +17,22 @@ CRISIS_SUMMARY = (
     "You deserve real support with this right now."
 )
 CRISIS_STEP = "Call or text 988 (US and Canada) or your local crisis line now, or tell someone near you that you're not safe."
+# Stands in when every thread point was a crisis sentence, since the schema needs at least one thread.
+CRISIS_THREAD_TITLE = "Inside your head"
+CRISIS_THREAD_POINT = "Something very heavy, and it deserves real support."
 
 
 def apply_safety_floor(brain_dump: str, output: dict[str, Any]) -> dict[str, Any]:
     """Force the crisis response when the keyword detector fires, even if the model missed it."""
     # A crisis phrase must never come back as a to-do, even when the model flagged the crisis itself.
     to_dos = [t for t in output["to_dos"] if not mentions_crisis(f"{t['task']} {t['first_step']}")]
-    output = {**output, "to_dos": to_dos}
+    # Thread points that mention a crisis go too: the crisis card already answers those words, and
+    # printing someone's worst sentence back to them is unkind. Same rule as web/js/safety.js.
+    threads = [{**t, "points": [p for p in t["points"] if not mentions_crisis(p)]} for t in output["threads"]]
+    threads = [t for t in threads if t["points"]]
+    if not threads and output["threads"]:
+        threads = [{"title": CRISIS_THREAD_TITLE, "points": [CRISIS_THREAD_POINT]}]
+    output = {**output, "threads": threads, "to_dos": to_dos}
     if mentions_crisis(brain_dump) and not output["needs_support"]:
         output = {
             **output,

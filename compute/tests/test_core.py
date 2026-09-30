@@ -75,6 +75,22 @@ class SafetyTests(unittest.TestCase):
         out = apply_safety_floor("i have to end it all", {**EXAMPLE_OUTPUT, "needs_support": True, "to_dos": todos})
         self.assertEqual([t["task"] for t in out["to_dos"]], ["Do laundry"])
 
+    def test_floor_drops_crisis_points_and_emptied_threads(self):
+        threads = [
+            {"title": "School", "points": ["Chem quiz tomorrow", "I don't want to be here anymore"]},
+            {"title": "Inside your head", "points": ["i want to die"]},
+        ]
+        out = apply_safety_floor("chem quiz tomorrow. i want to die", {**EXAMPLE_OUTPUT, "threads": threads})
+        self.assertEqual(out["threads"], [{"title": "School", "points": ["Chem quiz tomorrow"]}])
+        validate(out)
+
+    def test_floor_keeps_one_gentle_thread_when_every_point_is_a_crisis(self):
+        threads = [{"title": "Inside your head", "points": ["i want to die", "I can't go on"]}]
+        out = apply_safety_floor("i want to die. i can't go on", {**EXAMPLE_OUTPUT, "threads": threads})
+        self.assertEqual(len(out["threads"]), 1)
+        self.assertFalse(any(mentions_crisis(p) for t in out["threads"] for p in t["points"]))
+        validate(out)
+
 
 class PromptTests(unittest.TestCase):
     def test_inference_messages_have_no_assistant_turn(self):

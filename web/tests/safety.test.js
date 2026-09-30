@@ -46,3 +46,27 @@ test("safety floor drops crisis to-dos even when the model flagged the crisis it
   const out = applySafetyFloor("i have to end it all and do laundry", modelOut);
   assert.deepEqual(out.to_dos.map((t) => t.task), ["Do laundry"]);
 });
+
+test("safety floor drops crisis points and any thread they leave empty", () => {
+  const modelOut = {
+    summary: "x", feelings: [], to_dos: [], kinder_view: [], one_small_step: "y", needs_support: true,
+    threads: [
+      { title: "School", points: ["Chem quiz tomorrow", "I don’t want to be here anymore"] },
+      { title: "Inside your head", points: ["i want to die"] },
+    ],
+  };
+  const out = applySafetyFloor("chem quiz tomorrow. i want to die", modelOut);
+  assert.deepEqual(out.threads, [{ title: "School", points: ["Chem quiz tomorrow"] }]);
+});
+
+test("safety floor keeps one gentle thread when every point was a crisis", () => {
+  const modelOut = {
+    summary: "x", feelings: [], to_dos: [], kinder_view: [], one_small_step: "y", needs_support: false,
+    threads: [{ title: "Inside your head", points: ["i want to die", "I can't go on"] }],
+  };
+  const out = applySafetyFloor("i want to die. i can't go on", modelOut);
+  assert.equal(out.threads.length, 1);
+  assert.ok(out.threads[0].title.trim() && out.threads[0].points.length === 1 && out.threads[0].points[0].trim());
+  assert.ok(out.threads.every((t) => t.points.every((p) => !mentionsCrisis(p))));
+  assert.equal(out.needs_support, true);
+});
