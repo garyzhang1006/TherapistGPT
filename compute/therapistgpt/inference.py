@@ -13,10 +13,10 @@ from .safety import mentions_crisis
 from .schema import SchemaError, extract_json, validate
 
 CRISIS_SUMMARY = (
-    "What you wrote sounds really heavy, and it matters that you don't carry it alone. "
-    "Please reach out to a crisis line or someone you trust right now."
+    "What you wrote sounds really heavy, and I'm glad you put it into words. "
+    "You deserve real support with this right now."
 )
-CRISIS_STEP = "Call or text 988 (in the US) or your local crisis line now, or tell someone near you that you're not safe."
+CRISIS_STEP = "Call or text 988 (US and Canada) or your local crisis line now, or tell someone near you that you're not safe."
 
 
 def apply_safety_floor(brain_dump: str, output: dict[str, Any]) -> dict[str, Any]:

@@ -19,11 +19,11 @@ function crisisCard() {
   card.setAttribute("role", "alert");
   card.append(el("h2", "card-label", "You don't have to hold this alone"));
   card.append(
-    el("p", "crisis-lead", "If you might act on these thoughts, please reach a real person now. It's free, confidential, and open all day and night.")
+    el("p", "crisis-lead", "Thoughts like these deserve real support. You can talk or text with a person right now, free and confidential, any time.")
   );
   const actions = el("div", "crisis-actions");
   const links = [
-    ["tel:988", "Call 988", "US Suicide & Crisis Lifeline"],
+    ["tel:988", "Call 988", "Suicide & Crisis Lifeline (US and Canada)"],
     ["sms:988", "Text 988", "if talking feels like too much"],
     ["sms:741741?&body=HOME", "Text HOME to 741741", "Crisis Text Line"],
     ["https://findahelpline.com", "Outside the US", "findahelpline.com lists local lines"],
@@ -39,7 +39,7 @@ function crisisCard() {
     actions.append(a);
   }
   card.append(actions);
-  card.append(el("p", "crisis-foot", "If you're in immediate danger, call your local emergency number."));
+  card.append(el("p", "crisis-foot", "On a computer? Call or text 988 from any phone. If you're in immediate danger, call your local emergency number."));
   return card;
 }
 
@@ -115,7 +115,7 @@ export function renderResult(container, result) {
 export function resultToText(result) {
   const lines = [];
   if (result.needs_support) {
-    lines.push("If you might act on these thoughts: call or text 988 (US), text HOME to 741741, or visit findahelpline.com.", "");
+    lines.push("Real support, any time: call or text 988 (US and Canada), text HOME to 741741, or visit findahelpline.com.", "");
   }
   lines.push("WHAT I'M HEARING", result.summary);
   if (result.feelings.length) lines.push(`Feelings: ${result.feelings.join(", ")}`);
