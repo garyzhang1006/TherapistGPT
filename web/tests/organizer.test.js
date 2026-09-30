@@ -132,3 +132,9 @@ test("not eating comes before anything else in the one small step", () => {
   const out = organize("i need to email my professor. i haven't eaten since breakfast");
   assert.match(out.one_small_step, /food/);
 });
+
+test("crisis words sit under Inside your head, not the topic they mention", () => {
+  const out = organize("i have to pay rent. i just want to sleep and never wake up");
+  const home = out.threads.find((t) => t.points.some((p) => /never wake up/.test(p)));
+  assert.equal(home.title, "Inside your head");
+});

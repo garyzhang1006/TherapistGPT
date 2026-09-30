@@ -265,8 +265,9 @@ export function organize(text) {
   const reframes = [];
   const groups = new Map();
   for (const clause of clauses) {
-    // Self-talk ("I feel like a burden to everyone") is about the person, not the topic it names.
-    const topic = SELF_CRITIC.test(clause) ? FALLBACK_TOPIC : topicFor(clause);
+    // Self-talk ("I feel like a burden to everyone") and crisis words ("sleep and never wake up")
+    // are about the person, not the topic they happen to name.
+    const topic = SELF_CRITIC.test(clause) || mentionsCrisis(clause) ? FALLBACK_TOPIC : topicFor(clause);
     if (!groups.has(topic)) groups.set(topic, []);
     groups.get(topic).push(clause);
 
