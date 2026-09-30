@@ -83,6 +83,11 @@ const PRONOUN_ONLY = /^\w+(?: up| out| back| in| off| over)? (?:it|that|this|tho
 
 const SELF_CRITIC = /\b(feel like (a|an|the) (worst|failure|burden|fraud|mess|loser|bad \w+)|(i'?m|im|i am) (so |such an? |just |literally |a )?(stupid|lazy|useless|worthless|pathetic|failure|mess|terrible|the worst|burden|disgusting|weak|broken|idiot|loser|disappointment|not good enough|not smart enough|too much)|i (always|never) (mess|ruin|screw|fail|forget|let|disappoint|say the wrong|do anything right|get anything right)|i feel (so |really |completely )?(useless|worthless|stupid|pathetic|like such an? \w+)|i suck\b|i can'?t do anything|what'?s wrong with me|hate myself|i ruin|i mess (everything|it all) up|i'?m bad at)/i;
 
+// True for the harsh self-talk that gets a kinder view, so other views can keep it out of sight too.
+export function isSelfCritical(text) {
+  return SELF_CRITIC.test(normalize(text));
+}
+
 const REFRAMES = [
   [/lazy/i, "Struggling to start things is common when you're running low. That's heaviness, not laziness."],
   [/stupid|idiot|dumb|not smart/i, "One moment of getting something wrong doesn't measure how capable you are."],

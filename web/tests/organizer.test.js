@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { organize, splitClauses } from "../js/organizer.js";
+import { organize, splitClauses, isSelfCritical } from "../js/organizer.js";
 
 const seeds = readFileSync(new URL("../../compute/data/seed.jsonl", import.meta.url), "utf8")
   .trim()
@@ -125,6 +125,11 @@ test("harsh self-talk gets a kinder view and its own thread, and plain words don
   assert.equal(out.kinder_view.length, 1);
   assert.equal(out.threads.find((t) => t.points.some((p) => /failure/.test(p))).title, "Inside your head");
   assert.equal(organize("I always love seeing my dog").kinder_view.length, 0);
+});
+
+test("isSelfCritical matches the thoughts that get a kinder view, and nothing else", () => {
+  for (const text of ["im such a failure", "I’m so stupid", "i hate myself", "I feel like a burden"]) assert.equal(isSelfCritical(text), true, text);
+  for (const text of ["I always love seeing my dog", "need to do laundry", "my mom called"]) assert.equal(isSelfCritical(text), false, text);
 });
 
 test("feelings come from feeling words, not colors or objects", () => {
