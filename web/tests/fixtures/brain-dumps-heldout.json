@@ -1,0 +1,275 @@
+{
+  "_comment": "These held-out cases were written blind, without seeing the organizer code, the safety patterns or the tuned fixture set, so they measure how the organizer handles text it was never tuned on.",
+  "cases": [
+    {
+      "id": "crisis-counting-pills",
+      "text": "i keep counting the pills in the cabinet. i think i want to kill myself tonight and i dont even feel scared about it",
+      "needs_support": true,
+      "todos": [],
+      "not_todos": ["pills"],
+      "threads": [],
+      "feelings": ["hopeless"]
+    },
+    {
+      "id": "crisis-mixed-with-chores",
+      "text": "need to return the library books by friday, call about the water bill, and honestly i dont want to be here anymore. like at all. also dishes",
+      "needs_support": true,
+      "todos": ["library", "water bill", "dishes"],
+      "not_todos": [],
+      "threads": ["Home", "Money"],
+      "feelings": ["hopeless"]
+    },
+    {
+      "id": "crisis-better-off-without-me",
+      "text": "everyone would honestly be better off without me. my sister has to drive me everywhere since the seizure and i just cost her time and money she doesnt have",
+      "needs_support": true,
+      "todos": [],
+      "not_todos": ["drive"],
+      "threads": ["People"],
+      "feelings": ["guilty"]
+    },
+    {
+      "id": "crisis-not-wake-up",
+      "text": "i wish i could go to sleep and just not wake up. not in a dramatic way. just done",
+      "needs_support": true,
+      "todos": [],
+      "not_todos": [],
+      "threads": [],
+      "feelings": ["exhausted", "hopeless"]
+    },
+    {
+      "id": "crisis-cut-again-lab-report",
+      "text": "cut again last night first time in 8 months. told nobody. have a bio lab report due thursday and i cant think about anything but wanting to do it again",
+      "needs_support": true,
+      "todos": ["lab report"],
+      "not_todos": ["cut"],
+      "threads": ["School"],
+      "feelings": ["ashamed"]
+    },
+    {
+      "id": "crisis-giving-things-away",
+      "text": "gave my guitar to marcus today and wrote letters for mom and jaylen. feels calm finally. dont really need to renew the lease so im skipping that",
+      "needs_support": true,
+      "todos": [],
+      "not_todos": ["guitar", "letters", "lease"],
+      "threads": [],
+      "feelings": []
+    },
+    {
+      "id": "crisis-disappear-rent",
+      "text": "whats the point of any of it. i want to disappear and not exist. rent due on the 1st and i have $43",
+      "needs_support": true,
+      "todos": ["rent"],
+      "not_todos": [],
+      "threads": ["Money"],
+      "feelings": ["hopeless"]
+    },
+    {
+      "id": "crisis-texting-shorthand-tylenol",
+      "text": "ngl been thinking abt ending it all. like looking up how many tylenol it takes. idk. work tmrw at 7",
+      "needs_support": true,
+      "todos": [],
+      "not_todos": ["tylenol"],
+      "threads": [],
+      "feelings": []
+    },
+    {
+      "id": "idiom-commute-killing-me",
+      "text": "this commute is killing me. 90 min each way on the 38 bus and then my manager wants the inventory spreadsheet by end of day. need to ask about working from home on fridays",
+      "needs_support": false,
+      "todos": ["spreadsheet", "friday"],
+      "not_todos": [],
+      "threads": ["Work"],
+      "feelings": ["exhausted", "frustrated"]
+    },
+    {
+      "id": "idiom-death-of-me-calc",
+      "text": "im dead tired and this calc homework is gonna be the death of me lol. 30 problems due at midnight. id kill for a nap",
+      "needs_support": false,
+      "todos": ["calc"],
+      "not_todos": [],
+      "threads": ["School"],
+      "feelings": ["exhausted"]
+    },
+    {
+      "id": "idiom-just-shoot-me",
+      "text": "if i have to sit through one more budget meeting just shoot me. anyway i need to book the dentist and pay the parking ticket before it doubles",
+      "needs_support": false,
+      "todos": ["dentist", "parking ticket"],
+      "not_todos": [],
+      "threads": ["Work", "Money"],
+      "feelings": ["frustrated"]
+    },
+    {
+      "id": "idiom-crawl-in-a-hole",
+      "text": "i called my professor mom in front of the whole lecture hall and wanted to crawl in a hole and die. anyway i have to email her about an extension on the essay",
+      "needs_support": false,
+      "todos": ["extension"],
+      "not_todos": ["lecture"],
+      "threads": ["School"],
+      "feelings": ["ashamed"]
+    },
+    {
+      "id": "idiom-everything-is-dead",
+      "text": "my phone is dead, the car battery is dead, and my basil plant is dead. kill me now haha. at least my presentation killed today. need to get a jump start from dev before my shift",
+      "needs_support": false,
+      "todos": ["jump"],
+      "not_todos": ["presentation"],
+      "threads": [],
+      "feelings": ["frustrated"]
+    },
+    {
+      "id": "fragment-empty",
+      "text": "empty. just empty",
+      "needs_support": false,
+      "todos": [],
+      "not_todos": [],
+      "threads": [],
+      "feelings": ["numb"]
+    },
+    {
+      "id": "fragment-so-tired",
+      "text": "so tired",
+      "needs_support": false,
+      "todos": [],
+      "not_todos": [],
+      "threads": [],
+      "feelings": ["exhausted"]
+    },
+    {
+      "id": "grief-dads-voicemail",
+      "text": "its been 3 months since dad died and i still have his voicemail saved. i keep listening to it at night. i need to call the lawyer about his house and cancel his phone plan but every time i try i just sit there",
+      "needs_support": false,
+      "todos": ["lawyer", "phone plan"],
+      "not_todos": ["voicemail"],
+      "threads": ["People"],
+      "feelings": ["sad", "stuck"]
+    },
+    {
+      "id": "caregiving-mom-dash-list",
+      "text": "mom stuff\n- refill her donepezil at cvs\n- call the adult day program about tuesdays\n- she asked me who i was again today\n- i snapped at her and i hate myself for it\n- havent eaten since breakfast",
+      "needs_support": false,
+      "todos": ["donepezil", "day program"],
+      "not_todos": ["snapped"],
+      "threads": ["People"],
+      "feelings": ["guilty", "sad"]
+    },
+    {
+      "id": "money-overdraft-run-on",
+      "text": "overdrafted again because the gym took $60 i forgot to cancel so now i need to cancel the gym and call the bank to ask them to waive the fee and i was supposed to pay kira back last week and i didnt and shes not saying anything but i know shes annoyed",
+      "needs_support": false,
+      "todos": ["gym", "bank", "kira"],
+      "not_todos": ["annoyed"],
+      "threads": ["Money", "People"],
+      "feelings": ["anxious", "guilty"]
+    },
+    {
+      "id": "chronic-illness-lupus-flare",
+      "text": "lupus flare week 2. joints on fire, cant open jars. rheumatologist appt got moved to the 14th. should ask about upping the prednisone. missed 3 shifts and hr sent another email which i havent opened. im so sick of being sick",
+      "needs_support": false,
+      "todos": ["prednisone", "email"],
+      "not_todos": ["jars"],
+      "threads": ["Rest and body", "Work"],
+      "feelings": ["frustrated"]
+    },
+    {
+      "id": "self-criticism-laundry-gre",
+      "text": "im such a lazy piece of garbage. i cant even do laundry. literally the only things i have to do are laundry and sign up for the gre and i cant. everyone else my age has their life together and im a failure",
+      "needs_support": false,
+      "todos": ["laundry", "gre"],
+      "not_todos": ["garbage", "failure", "lazy"],
+      "threads": ["Home", "School"],
+      "feelings": ["ashamed"]
+    },
+    {
+      "id": "bailed-on-birthday",
+      "text": "was supposed to go to priyas birthday dinner saturday but i bailed last minute. she hasnt texted since. my roommate kept the whole apartment clean all week which somehow made me feel worse. i should text priya and say sorry",
+      "needs_support": false,
+      "todos": ["priya"],
+      "not_todos": ["saturday", "clean"],
+      "threads": ["People"],
+      "feelings": ["guilty"]
+    },
+    {
+      "id": "work-newline-list",
+      "text": "work\nq3 deck for marisol by thurs\nreply to 40 unread slack msgs\nthe vendor contract renewal\ni cant breathe when i open my laptop",
+      "needs_support": false,
+      "todos": ["deck", "slack", "contract"],
+      "not_todos": [],
+      "threads": ["Work"],
+      "feelings": ["overwhelmed", "anxious"]
+    },
+    {
+      "id": "school-fifty-tabs",
+      "text": "ok so chem midterm monday, english paper on gatsby due wed, club fundraiser forms, i also said id tutor my cousin on sunday?? and my brain is like 50 tabs open none of them loading",
+      "needs_support": false,
+      "todos": ["chem", "gatsby", "fundraiser", "tutor"],
+      "not_todos": [],
+      "threads": ["School"],
+      "feelings": ["scattered", "overwhelmed"]
+    },
+    {
+      "id": "lonely-new-city",
+      "text": "moved to denver for this job 4 months ago and i havent had one real conversation that wasnt about work. i eat dinner standing at the counter. weekends are the worst",
+      "needs_support": false,
+      "todos": [],
+      "not_todos": ["dinner"],
+      "threads": [],
+      "feelings": ["lonely"]
+    },
+    {
+      "id": "job-search-hopeless-not-crisis",
+      "text": "nothing i do matters. ive applied to 112 jobs since march and gotten 2 interviews and no offers. i dont see it getting better. i guess i should still update my resume with the volunteer thing",
+      "needs_support": false,
+      "todos": ["resume"],
+      "not_todos": ["offers"],
+      "threads": ["Work"],
+      "feelings": ["hopeless", "disappointed"]
+    },
+    {
+      "id": "angry-no-heat",
+      "text": "my landlord STILL hasnt fixed the heat its been 3 weeks and its 55 degrees in here. im so pissed. gonna file a complaint with the city and also buy a space heater i guess",
+      "needs_support": false,
+      "todos": ["complaint", "space heater"],
+      "not_todos": ["fixed"],
+      "threads": ["Home"],
+      "feelings": ["angry"]
+    },
+    {
+      "id": "stuck-advisor-email-typos",
+      "text": "i ahve been staring at the same email to my advisor for like 2 hrs. i need to tell her i wont make the dealine for the chapter draft and i cant make myself hit send. frozen",
+      "needs_support": false,
+      "todos": ["advisor"],
+      "not_todos": [],
+      "threads": ["School"],
+      "feelings": ["stuck", "anxious"]
+    },
+    {
+      "id": "new-parent-no-sleep",
+      "text": "baby up every 90 min. i havent showered in 3 days. need to schedule her 2 month shots and return the bottle warmer that doesnt work. my husband thinks im fine. im not fine",
+      "needs_support": false,
+      "todos": ["shots", "bottle warmer"],
+      "not_todos": ["showered"],
+      "threads": ["Rest and body"],
+      "feelings": ["exhausted"]
+    },
+    {
+      "id": "nursing-program-rejection",
+      "text": "didnt get into the nursing program. again. third time. i really thought this was the year",
+      "needs_support": false,
+      "todos": [],
+      "not_todos": ["nursing"],
+      "threads": ["School"],
+      "feelings": ["disappointed", "sad"]
+    },
+    {
+      "id": "numb-trash-crackers",
+      "text": "cant feel anything lately. the trash has been sitting by the door for a week. need to take it out and actually buy groceries, ive been living on crackers",
+      "needs_support": false,
+      "todos": ["trash", "groceries"],
+      "not_todos": [],
+      "threads": ["Home"],
+      "feelings": ["numb"]
+    }
+  ]
+}
