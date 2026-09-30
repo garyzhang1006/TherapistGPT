@@ -218,23 +218,26 @@ function settle(text) {
   if (reduceMotion.matches || mentionsCrisis(text)) return Promise.resolve();
   const stage = $("settle");
   const box = dump.getBoundingClientRect();
+  // The textarea can be partly scrolled away on a phone; keep every fragment on screen.
+  const clamp = (value, max) => Math.min(Math.max(value, 8), Math.max(max, 8));
   const fragments = splitClauses(text).slice(0, 12);
   const motes = fragments.map((fragment, i) => {
     const mote = document.createElement("span");
     mote.className = "mote";
     mote.textContent = fragment.split(/\s+/).slice(0, 5).join(" ");
-    mote.style.left = `${box.left + Math.random() * Math.max(box.width - 180, 40)}px`;
-    mote.style.top = `${box.top + Math.random() * Math.max(box.height - 40, 40)}px`;
+    mote.style.left = `${clamp(box.left + Math.random() * Math.max(box.width - 180, 40), window.innerWidth - 200)}px`;
+    mote.style.top = `${clamp(box.top + Math.random() * Math.max(box.height - 40, 40), window.innerHeight - 48)}px`;
     mote.style.transitionDelay = `${i * 45}ms`;
     stage.append(mote);
     return mote;
   });
-  requestAnimationFrame(() => {
-    motes.forEach((mote, i) => {
-      mote.style.opacity = "0.9";
-      const row = i % 4;
-      mote.style.transform = `translate(${(row - 1.5) * 12}px, ${-40 - (i % 3) * 18}px)`;
-    });
+  // New elements have no earlier style to transition from, so settle their starting style first;
+  // otherwise the fade and drift jump straight to the end.
+  stage.getBoundingClientRect();
+  motes.forEach((mote, i) => {
+    mote.style.opacity = "0.9";
+    const row = i % 4;
+    mote.style.transform = `translate(${(row - 1.5) * 12}px, ${-40 - (i % 3) * 18}px)`;
   });
   return new Promise((resolve) => {
     setTimeout(() => {
