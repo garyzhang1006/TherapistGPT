@@ -7,10 +7,10 @@ import { mentionsCrisis, CRISIS_SUMMARY, CRISIS_STEP } from "./safety.js";
 const LIMITS = { threads: 5, points: 6, todos: 6, reframes: 3, feelings: 6 };
 
 const TOPICS = [
-  { title: "School", words: /\b(class|classes|school|exam|exams|test|quiz|homework|essay|professor|teacher|grade|grades|lab|lecture|assignment|college|study|studying|semester|course|thesis)\b/i },
+  { title: "School", words: /\b(class|classes|school|exam|exams|test|quiz|homework|essay|professor|teacher|grade|grades|lab|lecture|assignment|college|study|studying|semester|course|thesis|advisor)\b/i },
   { title: "Work", words: /\b(work|job|boss|manager|shift|coworkers?|meeting|office|fired|client|clients|interview|career|promotion|deadline)\b/i },
   { title: "Money", words: /\b(money|rent|bills?|pay|paid|bank|debt|afford|loan|broke|budget|paycheck|credit card)\b/i },
-  { title: "People", words: /\b(mom|dad|mother|father|sister|brother|friends?|partner|boyfriend|girlfriend|husband|wife|ex|family|parents|roommate|kids?|son|daughter|grandma|grandpa|everyone|nobody|people|texted|text back)\b/i },
+  { title: "People", words: /\b(mom|dad|mother|father|sister|brother|friends?|partner|boyfriend|girlfriend|husband|wife|ex|family|parents|roommate|kids?|son|daughter|grandma|grandpa|everyone|nobody|people|texted|text back|miss(ing)? (you|him|her|them|[a-z]+ so much))\b/i },
   { title: "Rest and body", words: /\b(sleep|slept|asleep|insomnia|tired|exhausted|eat|ate|eaten|eating|food|hungry|meals?|breakfast|lunch|dinner|shower|showered|sick|pain|headache|meds|medication|pills?|doctor|dentist|therapy|therapist|bed|body|weight)\b/i },
   { title: "Home", words: /\b(room|dishes|laundry|clean|cleaning|mess|messy|apartment|house|home|groceries|move|moving|boxes|kitchen|trash)\b/i },
 ];
@@ -20,16 +20,17 @@ const FEELINGS = [
   ["exhausted", /\b(tired|exhausted|drained|worn out|no energy|sleepy|fatigue)\b/i],
   ["overwhelmed", /\b((overwhelm\w*|too much|drowning|so much to do|can'?t keep up|falling behind|behind on everything)\b|i just can'?t\b(?!\s+\w))/i],
   ["anxious", /\b(anxious|anxiety|worried|worry|scared|afraid|nervous|panic\w*|terrified|what if)\b/i],
-  ["sad", /\b(sad|crying|cried|cry|tears|heartbroken|grief|miss (him|her|them))\b/i],
-  ["lonely", /\b(lonely|alone|isolated|nobody|no one|no friends)\b/i],
+  ["sad", /\b(sad|crying|cried|cry|tears|heartbroken|grief|miss(ing)? (you|him|her|them|[a-z]+ so much)|miss my (mom|dad|mother|father|friends?|family|home|ex|dog|cat|grandma|grandpa|sister|brother|partner))\b/i],
+  ["lonely", /\b(lonely|(so|all|feel|feeling|completely|totally) alone|isolated|nobody|no one|no friends)\b/i],
   ["guilty", /\b(guilty|guilt|my fault|should have|shouldn'?t have|feel bad)\b/i],
   ["ashamed", /\b(ashamed|shame|embarrass\w*|humiliat\w*|pathetic)\b/i],
-  ["numb", /\b(numb|empty|nothing matters|feel nothing|gray|grey|flat|hollow)\b/i],
+  ["numb", /\b(numb|empty|nothing matters|feel nothing|feel flat|hollow)\b/i],
   ["hopeless", /\b(hopeless|pointless|what'?s the point|no point|never get better|give up)\b/i],
   ["angry", /\b(angry|mad|furious|pissed|rage|annoyed|irritated)\b/i],
   ["stuck", /\b(stuck|can'?t (do|start|move|get up)|frozen|froze|paralyzed)\b/i],
   ["disappointed", /\b(disappoint\w*|let (him|her|them|everyone|myself) down|failed)\b/i],
   ["frustrated", /\b(frustrat\w*|fed up|sick of)\b/i],
+  ["scattered", /\b(can'?t (focus|concentrate|think straight)|brain fog|foggy|scattered|all over the place)\b/i],
 ];
 
 // Only explicit intentions and concrete chores count as to-dos. "I didn't pick up" is a memory, not a task.
@@ -45,7 +46,7 @@ const PAST = /\b(did|finally|already|yesterday|last (night|week|month|year)|miss
 const NOT_A_TASK = /\b(disappear|exist|existing|die|dead|kill|hurt|end it|stop being)\b/i;
 const TASK_LEAD = /^(and |so |but |also |i |im |i'?m |i am |really |still )*(need to|needs to|have to|has to|gotta|got to|should( really)?|am supposed to|supposed to|must|forgot to|want to|also need to)\s+/i;
 
-const SELF_CRITIC = /\b(feel like (a|an|the) (worst|failure|burden|fraud|mess|loser|bad \w+)|(i'?m|im|i am) (so |such an? |just |literally |a )?(stupid|lazy|useless|worthless|pathetic|failure|mess|terrible|the worst|burden|disgusting|weak|broken|idiot|loser|disappointment|not good enough|not smart enough|too much)|i (always|never) |i can'?t do anything|what'?s wrong with me|hate myself|i ruin|i mess (everything|it all) up|i'?m bad at)/i;
+const SELF_CRITIC = /\b(feel like (a|an|the) (worst|failure|burden|fraud|mess|loser|bad \w+)|(i'?m|im|i am) (so |such an? |just |literally |a )?(stupid|lazy|useless|worthless|pathetic|failure|mess|terrible|the worst|burden|disgusting|weak|broken|idiot|loser|disappointment|not good enough|not smart enough|too much)|i (always|never) (mess|ruin|screw|fail|forget|let|disappoint|say the wrong|do anything right|get anything right)|i feel (so |really |completely )?(useless|worthless|stupid|pathetic|like such an? \w+)|i suck\b|i can'?t do anything|what'?s wrong with me|hate myself|i ruin|i mess (everything|it all) up|i'?m bad at)/i;
 
 const REFRAMES = [
   [/lazy/i, "Struggling to start things is common when you're running low. That's heaviness, not laziness."],
@@ -255,7 +256,8 @@ export function organize(text) {
   const reframes = [];
   const groups = new Map();
   for (const clause of clauses) {
-    const topic = topicFor(clause);
+    // Self-talk ("I feel like a burden to everyone") is about the person, not the topic it names.
+    const topic = SELF_CRITIC.test(clause) ? FALLBACK_TOPIC : topicFor(clause);
     if (!groups.has(topic)) groups.set(topic, []);
     groups.get(topic).push(clause);
 

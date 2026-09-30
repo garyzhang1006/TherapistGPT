@@ -108,3 +108,15 @@ test("a to-do keeps the task and leaves the feeling about it behind", () => {
 test("blank input still gets one gentle thread", () => {
   assert.equal(organize("   \n\t ").threads.length, 1);
 });
+
+test("harsh self-talk gets a kinder view and its own thread, and plain words don't", () => {
+  const out = organize("i feel like such a failure, everyone else has it together. my mom called");
+  assert.equal(out.kinder_view.length, 1);
+  assert.equal(out.threads.find((t) => t.points.some((p) => /failure/.test(p))).title, "Inside your head");
+  assert.equal(organize("I always love seeing my dog").kinder_view.length, 0);
+});
+
+test("feelings come from feeling words, not colors or objects", () => {
+  assert.deepEqual(organize("wore my grey hoodie, got a flat tire, told him to leave me alone").feelings, []);
+  assert.ok(organize("i miss sam so much").feelings.includes("sad"));
+});
