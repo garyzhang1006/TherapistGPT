@@ -223,6 +223,8 @@ function showWrite() {
 }
 
 async function run() {
+  // Ctrl+Enter can fire while a request is already in flight.
+  if (organizeBtn.disabled) return;
   const text = dump.value.trim();
   if (!text) {
     writeStatus.textContent = "Even one word is enough to start.";
