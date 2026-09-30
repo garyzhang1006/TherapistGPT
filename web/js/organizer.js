@@ -103,15 +103,44 @@ function cleanClause(raw) {
   return capitalize(s);
 }
 
+const RUN_ON = /(,?)\s+(?:and|but|so|also)\s+(?=(?:i|i'm|im|my|we|he|she|they|everyone|nobody|it'?s|its|the)\b)/gi;
+
+// A piece can stand alone when it names something: a topic, a feeling, a task, a harsh thought.
+function hasAnchor(s) {
+  return (
+    TOPICS.some((t) => t.words.test(s)) ||
+    FEELINGS.some(([, pattern]) => pattern.test(s)) ||
+    TASK_CUE.test(s) ||
+    SELF_CRITIC.test(s) ||
+    mentionsCrisis(s)
+  );
+}
+
+// Long unpunctuated run-ons break before "and/but/so" when a new subject follows, except after a
+// comma (", and the trash" ends a list) or when the next piece names nothing on its own
+// ("and I haven't even started" belongs with the report it is about).
+function splitRunOn(part) {
+  if (part.split(/\s+/).length < 10) return [part];
+  const cuts = [...part.matchAll(RUN_ON)].filter((m) => !m[1]);
+  const pieces = [];
+  let start = 0;
+  cuts.forEach((m, k) => {
+    const next = part.slice(m.index + m[0].length, k + 1 < cuts.length ? cuts[k + 1].index : part.length);
+    if (!hasAnchor(next)) return;
+    pieces.push(part.slice(start, m.index));
+    start = m.index + m[0].length;
+  });
+  pieces.push(part.slice(start));
+  return pieces;
+}
+
 export function splitClauses(text) {
   const parts = normalize(text)
-    .split(/\n+|(?<=[.!?;])\s+|\s+(?:and then|but also|and also|oh and|plus|anyway|anyways)\s+/i)
-    .flatMap((part) => {
-      const words = part.split(/\s+/);
-      // Long unpunctuated run-ons: break before "and/but/so" when a new subject follows.
-      if (words.length < 10) return [part];
-      return part.split(/\s+(?:and|but|so|also)\s+(?=(?:i|i'm|im|my|we|he|she|they|everyone|nobody|it'?s|its|the)\b)/i);
-    });
+    // Sentence ends become line breaks first. A lookbehind would do it in one regex, but Safari
+    // before 16.4 can't parse lookbehinds, and one bad regex stops the whole page from loading.
+    .replace(/([.!?;])\s+/g, "$1\n")
+    .split(/\n+|\s+(?:and then|but also|and also|oh and|plus|anyway|anyways)\s+/i)
+    .flatMap(splitRunOn);
   const clauses = [];
   const seen = new Set();
   for (const part of parts) {
