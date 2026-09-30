@@ -39,6 +39,26 @@ function write(key, value) {
   }
 }
 
+// Ticked to-dos, keyed by task text, live in sessionStorage so they survive "Back to my words" and a
+// reload but never outlast the tab.
+const TICKS_KEY = "therapistgpt.ticks";
+
+function readTicks() {
+  try {
+    return new Set(JSON.parse(sessionStorage.getItem(TICKS_KEY) || "[]"));
+  } catch {
+    return new Set();
+  }
+}
+
+function writeTicks(ticks) {
+  try {
+    sessionStorage.setItem(TICKS_KEY, JSON.stringify([...ticks]));
+  } catch {
+    // ignore: the ticks just won't survive a reload
+  }
+}
+
 // Mac keyboards send Cmd+Enter; the handler below accepts both, the hint should say the right one.
 if (/mac|iphone|ipad/i.test(navigator.userAgentData?.platform || navigator.platform || "")) $("mod-key").textContent = "⌘";
 
@@ -299,6 +319,7 @@ async function run() {
     const [outcome] = await Promise.all([organizeText(text), settle(text)]);
     lastResult = outcome.result;
     renderResult($("result-cards"), outcome.result);
+    restoreTicks();
     // Once sorted, the words should not wait in storage to greet the next reload. They stay in the
     // textarea for "Back to my words", and typing there saves a new draft.
     clearTimeout(saveTimer);
@@ -341,6 +362,24 @@ dump.addEventListener("keydown", (event) => {
 });
 
 // ---------- result actions ----------
+
+const todoTask = (item) => item.querySelector(".todo-task").textContent;
+
+function restoreTicks() {
+  const ticks = readTicks();
+  $("result-cards").querySelectorAll(".todo").forEach((item) => {
+    item.querySelector("input").checked = ticks.has(todoTask(item));
+  });
+}
+
+$("result-cards").addEventListener("change", (event) => {
+  const item = event.target.closest(".todo");
+  if (!item) return;
+  const ticks = readTicks();
+  if (event.target.checked) ticks.add(todoTask(item));
+  else ticks.delete(todoTask(item));
+  writeTicks(ticks);
+});
 
 $("back-btn").addEventListener("click", showWrite);
 
