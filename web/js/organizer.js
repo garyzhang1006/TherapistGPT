@@ -45,6 +45,11 @@ const INTENT_AT = /\b(?:need to|needs to|have to|has to|gotta|got to|should(?: r
 const PAST = /\b(did|finally|already|yesterday|last (night|week|month|year)|missed|went|was|were)\b/i;
 // Crisis words never become chores: "I should just kill myself" is not a to-do.
 const NOT_A_TASK = /\b(disappear|exist|existing|die|dead|kill|hurt|end it|stop being)\b/i;
+// "I was supposed to go to Jess's party but I didn't" is a plan that already fell through: it goes
+// with the feelings, not on the plate. A long run-on may split the "but I didn't" into the next clause.
+const PAST_PLAN = /\b(?:was|were) supposed to\b/i;
+const FELL_THROUGH = /\b(?:but|and)\s+(?:I|we)\s+(?:didn'?t|couldn'?t|did not|could not|never|wasn'?t able to|weren'?t able to)\b/i;
+const FELL_THROUGH_LEAD = /^(?:I|we)\s+(?:didn'?t|couldn'?t|did not|could not|never|wasn'?t able to|weren'?t able to)\b/i;
 const TASK_LEAD = /^(and |so |but |also |i |im |i'?m |i am |really |still )*(need to|needs to|have to|has to|gotta|got to|should( really)?|am supposed to|supposed to|must|forgot to|want to|also need to)\s+/i;
 
 const SELF_CRITIC = /\b(feel like (a|an|the) (worst|failure|burden|fraud|mess|loser|bad \w+)|(i'?m|im|i am) (so |such an? |just |literally |a )?(stupid|lazy|useless|worthless|pathetic|failure|mess|terrible|the worst|burden|disgusting|weak|broken|idiot|loser|disappointment|not good enough|not smart enough|too much)|i (always|never) (mess|ruin|screw|fail|forget|let|disappoint|say the wrong|do anything right|get anything right)|i feel (so |really |completely )?(useless|worthless|stupid|pathetic|like such an? \w+)|i suck\b|i can'?t do anything|what'?s wrong with me|hate myself|i ruin|i mess (everything|it all) up|i'?m bad at)/i;
@@ -264,7 +269,7 @@ export function organize(text) {
   const todos = [];
   const reframes = [];
   const groups = new Map();
-  for (const clause of clauses) {
+  for (const [i, clause] of clauses.entries()) {
     // Self-talk ("I feel like a burden to everyone") and crisis words ("sleep and never wake up")
     // are about the person, not the topic they happen to name.
     const topic = SELF_CRITIC.test(clause) || mentionsCrisis(clause) ? FALLBACK_TOPIC : topicFor(clause);
@@ -277,6 +282,7 @@ export function organize(text) {
     const isTask =
       (TASK_CUE.test(clause) || IMPERATIVE.test(clause)) &&
       !(PAST.test(clause) && !INTENT.test(clause)) &&
+      !(PAST_PLAN.test(clause) && (FELL_THROUGH.test(clause) || FELL_THROUGH_LEAD.test(clauses[i + 1] || ""))) &&
       !SELF_CRITIC.test(clause) &&
       !NOT_A_TASK.test(clause) &&
       !mentionsCrisis(clause);
