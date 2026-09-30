@@ -246,6 +246,7 @@ button {
   border: 1px solid var(--line);
   background: transparent;
   color: var(--text);
+  white-space: nowrap;
   transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
@@ -268,6 +269,7 @@ button {
   color: var(--sage-ink);
   font-weight: 700;
   letter-spacing: 0.01em;
+  white-space: nowrap;
   box-shadow: 0 10px 30px -14px color-mix(in srgb, var(--sage) 80%, transparent);
   transition: transform 0.3s ease, filter 0.3s ease;
 }
@@ -878,12 +880,22 @@ legend {
     padding-top: 1.5rem;
   }
 
+  .dump-row {
+    padding: 0.5rem 0.25rem 0.4rem 0.6rem;
+  }
+
   .dump-actions {
     width: 100%;
   }
 
+  /* Tighter padding keeps "Sort my thoughts" on one line down to a 320px screen. */
+  .dump-actions .ghost {
+    padding-inline: 0.9rem;
+  }
+
   .dump-actions .primary {
     flex: 1;
+    padding-inline: 1rem;
   }
 
   .card {
