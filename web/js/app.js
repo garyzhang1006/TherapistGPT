@@ -356,3 +356,14 @@ $("copy-btn").addEventListener("click", async () => {
     status.textContent = "Saved as a text file in your downloads.";
   }
 });
+
+// ---------- offline copy ----------
+
+// sw.js keeps this release on the device so the page opens with no signal. Where service workers
+// don't exist (plain http, some private modes) or registration fails, the page loads from the
+// network as it always has, so a failure here is not worth showing anyone.
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  });
+}
