@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { organizeText, looksValid } from "../js/engine.js";
+import { organizeText, looksValid, normalizeEndpoint } from "../js/engine.js";
 
 test("device engine returns valid output with no network", async () => {
   const { result, engine, notice } = await organizeText("I need to do the dishes and I'm so tired", { engine: "device", endpoint: "" });
@@ -27,6 +27,17 @@ test("plain http endpoints are refused unless they are localhost", async () => {
   globalThis.fetch = async () => assert.fail("should not fetch");
   const { notice } = await organizeText("so tired", { engine: "model", endpoint: "http://example.com" });
   assert.match(notice, /https/);
+});
+
+test("an address pasted without https gets it added", () => {
+  assert.equal(normalizeEndpoint("  my-space.hf.space/ "), "https://my-space.hf.space");
+  assert.equal(normalizeEndpoint("http://localhost:8000"), "http://localhost:8000");
+});
+
+test("an address that can't be parsed gets a plain explanation", () => {
+  for (const bad of ["not a url at all", "hello", "https://", "ftp://"]) {
+    assert.throws(() => normalizeEndpoint(bad), /isn't a web address/, bad);
+  }
 });
 
 test("the keyword safety floor still applies to a model that missed a crisis", async () => {

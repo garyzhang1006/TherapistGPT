@@ -45,8 +45,20 @@ export function looksValid(out) {
   );
 }
 
-function normalizeEndpoint(endpoint) {
-  const url = new URL(endpoint.trim());
+export function normalizeEndpoint(endpoint) {
+  const raw = endpoint.trim();
+  // People often paste "name.hf.space" without the scheme; https is the only sensible guess.
+  const withScheme = /^[a-z][a-z0-9+.-]*:\/\//i.test(raw) ? raw : `https://${raw}`;
+  let url = null;
+  try {
+    url = new URL(withScheme);
+  } catch {
+    // handled below
+  }
+  // Browsers disagree on odd hosts (Chrome turns spaces into %20 instead of failing), so check the shape directly.
+  if (!url || !/^(localhost|\[[0-9a-f:.]+\]|[a-z0-9-]+(\.[a-z0-9-]+)+)$/i.test(url.hostname)) {
+    throw new Error(`"${raw}" isn't a web address. It should look like https://your-space.hf.space.`);
+  }
   if (url.protocol !== "https:" && url.hostname !== "localhost" && url.hostname !== "127.0.0.1") {
     throw new Error("Use an https address for your model (http is only allowed for localhost).");
   }
