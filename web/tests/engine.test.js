@@ -17,6 +17,17 @@ test("a broken model endpoint falls back to the device with a notice", async () 
   assert.ok(looksValid(result));
 });
 
+test("network and parse failures get a plain-language notice", async () => {
+  for (const fail of [
+    async () => { throw new TypeError("Failed to fetch"); },
+    async () => ({ ok: true, status: 200, json: async () => { throw new SyntaxError("Unexpected token '<'"); } }),
+  ]) {
+    globalThis.fetch = fail;
+    const { notice } = await organizeText("so tired today", { engine: "model", endpoint: "https://example.invalid" });
+    assert.equal(notice, "Couldn't reach your model. This was organized on your device instead.");
+  }
+});
+
 test("a malformed model reply is rejected and falls back", async () => {
   globalThis.fetch = async () => ({ ok: true, status: 200, json: async () => ({ summary: "<img src=x onerror=alert(1)>" }) });
   const { engine } = await organizeText("so tired today", { engine: "model", endpoint: "https://example.invalid" });

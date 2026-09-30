@@ -100,7 +100,13 @@ export async function organizeText(text, settings = loadSettings()) {
       const out = await organizeRemote(text, settings.endpoint, settings.apiKey);
       return { result: applySafetyFloor(text, out), engine: "model", notice: "" };
     } catch (error) {
-      const reason = error.name === "AbortError" ? "Your model took too long to answer." : error.message;
+      // Browser errors like "Failed to fetch" or a JSON SyntaxError mean nothing to someone having a hard day.
+      const reason =
+        error.name === "AbortError"
+          ? "Your model took too long to answer."
+          : error.name === "TypeError" || error.name === "SyntaxError"
+            ? "Couldn't reach your model."
+            : error.message;
       return {
         result: applySafetyFloor(text, organizeOnDevice(text)),
         engine: "device",
