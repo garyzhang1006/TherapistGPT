@@ -34,6 +34,8 @@ const FEELINGS = [
 
 // Only explicit intentions and concrete chores count as to-dos. "I didn't pick up" is a memory, not a task.
 const TASK_CUE = /\b(need to|needs to|have to|has to|gotta|got to|should(?! have)|supposed to(?! be)|must|forgot to|due|deadline|appointment|refill|reschedul\w*|laundry|dishes|groceries|bills?|rent)\b/i;
+// Crisis words never become chores: "I should just kill myself" is not a to-do.
+const NOT_A_TASK = /\b(disappear|exist|existing|die|dead|kill|hurt|end it|stop being)\b/i;
 const TASK_LEAD = /^(and |so |but |also |i |im |i'?m |i am |really |still )*(need to|needs to|have to|has to|gotta|got to|should( really)?|am supposed to|supposed to|must|forgot to|want to|also need to)\s+/i;
 
 const SELF_CRITIC = /\b(feel like (a|an|the) (worst|failure|burden|fraud|mess|loser|bad \w+)|(i'?m|im|i am) (so |such an? |just |literally |a )?(stupid|lazy|useless|worthless|pathetic|failure|mess|terrible|the worst|burden|disgusting|weak|broken|idiot|loser|disappointment|not good enough|not smart enough|too much)|i (always|never) |i can'?t do anything|what'?s wrong with me|hate myself|i ruin|i mess (everything|it all) up|i'?m bad at)/i;
@@ -211,7 +213,8 @@ export function organize(text) {
     if (SELF_CRITIC.test(clause) && reframes.length < LIMITS.reframes) {
       reframes.push({ thought: clause, reframe: reframeFor(clause) });
     }
-    if (TASK_CUE.test(clause) && !SELF_CRITIC.test(clause) && todos.length < LIMITS.todos) {
+    const isTask = TASK_CUE.test(clause) && !SELF_CRITIC.test(clause) && !NOT_A_TASK.test(clause) && !mentionsCrisis(clause);
+    if (isTask && todos.length < LIMITS.todos) {
       for (const task of splitTaskList(toTask(clause))) {
         if (todos.length < LIMITS.todos && !todos.some((t) => t.task.toLowerCase() === task.toLowerCase())) {
           todos.push({ task, first_step: firstStepFor(task) });

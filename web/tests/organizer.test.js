@@ -78,3 +78,9 @@ test("long input respects every list limit", () => {
   const long = Array.from({ length: 60 }, (_, i) => `I need to finish task number ${i} for work and school and home.`).join(" ");
   assertSchema(organize(long));
 });
+
+test("crisis words never become to-dos", () => {
+  for (const text of ["I should just kill myself", "i have to end it all", "I need to stop existing", "I need to disappear"]) {
+    assert.deepEqual(organize(text).to_dos, [], text);
+  }
+});
