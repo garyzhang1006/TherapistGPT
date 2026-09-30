@@ -293,9 +293,13 @@ async function run() {
     const [outcome] = await Promise.all([organizeText(text), settle(text)]);
     lastResult = outcome.result;
     renderResult($("result-cards"), outcome.result);
-    $("engine-note").textContent =
-      outcome.notice ||
-      (outcome.engine === "model" ? "Sorted by your TherapistGPT model." : "Sorted on this device. Nothing left your browser.");
+    // After crisis words, "a little quieter" and a privacy footnote read as cheerful and beside the point.
+    const crisis = outcome.result.needs_support;
+    $("result-title").textContent = crisis ? "Thank you for writing this down." : "Here it is, a little quieter.";
+    $("engine-note").textContent = crisis
+      ? ""
+      : outcome.notice ||
+        (outcome.engine === "model" ? "Sorted by your TherapistGPT model." : "Sorted on this device. Nothing left your browser.");
     status.textContent = "";
     writeView.hidden = true;
     resultView.hidden = false;
