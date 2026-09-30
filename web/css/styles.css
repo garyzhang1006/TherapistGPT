@@ -40,15 +40,15 @@
     --line: rgba(46, 42, 54, 0.1);
     --text: #2c2834;
     --muted: #675f73;
-    --sage: #4c7657;
+    --sage: #456b4f;
     --sage-ink: #ffffff;
     --lavender: #5f5096;
     --lavender-soft: rgba(95, 80, 150, 0.1);
-    --apricot: #9a5a2c;
+    --apricot: #8a5024;
     --apricot-soft: rgba(214, 150, 100, 0.14);
     --rose: #a2474a;
     --rose-soft: rgba(200, 110, 110, 0.12);
-    --focus: #4c7657;
+    --focus: #456b4f;
     --shadow: 0 20px 45px -32px rgba(60, 45, 30, 0.35);
     color-scheme: light;
   }
@@ -64,15 +64,15 @@
   --line: rgba(46, 42, 54, 0.1);
   --text: #2c2834;
   --muted: #675f73;
-  --sage: #4c7657;
+  --sage: #456b4f;
   --sage-ink: #ffffff;
   --lavender: #5f5096;
   --lavender-soft: rgba(95, 80, 150, 0.1);
-  --apricot: #9a5a2c;
+  --apricot: #8a5024;
   --apricot-soft: rgba(214, 150, 100, 0.14);
   --rose: #a2474a;
   --rose-soft: rgba(200, 110, 110, 0.12);
-  --focus: #4c7657;
+  --focus: #456b4f;
   --shadow: 0 20px 45px -32px rgba(60, 45, 30, 0.35);
   color-scheme: light;
 }
@@ -339,7 +339,7 @@ textarea:focus {
 
 textarea::placeholder {
   color: var(--muted);
-  opacity: 0.65;
+  opacity: 1;
   font-style: italic;
 }
 
@@ -379,7 +379,6 @@ textarea::placeholder {
   text-align: right;
   color: var(--muted);
   font-size: 0.78rem;
-  opacity: 0.8;
 }
 
 kbd {
@@ -600,7 +599,7 @@ kbd {
 }
 
 .todo input:checked + label .todo-task {
-  opacity: 0.55;
+  opacity: 0.75;
   text-decoration: line-through;
   text-decoration-color: var(--sage);
 }
@@ -829,6 +828,7 @@ legend {
 
 .field input {
   font: inherit;
+  font-size: 1rem; /* 16px or more stops iOS from zooming the page on focus */
   color: var(--text);
   padding: 0.7rem 0.9rem;
   border-radius: 12px;
