@@ -59,7 +59,8 @@ def main() -> int:
                 errors.append((lineno, f"invalid JSON: {exc}"))
                 continue
             problems = check_row(row) if isinstance(row, dict) else ["row is not a JSON object"]
-            key = row.get("input", "").strip().lower() if isinstance(row, dict) else ""
+            raw_input = row.get("input") if isinstance(row, dict) else None
+            key = raw_input.strip().lower() if isinstance(raw_input, str) else ""
             if key and key in seen_inputs:
                 problems.append("duplicate input")
             if problems:
