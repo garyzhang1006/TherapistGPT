@@ -277,6 +277,10 @@ async function run() {
     // Land on the crisis card when there is one, so screen readers announce it first.
     const crisisHeading = document.querySelector(".crisis .card-label");
     (crisisHeading || $("result-title")).focus();
+  } catch (error) {
+    // Should never happen, but if sorting fails the person's words must stay exactly where they were.
+    console.error(error);
+    writeStatus.textContent = "Something went wrong while sorting. Your words are still here, so you can try again.";
   } finally {
     organizeBtn.disabled = false;
     organizeBtn.textContent = "Sort my thoughts";
