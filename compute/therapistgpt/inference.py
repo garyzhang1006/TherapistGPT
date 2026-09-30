@@ -22,7 +22,14 @@ CRISIS_STEP = "Call or text 988 (US and Canada) or your local crisis line now, o
 def apply_safety_floor(brain_dump: str, output: dict[str, Any]) -> dict[str, Any]:
     """Force the crisis response when the keyword detector fires, even if the model missed it."""
     if mentions_crisis(brain_dump) and not output["needs_support"]:
-        output = {**output, "needs_support": True, "summary": CRISIS_SUMMARY, "one_small_step": CRISIS_STEP}
+        output = {
+            **output,
+            "needs_support": True,
+            "summary": CRISIS_SUMMARY,
+            "one_small_step": CRISIS_STEP,
+            # Reframing someone's words is the wrong move during a crisis; match the web app.
+            "kinder_view": [],
+        }
     return output
 
 
@@ -35,7 +42,10 @@ class Organizer:
 
         self.torch = torch
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
-        dtype = torch.float16 if self.device == "cuda" else torch.float32
+        # Qwen2.5 can overflow in fp16, so use bf16 where the GPU has it and fp32 otherwise
+        # (1.5B in fp32 is about 6 GB, which still fits a T4).
+        use_bf16 = self.device == "cuda" and torch.cuda.is_bf16_supported()
+        dtype = torch.bfloat16 if use_bf16 else torch.float32
         tokenizer_source = adapter or model_id
         self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_source)
         model = AutoModelForCausalLM.from_pretrained(model_id, dtype=dtype)
@@ -57,6 +67,12 @@ class Organizer:
                 **inputs,
                 max_new_tokens=max_new_tokens,
                 do_sample=False,  # greedy: the output is a structured document, not creative text
+                # Qwen's generation_config sets repetition_penalty=1.1 and sampling knobs; the penalty
+                # still applies under greedy decoding and punishes the quotes and keys JSON must repeat.
+                repetition_penalty=1.0,
+                temperature=None,
+                top_p=None,
+                top_k=None,
                 pad_token_id=self.tokenizer.eos_token_id,
             )
         return self.tokenizer.decode(out[0][inputs["input_ids"].shape[1] :], skip_special_tokens=True)
