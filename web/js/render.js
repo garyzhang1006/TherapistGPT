@@ -15,8 +15,9 @@ function section(label, className) {
 }
 
 function crisisCard() {
+  // No role="alert": the app moves focus to this heading, and an alert on top of that made
+  // screen readers read the card twice.
   const card = el("section", "card crisis");
-  card.setAttribute("role", "alert");
   const heading = el("h2", "card-label", "You don't have to hold this alone");
   heading.tabIndex = -1;
   card.append(heading);
