@@ -45,9 +45,33 @@ dump.addEventListener("input", () => {
   saveTimer = setTimeout(() => write(DRAFT_KEY, dump.value || null), 400);
 });
 
-$("clear-btn").addEventListener("click", () => {
+// Clearing a whole vent by accident would hurt, so every clear can be undone for a while.
+const writeStatus = $("write-status");
+let undoTimer;
+
+function clearWithUndo() {
+  const removed = dump.value;
   dump.value = "";
   write(DRAFT_KEY, null);
+  if (!removed.trim()) return;
+  clearTimeout(undoTimer);
+  writeStatus.replaceChildren("Cleared. ");
+  const undo = document.createElement("button");
+  undo.type = "button";
+  undo.className = "link";
+  undo.textContent = "Undo";
+  undo.addEventListener("click", () => {
+    dump.value = removed;
+    write(DRAFT_KEY, removed);
+    writeStatus.textContent = "";
+    dump.focus();
+  });
+  writeStatus.append(undo);
+  undoTimer = setTimeout(() => (writeStatus.textContent = ""), 12000);
+}
+
+$("clear-btn").addEventListener("click", () => {
+  clearWithUndo();
   dump.focus();
 });
 
@@ -199,10 +223,11 @@ function showWrite() {
 async function run() {
   const text = dump.value.trim();
   if (!text) {
-    dump.placeholder = "Even one word is enough to start.";
+    writeStatus.textContent = "Even one word is enough to start.";
     dump.focus();
     return;
   }
+  writeStatus.textContent = "";
   organizeBtn.disabled = true;
   organizeBtn.textContent = "Sorting...";
   try {
@@ -242,8 +267,7 @@ dump.addEventListener("keydown", (event) => {
 $("back-btn").addEventListener("click", showWrite);
 
 $("new-btn").addEventListener("click", () => {
-  dump.value = "";
-  write(DRAFT_KEY, null);
+  clearWithUndo();
   lastResult = null;
   showWrite();
 });

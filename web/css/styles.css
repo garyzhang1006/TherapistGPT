@@ -368,6 +368,11 @@ textarea::placeholder {
   margin-left: auto;
 }
 
+.write-status {
+  margin: 0;
+  padding: 0 1rem 0.6rem;
+}
+
 .kbd-hint {
   margin: 0;
   padding: 0 1rem 0.5rem;
