@@ -70,6 +70,8 @@ test("harsh self-talk gets a kinder view", () => {
 test("very short and empty-ish input still returns something gentle", () => {
   assertSchema(organize("tired"));
   assertSchema(organize("ugh"));
+  assertSchema(organize("..."));
+  assertSchema(organize("so,"));
 });
 
 test("long input respects every list limit", () => {

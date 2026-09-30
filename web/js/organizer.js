@@ -119,8 +119,9 @@ export function splitClauses(text) {
     seen.add(key);
     clauses.push(clause);
   }
-  // A one-word dump ("tired") still deserves a response.
-  if (!clauses.length && normalize(text)) clauses.push(cleanClause(normalize(text)));
+  // A one-word dump ("tired") still deserves a response, and punctuation alone ("...") gets a
+  // gentle placeholder instead of an empty bullet.
+  if (!clauses.length && normalize(text)) clauses.push(cleanClause(normalize(text)) || "Something you haven't found words for yet");
   return clauses;
 }
 
