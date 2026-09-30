@@ -733,40 +733,41 @@ main:focus,
   font-size: calc(var(--text-size) * 1.08);
 }
 
-.crisis-actions,
-.help-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
-  gap: 0.6rem;
-}
-
+/* Plain rows with a hairline between, like the to-do list: tiles here were cards inside a card
+   and made the crisis card two screens tall on a phone. */
 .help-list {
   list-style: none;
   margin: 1rem 0;
   padding: 0;
 }
 
+.crisis-link + .crisis-link,
+.help-list li + li {
+  border-top: 1px solid var(--line);
+}
+
 .crisis-link,
 .help-list a {
   display: grid;
+  align-content: center;
   gap: 0.1rem;
-  padding: 0.85rem 1rem;
-  border-radius: 12px;
-  background: var(--surface-2);
-  border: 1px solid var(--line);
+  min-height: 44px;
+  padding: 0.6rem 0;
   color: var(--text);
   text-decoration: none;
-  transition: border-color 0.3s ease, background-color 0.3s ease;
 }
 
-.crisis-link:hover,
-.help-list a:hover {
-  border-color: color-mix(in srgb, var(--rose) 50%, transparent);
+.crisis-link:hover strong,
+.help-list a:hover strong {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
+/* Plain --muted drops to about 4.2:1 where the rose tint meets the sky glow; halfway to --text
+   stays near 6:1 there in both themes. */
 .crisis-link span,
 .help-list a span {
-  color: var(--muted);
+  color: color-mix(in srgb, var(--text) 50%, var(--muted));
   font-size: 0.86rem;
 }
 
