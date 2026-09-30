@@ -6,7 +6,7 @@ export const CRISIS_PATTERNS = [
   /\bsuicid(e|al)\b/i,
   /\bwant(ed)? to die\b/i,
   /\bwish i (was|were) dead\b/i,
-  /\bend (it all|my life|things)\b/i,
+  /\bend (it all|my life)\b/i,
   /\bdon'?t want to (be here|exist|live|wake up)\b/i,
   /\bbetter off without me\b/i,
   /\bno reason to live\b/i,
@@ -16,6 +16,11 @@ export const CRISIS_PATTERNS = [
   /\bscratch(ing)? my (arms|legs|skin)\b/i,
   /\boverdose\b/i,
   /\bgiving (my|all my) (stuff|things) away\b/i,
+  /\bkms\b/i,
+  /\bunalive\b/i,
+  /\bcan'?t (go on|do this anymore)\b/i,
+  /\bdisappear forever\b/i,
+  /\bno point (in )?living\b/i,
 ];
 
 export function mentionsCrisis(text) {

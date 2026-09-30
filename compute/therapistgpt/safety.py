@@ -14,7 +14,7 @@ CRISIS_PATTERNS = [
     r"\bsuicid(e|al)\b",
     r"\bwant(ed)? to die\b",
     r"\bwish i (was|were) dead\b",
-    r"\bend (it all|my life|things)\b",
+    r"\bend (it all|my life)\b",
     r"\bdon'?t want to (be here|exist|live|wake up)\b",
     r"\bbetter off without me\b",
     r"\bno reason to live\b",
@@ -24,6 +24,11 @@ CRISIS_PATTERNS = [
     r"\bscratch(ing)? my (arms|legs|skin)\b",
     r"\boverdose\b",
     r"\bgiving (my|all my) (stuff|things) away\b",
+    r"\bkms\b",
+    r"\bunalive\b",
+    r"\bcan'?t (go on|do this anymore)\b",
+    r"\bdisappear forever\b",
+    r"\bno point (in )?living\b",
 ]
 
 _COMPILED = [re.compile(p, re.IGNORECASE) for p in CRISIS_PATTERNS]
