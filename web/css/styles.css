@@ -99,7 +99,8 @@ body {
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
-  transition: background-color 0.6s ease, color 0.6s ease;
+  /* Background only: fading the text color too left light text on the already-light cards mid-switch. */
+  transition: background-color 0.6s ease;
 }
 
 /* Two slow glows: depth without anything that demands attention. */
@@ -208,6 +209,29 @@ button {
   color: var(--muted);
   font-size: 0.95rem;
   transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* The theme button shows the theme you're in now. */
+.icon-sun {
+  display: none;
+}
+
+:root[data-theme="light"] .icon-sun {
+  display: block;
+}
+
+:root[data-theme="light"] .icon-moon {
+  display: none;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .icon-sun {
+    display: block;
+  }
+
+  :root:not([data-theme="dark"]) .icon-moon {
+    display: none;
+  }
 }
 
 .icon:hover,
