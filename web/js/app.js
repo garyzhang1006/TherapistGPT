@@ -1,10 +1,10 @@
 // Every local import carries the same ?v= as index.html. Bump them all together on each release, with
 // VERSION in sw.js, or a returning visitor can get a new app.js paired with a stale cached module that
 // lacks an export.
-import { organizeText, loadSettings, saveSettings, testConnection, normalizeEndpoint } from "./engine.js?v=4";
-import { renderResult, resultToText } from "./render.js?v=4";
-import { splitClauses, isSelfCritical } from "./organizer.js?v=4";
-import { mentionsCrisis } from "./safety.js?v=4";
+import { organizeText, loadSettings, saveSettings, testConnection, normalizeEndpoint } from "./engine.js?v=5";
+import { renderResult, resultToText } from "./render.js?v=5";
+import { splitClauses, isSelfCritical } from "./organizer.js?v=5";
+import { mentionsCrisis } from "./safety.js?v=5";
 
 const $ = (id) => document.getElementById(id);
 const DRAFT_KEY = "therapistgpt.draft";
