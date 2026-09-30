@@ -269,6 +269,11 @@ button {
   transform: none;
 }
 
+.link.subtle {
+  margin-left: auto;
+  color: var(--muted);
+}
+
 .link {
   border: 0;
   background: none;
@@ -698,6 +703,7 @@ kbd {
 .result-actions {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 0.5rem;
   margin-top: 1.75rem;
 }

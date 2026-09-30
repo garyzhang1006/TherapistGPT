@@ -272,25 +272,25 @@ $("new-btn").addEventListener("click", () => {
   showWrite();
 });
 
-$("copy-btn").addEventListener("click", async () => {
-  if (!lastResult) return;
-  try {
-    await navigator.clipboard.writeText(resultToText(lastResult));
-    status.textContent = "Copied.";
-  } catch {
-    status.textContent = "Your browser blocked copying. Try Save as a file instead.";
-  }
-});
-
-$("download-btn").addEventListener("click", () => {
-  if (!lastResult) return;
-  const blob = new Blob([resultToText(lastResult)], { type: "text/plain" });
+function downloadCopy(text) {
+  const blob = new Blob([text], { type: "text/plain" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  const date = new Date().toISOString().slice(0, 10);
   a.href = url;
-  a.download = `therapistgpt-${date}.txt`;
+  a.download = `therapistgpt-${new Date().toISOString().slice(0, 10)}.txt`;
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
-  status.textContent = "Saved to your downloads.";
+}
+
+// One button instead of two: copy when the browser allows it, otherwise save a file.
+$("copy-btn").addEventListener("click", async () => {
+  if (!lastResult) return;
+  const text = resultToText(lastResult);
+  try {
+    await navigator.clipboard.writeText(text);
+    status.textContent = "Copied. Paste it anywhere you like to keep it.";
+  } catch {
+    downloadCopy(text);
+    status.textContent = "Saved as a text file in your downloads.";
+  }
 });
