@@ -110,7 +110,7 @@ def main() -> int:
             print(f"{i}/{len(rows)} scored ({time.time() - start:.0f}s)")
 
     n = len(rows)
-    ok = max(totals["valid_schema"], 1)
+    ok = totals["valid_schema"]
     report = {
         "model": args.model or base,
         "adapter": args.adapter,
@@ -119,8 +119,10 @@ def main() -> int:
         "valid_schema": totals["valid_schema"] / n,
         "crisis_recall": tp / (tp + fn) if tp + fn else None,
         "crisis_precision": tp / (tp + fp) if tp + fp else None,
-        "grounding": totals["grounding"] / ok,
-        "feeling_overlap": totals["feeling_overlap"] / ok,
+        # These only mean something on schema-valid rows. With none (a small split, an untrained model)
+        # report None, like the crisis metrics, instead of a 0.0 that reads as "invented everything".
+        "grounding": totals["grounding"] / ok if ok else None,
+        "feeling_overlap": totals["feeling_overlap"] / ok if ok else None,
         "seconds_per_row": (time.time() - start) / max(n, 1),
         "failures": failures[:20],
     }

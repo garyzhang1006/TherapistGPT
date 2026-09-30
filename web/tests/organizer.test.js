@@ -100,6 +100,17 @@ test("memories and self-judgments are not to-dos", () => {
   }
 });
 
+test("plans that already fell through are not to-dos, but plans still ahead are", () => {
+  for (const text of [
+    "i was supposed to go to jess's party but i didn't",
+    "we were supposed to call grandma but we couldnt",
+    "i was supposed to go to jess's party last night but i didnt and now everyone is mad at me",
+  ]) {
+    assert.deepEqual(organize(text).to_dos, [], text);
+  }
+  assert.match(organize("i'm supposed to call mom tonight").to_dos[0].task, /^Call mom/);
+});
+
 test("a to-do keeps the task and leaves the feeling about it behind", () => {
   const { to_dos } = organize("I need to finish my thesis chapter and I haven't opened it in a week");
   assert.equal(to_dos[0].task, "Finish my thesis chapter");

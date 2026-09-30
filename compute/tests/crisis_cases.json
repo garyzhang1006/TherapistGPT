@@ -36,7 +36,13 @@
     "go to sleep and not wake up",
     "I can‘t go on",
     "I CANT DO THIS ANYMORE",
-    "better off if I wasn't around"
+    "better off if I wasn't around",
+    "i want to die. my hair keeps falling out",
+    "i want to die, my hair is a mess",
+    "i want to die\nmy hair is falling out",
+    "i want to die\nmy hair's falling out",
+    "i want to die\nmy hair got cut wrong",
+    "i want to die\nmy hair, my face, everything"
   ],
   "should_not_flag": [
     "this exam will kill me lol",
@@ -66,6 +72,8 @@
     "I drown myself in work",
     "I seem to never wake up on time",
     "it would be better off if I was here earlier",
-    "I tend to not wake up before 10"
+    "I tend to not wake up before 10",
+    "i want to die my hair",
+    "i want to die my hair blue so bad"
   ]
 }

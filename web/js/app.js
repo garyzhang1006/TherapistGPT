@@ -1,9 +1,10 @@
-// Every local import carries the same ?v= as index.html. Bump them all together on each release,
-// or a returning visitor can get a new app.js paired with a stale cached module that lacks an export.
-import { organizeText, loadSettings, saveSettings, testConnection, normalizeEndpoint } from "./engine.js?v=3";
-import { renderResult, resultToText } from "./render.js?v=3";
-import { splitClauses } from "./organizer.js?v=3";
-import { mentionsCrisis } from "./safety.js?v=3";
+// Every local import carries the same ?v= as index.html. Bump them all together on each release, with
+// VERSION in sw.js, or a returning visitor can get a new app.js paired with a stale cached module that
+// lacks an export.
+import { organizeText, loadSettings, saveSettings, testConnection, normalizeEndpoint } from "./engine.js?v=4";
+import { renderResult, resultToText } from "./render.js?v=4";
+import { splitClauses } from "./organizer.js?v=4";
+import { mentionsCrisis } from "./safety.js?v=4";
 
 const $ = (id) => document.getElementById(id);
 const DRAFT_KEY = "therapistgpt.draft";
@@ -356,3 +357,14 @@ $("copy-btn").addEventListener("click", async () => {
     status.textContent = "Saved as a text file in your downloads.";
   }
 });
+
+// ---------- offline copy ----------
+
+// sw.js keeps this release on the device so the page opens with no signal. Where service workers
+// don't exist (plain http, some private modes) or registration fails, the page loads from the
+// network as it always has, so a failure here is not worth showing anyone.
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  });
+}

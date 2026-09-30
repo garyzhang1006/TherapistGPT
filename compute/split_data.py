@@ -42,27 +42,39 @@ def load(path: Path) -> list[dict]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--inputs", nargs="+", type=Path, default=[HERE / "data" / "seed.jsonl", HERE / "data" / "synthetic.jsonl"])
+    parser.add_argument(
+        "--inputs", nargs="+", type=Path, help="JSONL files to merge (default: data/seed.jsonl and data/synthetic.jsonl)"
+    )
     parser.add_argument("--out-dir", type=Path, default=HERE / "data")
     parser.add_argument("--val-frac", type=float, default=0.05)
     parser.add_argument("--test-frac", type=float, default=0.05)
     parser.add_argument("--seed", type=int, default=13)
     args = parser.parse_args()
 
-    missing = [p for p in args.inputs if not p.exists()]
+    inputs = args.inputs
+    if inputs is None:
+        inputs = [HERE / "data" / "seed.jsonl", HERE / "data" / "synthetic.jsonl"]
+        # Before any synthetic data exists, a seed-only split still feeds the dry run and the smoke run.
+        # Files named on the command line stay strict, since a missing one there is usually a typo.
+        if not inputs[1].exists():
+            print(f"warning: {inputs[1]} not found, splitting seed data only", file=sys.stderr)
+            inputs = inputs[:1]
+    missing = [p for p in inputs if not p.exists()]
     if missing:
         print(f"error: missing input files {missing}. Run generate_synthetic.py first.", file=sys.stderr)
         return 2
 
     seed_path = (HERE / "data" / "seed.jsonl").resolve()
     anchors, pool, seen = [], [], set()
-    for path in args.inputs:
+    for path in inputs:
         for row in load(path):
             key = row["input"].strip().lower()
             if key in seen:
                 continue
             seen.add(key)
             (anchors if path.resolve() == seed_path else pool).append(row)
+    if not pool:
+        print("note: only seed rows, which always train, so val and test will be empty", file=sys.stderr)
 
     rng = random.Random(args.seed)
     splits = {"train": list(anchors), "val": [], "test": []}

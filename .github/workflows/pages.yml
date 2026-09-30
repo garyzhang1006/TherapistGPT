@@ -24,6 +24,25 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: actions/configure-pages@v6
+      # Chrome's install prompt needs 192px and 512px icons and iOS before Safari 15.4 needs a
+      # 180px apple-touch-icon, all PNG. They are drawn here from assets/icon.svg with the Chrome
+      # that ubuntu-latest already ships, so no hand-made binary lives in git. A missing file or a
+      # wrong size stops the deploy instead of shipping a broken install. tests/pwa.test.js reads
+      # the render lines below to know these files will exist on the site.
+      - name: Render PNG app icons from the SVG
+        working-directory: web
+        run: |
+          svg="file://$GITHUB_WORKSPACE/web/assets/icon.svg"
+          render() {
+            rm -f "$RUNNER_TEMP/screenshot.png"
+            # --screenshot always writes screenshot.png into the current directory.
+            (cd "$RUNNER_TEMP" && google-chrome --headless --screenshot --window-size="$1,$1" "$svg")
+            python3 -c 'import struct, sys; b = open(sys.argv[1], "rb").read(24); n = int(sys.argv[2]); sys.exit(0 if b[:8] == b"\x89PNG\r\n\x1a\n" and struct.unpack(">II", b[16:24]) == (n, n) else f"{sys.argv[1]} is not a {n}x{n} PNG")' "$RUNNER_TEMP/screenshot.png" "$1"
+            mv "$RUNNER_TEMP/screenshot.png" "$2"
+          }
+          render 192 assets/icon-192.png
+          render 512 assets/icon-512.png
+          render 180 assets/apple-touch-icon.png
       - uses: actions/upload-pages-artifact@v5
         with:
           path: web

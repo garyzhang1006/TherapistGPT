@@ -19,7 +19,8 @@ jobs:
       - run: npm test
 
   compute:
-    # Cheap checks only: no model download or training ever runs in CI.
+    # Cheap checks only, with no model download or training. smoke.yml runs the real pipeline on a
+    # tiny CPU model when compute/ changes.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
