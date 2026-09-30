@@ -6,6 +6,8 @@ Environment:
     MODEL_ID         merged model (Hub id or path), or the base model when ADAPTER_ID is set
     ADAPTER_ID       optional LoRA adapter to apply on top of MODEL_ID
     ALLOWED_ORIGINS  comma-separated origins allowed to call the API (your GitHub Pages URL)
+    API_KEY          optional shared secret; when set, requests need an X-API-Key header with it.
+                     CORS only limits browsers, so set this on any public host.
 
 Usage:
     MODEL_ID=your-hf-username/therapistgpt-1.5b ALLOWED_ORIGINS=https://garyzhang1006.github.io \
@@ -17,13 +19,14 @@ Privacy: brain dumps are never logged or stored. Only request counts and timings
 from __future__ import annotations
 
 import asyncio
+import hmac
 import os
 import sys
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -32,7 +35,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from therapistgpt.inference import Organizer  # noqa: E402
 from therapistgpt.schema import SchemaError  # noqa: E402
 
-MAX_CHARS = 6000
+# Training dumps run up to roughly 400 words. Much longer input is out of distribution and tends
+# to get cut off mid-JSON, so the web app caps the text box at the same length.
+MAX_CHARS = 3000
 state: dict = {}
 
 
@@ -54,7 +59,15 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(title="TherapistGPT", lifespan=lifespan)
 origins = [o.strip() for o in os.environ.get("ALLOWED_ORIGINS", "http://localhost:8000").split(",") if o.strip()]
-app.add_middleware(CORSMiddleware, allow_origins=origins, allow_methods=["POST", "GET"], allow_headers=["Content-Type"])
+app.add_middleware(
+    CORSMiddleware, allow_origins=origins, allow_methods=["POST", "GET"], allow_headers=["Content-Type", "X-API-Key"]
+)
+
+
+def check_key(given: str | None) -> None:
+    expected = os.environ.get("API_KEY")
+    if expected and not hmac.compare_digest(given or "", expected):
+        raise HTTPException(status_code=401, detail="missing or wrong X-API-Key")
 
 
 @app.get("/health")
@@ -63,9 +76,15 @@ async def health() -> dict:
 
 
 @app.post("/organize")
-async def organize(req: OrganizeRequest) -> dict:
+async def organize(req: OrganizeRequest, x_api_key: str | None = Header(default=None)) -> dict:
+    check_key(x_api_key)
     if not req.text.strip():
         raise HTTPException(status_code=422, detail="text is empty")
+    # A generation can't be cancelled once started, and the browser gives up after 60s. Queueing
+    # behind a running request would only pile up abandoned work, so answer "busy" right away and
+    # let the client fall back to its on-device organizer.
+    if state["lock"].locked():
+        raise HTTPException(status_code=503, detail="model is busy with another request")
     start = time.time()
     async with state["lock"]:
         try:
