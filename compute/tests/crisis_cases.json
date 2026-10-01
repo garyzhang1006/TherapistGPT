@@ -83,7 +83,15 @@
     "it would be fine if i never woke up",
     "i dont care if i die anymore",
     "id be okay if i was gone",
-    "i wouldn't mind if i just didn't wake up"
+    "i wouldn't mind if i just didn't wake up",
+    "im 78 and tired. ive lived long enough. i dont see the point of going on. doctor wants me to come in about my blood pressure. my grandson visits on tuesdays.",
+    "i see no point in carrying on",
+    "theres no point going on anymore",
+    "i dont see the point of going on like this",
+    "i'm done with life",
+    "honestly just done with living",
+    "ive lived long enough",
+    "i dont see the point in living anymore"
   ],
   "should_not_flag": [
     "this exam will kill me lol",
@@ -142,6 +150,14 @@
     "i wouldnt mind if i didnt wake up until noon tomorrow",
     "i dont care if i die on this hill",
     "i wouldnt mind if i was gone for the whole weekend",
-    "id be fine if i never woke up early again"
+    "id be fine if i never woke up early again",
+    "i've lived long enough to know better",
+    "ive lived long enough in this town to know every shortcut",
+    "theres no point going on about it",
+    "i dont see the point of going on a diet",
+    "no point carrying on with the meeting if half the team is out",
+    "im done with life admin for today",
+    "i dont see the point of living in the city if i work from home",
+    "so done with living room furniture shopping"
   ]
 }
