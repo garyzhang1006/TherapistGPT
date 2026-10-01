@@ -1,0 +1,43 @@
+name: README screenshots
+
+# Photographs the deployed site on a phone and a desktop viewport, so updating the README pictures needs
+# no local browser. Download the "screenshots" artifact from the run's summary page.
+on:
+  workflow_dispatch:
+    inputs:
+      site_url:
+        description: Address of the site to photograph
+        required: false
+        default: https://garyzhang1006.github.io/TherapistGPT/
+
+permissions:
+  contents: read
+
+jobs:
+  screenshots:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      # Installed at the repo root and not saved anywhere, so the script under .github/scripts resolves it.
+      - name: Install Playwright and Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.63.0
+          npx playwright install --with-deps chromium
+
+      # The address goes through env, never straight into the shell, so a typed input cannot inject commands.
+      - name: Capture screenshots
+        env:
+          SITE_URL: ${{ inputs.site_url || 'https://garyzhang1006.github.io/TherapistGPT/' }}
+          OUT_DIR: screenshots
+        run: node .github/scripts/screenshots.mjs
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: screenshots
+          path: screenshots/*.png
+          if-no-files-found: error
