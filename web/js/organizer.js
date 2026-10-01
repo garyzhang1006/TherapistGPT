@@ -130,8 +130,9 @@ const NO_NEED = /\b(?:don'?t|do not|doesn'?t|does not|no longer|never)\s+(?:real
 const CONCEAL = /\bso (?:that )?(?:(?:no one|nobody|noone|no-one) (?:will |can |would |ever )?(?:sees?|notices?)|(?:they|people|he|she|my \w+) (?:won'?t|wont|can'?t|cant|don'?t|dont|doesn'?t|doesnt) (?:see|notice))(?:\s+(?:the |my |any )?(?:cuts|scars|marks|bruises|burns|arms|wrists|legs|thighs)\b|(?:\s+(?:them|it))?\s*(?:[.!?,;]|$))|\bto (?:hide|cover) (?:up )?(?:the |my )?(?:cuts|scars|marks|bruises|burns)\b/i;
 // Someone settling their affairs before a crisis gives things away, writes goodbye letters and
 // pays things off "so nobody gets stuck with it". In a dump like that every errand is part of the
-// goodbye, so none of them is listed as a to-do.
-const SETTLING_AFFAIRS = /\b(?:goodbye|farewell) (?:letters?|notes?)\b|\bletters (?:to|for) (?:my |everyone|mom|dad)|\b(?:gave|giving|given|gifted) (?:away (?:my|all my)\b|(?:my|all my|most of my)(?: \w+){1,2} (?:to|away)\b)/i;
+// goodbye, so none of them is listed as a to-do. Giving mirrors the safety.js warning sign: "gave my
+// notice to my boss" only hands something over, so "to" needs a belonging before it.
+const SETTLING_AFFAIRS = /\b(?:goodbye|farewell) (?:letters?|notes?)\b|\bletters (?:to|for) (?:my |everyone|mom|dad)|\b(?:gave|giving|given|gifted) (?:away (?:my|all my|most of my)\b|(?:my|all my|most of my|some of my)(?: \w+){0,2} away\b|(?:my|all my|most of my|some of my) (?:\w+ )?(?:guitar|piano|books?|clothes|stuff|things|belongings|possessions|cat|dog|pets?|plants?|games|console|records|vinyl|jewelry|necklace|ring|watch|car|bike|laptop|camera|art|paintings?|journals?|collection) to\b)/i;
 const STUCK_WITH = /\bso (?:that )?(?:no one|nobody|noone|my \w+|they) (?:gets?|is|are|ends? up|will be|would be|has to|have to) (?:stuck|left) (?:with|holding|paying|dealing)\b/i;
 // "Need new shoes for gym" or "the kids need school supplies" is shopping, a to-do without "need to".
 // Only things that get bought count, because "I need a break" or "I need the money" is not a chore.

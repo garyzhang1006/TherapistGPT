@@ -120,8 +120,9 @@ test("hiding an injury and settling affairs never show up as to-dos", () => {
   // Giving belongings away beside a crisis phrase marks every errand as part of a goodbye.
   assert.deepEqual(organize("i want to kill myself. gave my bike to my neighbor. need to return the drill to my uncle").to_dos, []);
   assert.deepEqual(organize("left farewell notes for my friends. have to sell the car so nobody is stuck with it").to_dos, []);
-  // An ordinary crisis dump keeps its chores.
+  // An ordinary crisis dump keeps its chores, and handing in a notice gives nothing away.
   assert.equal(organize("i want to kill myself. need to return the drill to my uncle").to_dos.length, 1);
+  assert.equal(organize("i dont want to be here anymore. gave my notice to my boss today. need to pick up my meds").to_dos.length, 1);
 });
 
 test("a follow-up that only says them and it stays with the errand it belongs to", () => {
