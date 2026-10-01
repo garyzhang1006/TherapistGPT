@@ -496,7 +496,8 @@ function toTask(clause, course) {
 // it out" means the thing the sentence before was about, "the trash has been sitting there".
 const PERSON = /\bmy\s+(advisor|professor|prof|teacher|tutor|boss|manager|supervisor|coworker|landlord|therapist|doctor|dentist|lawyer|coach|mom|mum|dad|mother|father|sister|brother|friend|roommate|partner|boyfriend|girlfriend|husband|wife|bf|gf|grandma|grandpa|aunt|uncle|cousin)\b/i;
 const TO_PERSON = /^(?:tell|email|call|text|ask|remind|message|thank|meet|visit|update|reply to|write to)\s+(?:her|him)\b/i;
-const THING_SUBJECT = /^(?:the|my|our|this|that)\s+(\w+(?:\s+\w+)?)\s+(?:has|have|is|are|was|were|keeps|still|needs)\b/i;
+// The second word is optional and never one of the verbs, so "the trash still hasn't" names "trash".
+const THING_SUBJECT = /^(?:the|my|our|this|that)\s+(\w+(?:\s+(?!(?:has|have|is|are|was|were|keeps|still|needs)\b)\w+)??)\s+(?:has|have|is|are|was|were|keeps|still|needs)\b/i;
 
 function resolveTask(task, earlier) {
   if (TO_PERSON.test(task)) {
