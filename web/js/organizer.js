@@ -18,23 +18,46 @@ const FALLBACK_TOPIC = "Inside your head";
 const OVERFLOW_TOPIC = "Everything else";
 
 // Each feeling also lists the everyday ways people say it without naming it: "idk where to even
-// start" is overwhelm, "everyone probably thinks im annoying" is anxiety, "my dog died" is sadness.
+// start" is overwhelm, "everyone probably thinks im annoying" is anxiety, "my dog died" is sadness,
+// "running on no sleep" is exhaustion, "dont know anyone here" is loneliness, "50 tabs open" is a
+// scattered, overloaded head, and a rejection is disappointment.
 const FEELINGS = [
-  ["exhausted", /\b(tired|exhausted|drained|worn out|no energy|sleepy|fatigue)\b/i],
-  ["overwhelmed", /\b((overwhelm\w*|too much|drowning|so much to do|can'?t keep up|falling behind|behind on everything|(idk|don'?t know|dont know|no idea) where (to|do i) (even )?(start|begin)|where do i (even )?(start|begin)|can'?t (do|deal with|handle|cope with) (this|it|any of this|all of this|everything)|can'?t cope|too many things)\b|i just can'?t\b(?!\s+\w))/i],
-  ["anxious", /\b(anxious|anxiety|worried|worry|scared|afraid|nervous|panic\w*|terrified|what if|overthink\w*|replay\w*|keep thinking about|can'?t stop thinking about|(gonna|going to) (be (so )?(mad|pissed|angry|upset|furious|disappointed)|hate me|fire me)|(everyone|they|people|he|she) (probably |prob |must )?(thinks?|hates?) (i'?m|im|me))\b/i],
-  ["sad", /\b(sad|crying|cried|cry|tears|heartbroken|grief|miss(ing)? (you|him|her|them|[a-z]+ so much)|miss my (mom|dad|mother|father|friends?|family|home|ex|dog|cat|grandma|grandpa|sister|brother|partner)|(dog|cat|pet|puppy|kitten|bird|hamster|horse|grandma|grandpa|grandmother|grandfather|nana|mom|mum|dad|mother|father|brother|sister|friend|uncle|aunt|cousin|husband|wife|partner) (just |recently )?(died|passed away)|passed away|funeral|lost my (dog|cat|pet|mom|mum|dad|mother|father|grandma|grandpa|brother|sister|friend|best friend|husband|wife|partner|baby))\b/i],
-  ["lonely", /\b(lonely|(so|all|feel|feeling|completely|totally) alone|isolated|nobody|no one|no friends|(only|never) (hangs? out|hanging out|talks?|texts?|invites?)( with| to)? me|left out|(don'?t|dont|do not) have anyone)\b/i],
-  ["guilty", /\b(guilty|guilt|my fault|should have|shouldn'?t have|feel bad|(snapped|yelled|lashed out|blew up) at|was (so )?(mean|rude|harsh) to|feel (so )?(awful|terrible|horrible)|should (apologize|say sorry)|(mad|upset|angry|annoyed) (at|with) me)\b/i],
-  ["ashamed", /\b(ashamed|shame|embarrass\w*|humiliat\w*|pathetic|why can'?t i (just )?(be|act|feel) (normal|okay|ok|like everyone)|everyone else (can|has|is|seems|gets|manages)|(not|never) (good|smart) enough)\b/i],
-  ["numb", /\b(numb|empty|nothing matters|feel nothing|feel flat|hollow)\b/i],
-  ["hopeless", /\b(hopeless|pointless|what'?s the point|no point|never get better|give up|(tired|sick) of (existing|living|being alive|life|everything|it all|trying)|never (going to|gonna) get better|nothing (will|is going to|ever) change|nothing ever changes)\b/i],
+  ["exhausted", /\b(tired|exhausted|drained|worn out|burn(ed|t) out|no energy|sleepy|fatigue|running on (no|zero|\d+ hours? of) sleep|running on (empty|fumes)|no sleep|(haven'?t|havent|didn'?t|didnt|barely|hardly|not) (slept|sleeping|gotten (any |much )?sleep)|up all night|(up|awake|waking up) every (\d+|few|couple|hour|night)|(need|could use|kill for|want|wanna) a nap|(want to|wanna|wish i could|need to) (just )?(go to )?sleep|(is|are) killing me|dead on my feet|wiped out)\b/i],
+  ["overwhelmed", /\b((overwhelm\w*|too much|drowning|so much to do|can'?t keep up|falling behind|behind on everything|(idk|don'?t know|dont know|no idea) where (to|do i) (even )?(start|begin)|where do i (even )?(start|begin)|can'?t (do|deal with|handle|cope with) (this|it|any of this|all of this|everything)|can'?t cope|too many things|can'?t breathe|tabs open|(\d+|fifty|a hundred|a million|so many|too many) (tabs|things) (open|going on|at once)|(brain|head|mind) is (like )?(\d+|fifty|a hundred|a million|so many|too many) tabs|everything at once|pil(ing|ed) up|(\d{2,}|so many|too many|hundreds of) (unread|emails|messages|msgs))\b|i just can'?t\b(?!\s+\w))/i],
+  ["anxious", /\b(anxious|anxiety|worried|worry|scared|afraid|nervous|panic\w*|terrified|what if|overthink\w*|replay\w*|keep thinking about|can'?t stop thinking about|(gonna|going to) (be (so )?(mad|pissed|angry|upset|furious|disappointed)|hate me|fire me)|(everyone|they|people|he|she) (probably |prob |must )?(thinks?|hates?) (i'?m|im|me)|can'?t breathe|dread\w*|freaking out|stomach (is )?in knots|heart (is )?(racing|pounding)|on edge|(won'?t|wont|not gonna|not going to|never gonna) (make|hit|meet) (the |my |this |it )?(\w+ )?deadline|(miss|missed|missing) (the|my) deadline|what (will|would) (she|he|they|people|everyone) think)\b/i],
+  ["sad", /\b(sad|crying|cried|cry|tears|heartbroken|grief|miss(ing)? (you|him|her|them|[a-z]+ so much)|miss my (mom|dad|mother|father|friends?|family|home|ex|dog|cat|grandma|grandpa|sister|brother|partner)|(dog|cat|pet|puppy|kitten|bird|hamster|horse|grandma|grandpa|grandmother|grandfather|nana|mom|mum|dad|mother|father|brother|sister|friend|uncle|aunt|cousin|husband|wife|partner) (just |recently )?(died|passed away)|passed away|funeral|lost my (dog|cat|pet|mom|mum|dad|mother|father|grandma|grandpa|brother|sister|friend|best friend|husband|wife|partner|baby)|(asked|asks|asking) (me )?who i (am|was)|(doesn'?t|doesnt|didn'?t|didnt|don'?t|dont) (recognize|remember) me|forg[eo]ts? who i (am|was)|i (really |honestly |actually )?thought (this|it|that) (was|would))\b/i],
+  // "Told nobody" is about keeping a secret, not about being alone, so a bare "nobody" is not enough.
+  ["lonely", /\b(lonely|(so|all|feel|feeling|completely|totally) alone|isolated|no friends|(only|never) (hangs? out|hanging out|talks?|texts?|invites?)( with| to)? me|left out|(don'?t|dont|do not) have anyone|(nobody|no one) (cares|would (even )?(notice|care|miss)|will (even )?(notice|care|miss)|texts|calls|talks to me|checks on me|gets me|understands|likes me|wants me)|(have|got) (nobody|no one)|(nobody|no one) to (talk|hang)|(don'?t|dont|do not) know (anyone|anybody)|(haven'?t|havent|have not|didn'?t|didnt) (had|talked to|spoken to|seen|hung out with) (anyone|anybody|a soul|one real|a real|a single)|(a|one) real conversation|eat(ing)? (dinner |lunch |breakfast )?alone|all by myself|miss having (friends|people)|(weekends|nights|evenings) are the (worst|hardest|longest))\b/i],
+  ["guilty", /\b(guilty|guilt|my fault|should have|shouldn'?t have|feel bad|(snapped|yelled|lashed out|blew up) at|was (so )?(mean|rude|harsh) to|feel (so )?(awful|terrible|horrible)|(say|said|saying) sorry|apologi[sz]e|(mad|upset|angry|annoyed) (at|with) me|i (just |only )?costs? (her|him|them|everyone|my \w+)|(i'?m|im|i am) (such )?a burden|burden (to|on)|owe (her|him|them)|bailed|flaked|feel (even |so much )?worse|let (her|him|them) down|(supposed|meant) to pay (\w+ )?back)\b/i],
+  ["ashamed", /\b(ashamed|shame|embarrass\w*|humiliat\w*|pathetic|mortif\w*|cringe\w*|why can'?t i (just )?(be|act|feel) (normal|okay|ok|like everyone)|everyone else( my age| i know| here| around me)? (can|has|have|is|seems|gets|manages)|(has|have|got) (their|his|her) (life|lives|shit|stuff) together|(not|never) (good|smart) enough|piece of (garbage|trash|shit|crap)|crawl (in|into) a hole|in front of (the whole|everyone|the entire|all)|(told|tell|telling) (nobody|no one|anyone|anybody)|(haven'?t|havent|didn'?t|didnt) told (anyone|anybody|my \w+)|hiding it)\b/i],
+  ["numb", /\b(numb|empty|nothing matters|feel nothing|feel flat|hollow|feeling nothing|(can'?t|cant|don'?t|dont) feel (anything|a thing)|going through the motions|on autopilot)\b/i],
+  ["hopeless", /\b(hopeless|pointless|what'?s the point|no point|never get better|give up|(tired|sick) of (existing|living|being alive|life|everything|it all|trying)|never (going to|gonna) get better|nothing (will|is going to|ever) change|nothing ever changes|nothing (i do|i try) (matters|works|helps)|(don'?t|dont|can'?t|cant) see (it|things|this|anything) (getting|ever getting|going to get|gonna get) better|(not|never) wake up|what'?s the use|why (even )?bother|no future)\b/i],
   ["angry", /\b(angry|mad|furious|pissed|rage|annoyed|irritated)\b/i],
-  ["stuck", /\b(stuck|(can'?t|cannot|couldn'?t|could not) (do|start|move|get up|get out of bed|make myself|bring myself|get myself|get over|move on|let go)|frozen|froze|paralyzed|should (be over|have gotten over|have moved on)|still not over|(haven'?t|havent) (gotten over|moved on))\b/i],
-  ["disappointed", /\b(disappoint\w*|let (him|her|them|everyone|myself) down|failed)\b/i],
-  ["frustrated", /\b(frustrat\w*|fed up|sick of|keeps (leaving|forgetting|ignoring|interrupting|borrowing|taking|eating|using|making|yelling|breaking|asking|bugging))\b/i],
-  ["scattered", /\b(can'?t (focus|concentrate|think straight)|brain fog|foggy|scattered|all over the place)\b/i],
+  ["stuck", /\b(stuck|(can'?t|cannot|couldn'?t|could not) (do|start|move|get up|get out of bed|make myself|bring myself|get myself|get over|move on|let go)|frozen|froze|paralyzed|should (be over|have gotten over|have moved on)|still not over|(haven'?t|havent) (gotten over|moved on)|(just )?sit there|every time i try|staring at (the|my|this|it|that)|putting (it |this |that )?off)\b/i],
+  ["disappointed", /\b(disappoint\w*|let (him|her|them|everyone|myself) down|failed|reject\w*|turned (me )?down|(didn'?t|didnt|did not) get (in|into|the (job|offer|role|part|spot|position|apartment|place|internship|scholarship))|no offers?|passed over|fell through)\b/i],
+  ["frustrated", /\b(frustrat\w*|fed up|sick of|keeps (leaving|forgetting|ignoring|interrupting|borrowing|taking|eating|using|making|yelling|breaking|asking|bugging)|(just )?shoot me|kill me now|(is|are) killing me|(gonna|going to) be the death of me|one more (\w+ ){0,2}(meeting|email|call|thing|time)|ugh+|so over (it|this))\b/i],
+  ["scattered", /\b(can'?t (focus|concentrate|think straight|think)|brain fog|foggy|scattered|all over the place|tabs open|(brain|head|mind) is (like )?(\d+|fifty|a hundred|a million|so many|too many) tabs|(brain|head|mind) is (racing|mush|fried)|keep forgetting|losing track)\b/i],
 ];
+
+// "I dont even feel scared" names a feeling only to deny it.
+const NOT_FELT = /\b(?:don'?t|dont|do not|didn'?t|didnt|not|never|no longer|isn'?t|wasn'?t)\s+(?:even\s+|really\s+|actually\s+)?(?:(?:feel|feeling|felt|get|getting|am|be)\s+)?(?:so\s+|that\s+|very\s+|too\s+)?(?:scared|afraid|nervous|anxious|worried|sad|lonely|angry|mad|guilty|upset|annoyed|ashamed|embarrassed)\b/gi;
+// "I know she's annoyed" is someone else's anger. It lands on the writer as worry and guilt, so it
+// counts as those and not as the writer's own anger.
+const OTHERS_UPSET = /\b(?:she|he|they|everyone|my (?:\w+ )?(?:mom|mum|dad|mother|father|sister|brother|partner|boyfriend|girlfriend|husband|wife|bf|gf|roommate|friend|friends|boss|manager|professor|advisor|parents))(?:'s|s|'re| is| are| was| were| seems?| must be| probably| prob)?\s+(?:(?:so|really|super|probably|prob|kinda|pretty|totally|definitely|still|def)\s+)?(?:annoyed|mad|pissed|angry|upset|furious|disappointed|frustrated)\b/i;
+
+function feelingsIn(lower, crisis) {
+  const othersUpset = OTHERS_UPSET.test(lower);
+  const own = lower.replace(NOT_FELT, " ").replace(new RegExp(OTHERS_UPSET.source, "gi"), " ");
+  return FEELINGS.filter(
+    ([label, pattern]) =>
+      pattern.test(own) ||
+      (othersUpset && (label === "anxious" || label === "guilty")) ||
+      // Wanting to die or disappear is hopelessness, even when no hopeless word is used.
+      (crisis && label === "hopeless")
+  )
+    .map(([label]) => label)
+    .slice(0, LIMITS.feelings);
+}
 
 // Only explicit intentions and concrete chores count as to-dos. "I didn't pick up" is a memory, not a task.
 const TASK_CUE = /\b(need to|needs to|have to|has to|gotta|got to|should(?! have| be)|supposed to(?! be)|must(?! be)|forgot to|due(?! to)|deadline|appointments?|appts?|refill|reschedul\w*|laundry|dishes|groceries|bills?|rent)\b/i;
@@ -430,10 +453,8 @@ function pickSmallStep(todos, feelings, lower) {
 export function organize(text) {
   const clauses = splitClauses(text);
   const lower = normalize(text).toLowerCase();
-
-  const feelings = FEELINGS.filter(([, pattern]) => pattern.test(lower))
-    .map(([label]) => label)
-    .slice(0, LIMITS.feelings);
+  const needsSupport = mentionsCrisis(text);
+  const feelings = feelingsIn(lower, needsSupport);
 
   const todos = [];
   const reframes = [];
@@ -479,7 +500,6 @@ export function organize(text) {
     threads.push({ title: OVERFLOW_TOPIC, points: points.slice(0, LIMITS.points) });
   }
 
-  const needsSupport = mentionsCrisis(text);
   return {
     summary: needsSupport ? CRISIS_SUMMARY : buildSummary(threads.map((t) => t.title), feelings, reframes.length > 0, clauses.length),
     feelings,
