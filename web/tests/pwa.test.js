@@ -67,7 +67,8 @@ test("the precache holds every file the page loads, and each one exists", () => 
     if (font.endsWith(".woff2")) needed.push(`fonts/${font}`);
   }
   needed.push(...manifest.icons.map((icon) => icon.src));
-  needed.push(...[...index.matchAll(/<link rel="(?:icon|apple-touch-icon)" href="([^"]+)"/g)].map((m) => m[1]));
+  // The manifest too: an offline load still requests it, and a miss shows as a network error.
+  needed.push(...[...index.matchAll(/<link rel="(?:icon|apple-touch-icon|manifest)" href="([^"]+)"/g)].map((m) => m[1]));
   for (const url of needed) assert.ok(PRECACHE.has(url), `sw.js PRECACHE is missing ${url}`);
   for (const url of PRECACHE) assert.ok(onSite(url.replace(/\?v=\d+$/, "")), `sw.js precaches ${url}, which does not exist`);
 });
