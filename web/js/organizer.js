@@ -109,6 +109,9 @@ function isWorkItem(clause) {
 
 // Crisis words never become chores: "I should just kill myself" is not a to-do.
 const NOT_A_TASK = /\b(disappear|exist|existing|die|dead|kill|hurt|end it|stop being)\b/i;
+// "My boss is gonna murder me if I miss the deadline" is a joke about what will happen, so the
+// deadline in it is not a task of its own.
+const THREAT = /\b(?:gonna|going to|will|would|'ll)\s+(?:literally\s+|actually\s+|absolutely\s+|straight up\s+)?(?:murder|strangle|destroy|skin)\s+me\b|\bhave my head\b/i;
 // "I was supposed to go to Jess's party but I didn't" is a plan that already fell through: it goes
 // with the feelings, not on the plate. A long run-on may split the "but I didn't" into the next clause.
 const PAST_PLAN = /\b(?:was|were) supposed to\b/i;
@@ -622,6 +625,7 @@ export function organize(text) {
       !WHAT_IF.test(clause) &&
       !SELF_CRITIC.test(clause) &&
       !NOT_A_TASK.test(clause) &&
+      !THREAT.test(clause) &&
       !mentionsCrisis(clause);
     if (isTask && todos.length < LIMITS.todos) {
       for (const task of splitTaskList(resolveTask(toTask(clause, course), clauses.slice(0, i)))) {

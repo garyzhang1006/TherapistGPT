@@ -86,6 +86,13 @@ test("crisis words never become to-dos", () => {
   }
 });
 
+test("a joke about someone killing me is not a task, and the real task beside it stays", () => {
+  assert.deepEqual(organize("my coach is going to murder me if i blow another deadline").to_dos, []);
+  assert.deepEqual(organize("mom will literally strangle me if the deadline slips").to_dos, []);
+  const tasks = organize("my editor is gonna murder me if the deadline slips so i need to send the draft tonight").to_dos.map((t) => t.task);
+  assert.deepEqual(tasks, ["Send the draft"]);
+});
+
 test("list lines become separate to-dos without their bullets", () => {
   assert.deepEqual(organize("- call mom\n- pay rent\n- groceries").to_dos.map((t) => t.task), ["Call mom", "Pay rent", "Groceries"]);
   assert.deepEqual(
