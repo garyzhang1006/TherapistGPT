@@ -201,6 +201,9 @@ test("a habit that slipped for days is not a to-do, but one thing still waiting 
     assert.deepEqual(organize(text).to_dos, [], text);
   }
   assert.equal(organize("i havent paid the water bill, its been on my mind for weeks").to_dos[0].task, "Pay the water bill");
+  // An overdue bill or form is still one thing waiting, however long it has waited.
+  assert.equal(organize("i havent filed my taxes in two years").to_dos[0].task, "File my taxes");
+  assert.equal(organize("i havent paid my phone bill in 2 months").to_dos[0].task, "Pay my phone bill");
 });
 
 test("a feeling that runs on without a break is cut from the to-do", () => {

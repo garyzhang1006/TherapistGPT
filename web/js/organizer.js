@@ -479,13 +479,15 @@ function trimTail(task) {
 
 // "Haven't answered texts in days" describes a habit that has slipped, not one thing waiting.
 const HABIT_GAP = /\b(?:in|for)\s+(?:days|weeks|months|ages|forever|a while|so long|(?:a|an|\d+|two|three|four|five|a few|a couple of|several|like \d+)\s+(?:days?|weeks?|months?|years?))\b/i;
+// Only keeping in touch is a habit. "Haven't filed my taxes in two years" is one overdue thing.
+const CONTACT_VERB = /^(?:emailed|called|texted|messaged|replied|answered|responded|reached|email|call|text|reply|answer|respond)$/i;
 
 // The to-do inside an unmet obligation, or null when it names nothing to do.
 function unmetTask(clause) {
   const m = clause.match(UNMET) || clause.match(CANT_EVEN);
   if (!m) return null;
   // Only the words right after the verb count, so "and it's been on my mind for weeks" does not.
-  if (HABIT_GAP.test(m[2].split(/,|\s+(?:and|but|so|because|bc|cuz|since)\s+/i)[0])) return null;
+  if (CONTACT_VERB.test(m[1]) && HABIT_GAP.test(m[2].split(/,|\s+(?:and|but|so|because|bc|cuz|since)\s+/i)[0])) return null;
   const verb = BASE_VERB[m[1].toLowerCase()] || m[1].toLowerCase();
   let object = trimTail(m[2]).trim();
   // "I haven't done anything productive" or "can't even do anything right" is a verdict on the
