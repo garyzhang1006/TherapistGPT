@@ -90,6 +90,9 @@ export const WARNING_SIGNS = [
   /\b(said|saying|say) (my )?goodbyes?( to\b|[.!?,;]|$)/i,
   // Hopelessness about everything. "what's the point of this meeting" names one thing and stays calm.
   /\b((what'?s|what is) (even )?the point( (of|in) (any of (it|this)|anything|it all|all of (it|this)|trying|even trying|going on)\b|( anymore| at all)?([.!?,;]|$))|nothing (really )?matters (anymore|any more)\b)/i,
+  // Putting affairs in order: rehoming a pet, or paying something off so nobody is left with it.
+  // Each is everyday before a trip or a move, which is why this is a sign and not a crisis phrase.
+  /\b(my affairs (in order|sorted|settled)|(made|making|make) sure (the|my) (cats?|dogs?|pets?|kitten|puppy|birds?|fish|rabbits?|hamsters?)( \w+)? (has|have|gets?|will have|will get) (somewhere|someone|somebody|a (new |good )?home|a place)|(rehom(e|ed|ing)|(found|finding|find) (a )?(new |good )?homes? for) (the|my) (cats?|dogs?|pets?|kitten|puppy|birds?|fish|rabbits?|hamsters?)|(pay|paid|paying|pays|cancel|cancell?ed|cancell?ing|close|closed|closing|settle|settled|settling) ([\w$]+ ){0,6}so (nobody|no one|noone|my family|my (mom|dad|parents|kids|wife|husband|partner|sister|brother)) (gets?|is|are|isn'?t|aren'?t|will be|won'?t be|has to|have to|ends? up)( \w+)? (stuck|left|saddled|burdened) with)\b/i,
 ];
 
 // Fast typing swaps letters, and a word spelled wrong should still count: "i wnat to die" must flag
