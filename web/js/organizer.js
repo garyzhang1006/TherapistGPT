@@ -74,6 +74,24 @@ const INTENT = /\b(need to|needs to|have to|has to|gotta|got to|should|must|supp
 const INTENT_AT = /\b(?:need to|needs to|have to|has to|gotta|got to|should(?: really)?|supposed to|must|forgot to)\s+(.+)$/i;
 // Things that already happened are memories unless an intent is stated: "I finally did laundry".
 const PAST = /\b(did|finally|already|yesterday|last (night|week|month|year)|missed|went|was|were)\b/i;
+// "Deck for Marisol by thurs" sets a deadline, and a deadline means there is something to do.
+const DEADLINE = /\bby (?:end of (?:the )?(?:day|week|month)|eod|eow|cob|tonight|tomorrow|tmrw|tmr|noon|midnight|monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tues?|wed|thu|thurs?|fri|sat|sun|next week|the \d+(?:st|nd|rd|th)?|\d{1,2}(?::\d\d)?\s?(?:am|pm)|\d{1,2}:\d\d)\b/i;
+// "I said I'd tutor my cousin on Sunday" is a promise, and a promise is a to-do.
+const PROMISED = /(?:^|\b(?:I|we)\s+(?:\w+\s+)?)(?:said|told \w+)(?: that)? (?:I'?d|id|I would|I'll|we'?d|we'll)\s+(?!(?:be|never|not|feel|have been)\b)(.+)$|(?:^|\b(?:I|we)\s+(?:\w+\s+)?)(?:promised|agreed|offered)(?: \w+)? to\s+(.+)$/i;
+// "Gonna file a complaint with the city" is the writer's own plan. "This exam is gonna kill me",
+// "I'm gonna cry" and "going to bed" are not.
+const MY_PLAN = /(?:^|\b(?:I|I'm|I am|we|we're)\s+)(?:also\s+|really\s+|finally\s+|just\s+|prob\s+|probably\s+|definitely\s+|def\s+)?(?:gonna|going to|planning to|plan to)\s+(?!(?:be|feel|cry|scream|lose|die|explode|fail|snap|throw up|puke|pass out|break down|have a|kill|sleep|bed|the|a|an|my|class|work|school|church|therapy)\b)(.+)$/i;
+// "The only things I have to do are laundry and the GRE" lists its chores after "are".
+const CHORES_ARE = /\b(?:all|what|the (?:only )?things?|stuff|everything)\s+(?:I|we)\s+(?:have to|need to|gotta|got to|should)\s+do\s+(?:today\s+|this week\s+|tomorrow\s+)?(?:is|are)\s+(.+)$/i;
+// A short list line that names a piece of work is a to-do even without a verb: "the vendor
+// contract renewal", "club fundraiser forms". A subject or a past-tense verb makes it a sentence.
+const WORK_THING = /\b(deck|contracts?|renewal|report|essay|paper|forms?|application|presentation|slides|homework|assignment|midterm|final|exam|test|quiz|project|proposal|invoice|taxes|spreadsheet|draft|resume|cover letter|problem set|pset|reading|paperwork|lab)\b/i;
+const SENTENCE_WORD = /\b(?:I|I'm|I've|I'd|me|he|she|they|we|it|it's|you|is|are|was|were|went|got|\w{2,}ed)\b/i;
+
+function isWorkItem(clause) {
+  return clause.split(/\s+/).length <= 6 && WORK_THING.test(clause) && !SENTENCE_WORD.test(clause);
+}
+
 // Crisis words never become chores: "I should just kill myself" is not a to-do.
 const NOT_A_TASK = /\b(disappear|exist|existing|die|dead|kill|hurt|end it|stop being)\b/i;
 // "I was supposed to go to Jess's party but I didn't" is a plan that already fell through: it goes
@@ -109,6 +127,8 @@ const BASE_VERB = {
 // "I have a bio exam tmrw and I haven't studied at all".
 const HAVE_THING = /\b(?:I have|I've got|I got|there'?s) (?:a|an|my|the|this|that) ((?:\w+ ){0,2}?(?:exam|test|quiz|midterm|final|essay|paper|report|assignment|project|presentation|interview|form|application|homework|reading))\b/i;
 const NO_OBJECT = /^(?:(?:at|all|yet|anything|a|thing|much|any|of|it|them|that|this|either|still|even|lately|really)\b\s*)*$/i;
+// "HR sent another email which I haven't opened" names the thing just before "which".
+const WHICH_THING = /\b(?:a|an|the|my|another|this|that|her|his|their)\s+((?:\w+\s+)?\w+)\s+(?:which|that)\s+(?:I|we)\s+(?:still\s+)?(?:haven'?t|havent|have not)\b/i;
 // "I have 3 chapters left to read" names its own verb. Only chore verbs count, because "a few days
 // left to live" is not a chore.
 const LEFT_TO = /\b(?:I|we)(?:'ve| have)?\s+(?:still\s+)?(?:have|got)\s+((?:\d+|a few|a couple(?: of)?|two|three|four|five|six|so many|some|a bunch of|like \d+)\s+(?:\w+\s+)?\w+)\s+left\s+to\s+(read|write|do|finish|study|grade|watch|pay|submit|pack|unpack|clean|review|edit|answer|wash|fold)\b/i;
@@ -290,13 +310,15 @@ function splitAroundCrisis(part) {
 }
 
 // "work, school, my mom being sick, the apartment is a disaster" lists separate worries, so each
-// keeps its own topic. A list after an intent ("need to do laundry, groceries, the form") stays
-// whole so it becomes one to-do per chore.
+// keeps its own topic, and "chem midterm monday, english paper due wed, club forms" lists separate
+// pieces of work. A list after an intent ("need to do laundry, groceries, the form") stays whole
+// so it becomes one to-do per chore.
 function splitList(part) {
   if ((part.match(/,/g) || []).length < 2 || INTENT.test(part)) return [part];
   const pieces = part.split(/,\s*(?:and\s+)?/).filter((p) => p.trim());
-  const topics = new Set(pieces.filter((p) => TOPICS.some((t) => t.words.test(p))).map(topicFor));
-  return topics.size >= 2 ? pieces : [part];
+  const topics = new Set(pieces.filter((p) => TOPICS.some((t) => t.words.test(p))).map((p) => topicFor(p)));
+  const tasks = pieces.map(cleanClause).filter((c) => TASK_CUE.test(c) || IMPERATIVE.test(c) || isWorkItem(c));
+  return topics.size >= 2 || tasks.length >= 2 ? pieces : [part];
 }
 
 // "im such a failure i still havent sent the email" is a harsh thought and then a task, so the
@@ -398,7 +420,9 @@ function unmetTask(clause) {
   // day, not a thing waiting to be done, so a quantifier counts as no object at all.
   if (NO_OBJECT.test(object) || /^(?:anything|nothing|much|enough)\b/i.test(object)) {
     const thing = clause.match(HAVE_THING);
+    const which = clause.match(WHICH_THING);
     if (verb === "eat") object = "something";
+    else if (which) object = `the ${which[1]}`;
     else if (thing) object = `${/^(study|prepare|practice)$/.test(verb) ? "for " : ""}the ${thing[1]}`;
     else return null;
   }
@@ -407,12 +431,16 @@ function unmetTask(clause) {
 }
 
 function toTask(clause) {
+  const chores = clause.match(CHORES_ARE);
+  if (chores) return capitalize(trimTail(chores[1]));
   const intent = clause.match(INTENT_AT);
   if (!intent) {
     const unmet = unmetTask(clause);
     if (unmet) return unmet;
     const left = clause.match(LEFT_TO);
     if (left) return capitalize(`${left[2].toLowerCase()} ${left[1]}`);
+    const plan = clause.match(PROMISED) || clause.match(MY_PLAN);
+    if (plan) return capitalize(trimTail(plan[1] || plan[2]));
   }
   const task = trimTail(intent ? intent[1] : clause.replace(TASK_LEAD, ""))
     .replace(/^(?:I|I've|we) (?:have|got) (?=(?:the|a|an|my|this|that)\b)/i, "")
@@ -509,9 +537,10 @@ export function organize(text) {
     }
     // "haven't sent it" says the thing is still waiting, whatever else in the clause is past.
     const unmet = unmetTask(clause) !== null;
+    const promised = PROMISED.test(clause);
     const isTask =
-      (TASK_CUE.test(clause) || IMPERATIVE.test(clause) || unmet || LEFT_TO.test(clause)) &&
-      !(PAST.test(clause) && !INTENT.test(clause) && !unmet) &&
+      (TASK_CUE.test(clause) || IMPERATIVE.test(clause) || unmet || LEFT_TO.test(clause) || DEADLINE.test(clause) || promised || MY_PLAN.test(clause) || isWorkItem(clause)) &&
+      !(PAST.test(clause) && !INTENT.test(clause) && !unmet && !promised) &&
       !(PAST_PLAN.test(clause) && !STILL_OWED.test(clause) && (FELL_THROUGH.test(clause) || FELL_THROUGH_LEAD.test(clauses[i + 1] || ""))) &&
       !((SOMEONE_ELSES.test(clause) || OTHERS_TASK.test(clause)) && !MY_INTENT.test(clause)) &&
       !(NO_NEED.test(clause) && !INTENT.test(clause.replace(new RegExp(NO_NEED.source, "gi"), " "))) &&
