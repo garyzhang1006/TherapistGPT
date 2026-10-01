@@ -68,7 +68,7 @@ function feelingsIn(lower, crisis) {
 // Only explicit intentions and concrete chores count as to-dos. "I didn't pick up" is a memory, not a task.
 const TASK_CUE = /\b(need to|needs to|have to|has to|gotta|got to|should(?! have| be)|supposed to(?! be)|must(?! be)|forgot to|due(?! to)|deadline|appointments?|appts?|refill|reschedul\w*|laundry|dishes|groceries|bills?|rent)\b/i;
 // A clause that starts with a chore verb is a task even without "need to": "call mom", "pay rent".
-const IMPERATIVE = /^(call|email|text|pay|finish|book|clean|buy|send|submit|schedule|refill|reply to|write|return|cancel|pick up|fill out|study|read|print|prep|prepare|practice|apply|renew|register|order|wash|fold|take out)\b(?!\s+(from|with|was|is|went|that)\b)/i;
+const IMPERATIVE = /^(call|email|text|pay|finish|book|clean|buy|send|submit|schedule|refill|reply to|write|return|cancel|pick up|fill out|study|read|print|prep|prepare|practice|apply|renew|register|order|wash|fold|take out|sign up|sign|update|ask|file|fix)\b(?!\s+(from|with|was|is|went|that)\b)/i;
 // Explicit intent found anywhere in a clause; what follows it is the task.
 const INTENT = /\b(need to|needs to|have to|has to|gotta|got to|should|must|supposed to|forgot to)\b/i;
 const INTENT_AT = /\b(?:need to|needs to|have to|has to|gotta|got to|should(?: really)?|supposed to|must|forgot to)\s+(.+)$/i;
@@ -332,9 +332,23 @@ function splitSelfTalk(part) {
   return [part.slice(0, end), ...splitSelfTalk(rest.trim())];
 }
 
+// "The only things I have to do are laundry and sign up for the GRE" holds two chores about two
+// different topics, so each goes under its own.
+function splitChores(part) {
+  for (const m of part.matchAll(/\s+and\s+/gi)) {
+    const before = part.slice(0, m.index);
+    const after = part.slice(m.index + m[0].length);
+    if (!IMPERATIVE.test(after)) continue;
+    const first = topicFor(before);
+    const second = topicFor(after);
+    if (first !== FALLBACK_TOPIC && second !== FALLBACK_TOPIC && first !== second) return [before, ...splitChores(after)];
+  }
+  return [part];
+}
+
 function splitPart(part) {
   if (mentionsCrisis(part)) return splitAroundCrisis(part);
-  return splitRunOn(part).flatMap(splitSelfTalk).flatMap(splitList);
+  return splitRunOn(part).flatMap(splitSelfTalk).flatMap(splitList).flatMap(splitChores);
 }
 
 export function splitClauses(text) {
