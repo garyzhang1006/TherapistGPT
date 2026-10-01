@@ -78,8 +78,9 @@ CRISIS_PATTERNS = [
     r"\b(no|(don'?t|do not|can'?t|cannot|can not|didn'?t|did not) see (the|a|any|much)) point (in |of |to )?((going on|carrying on|keep going|keeping going)\b(?! (and on|about|with|to|at|a|an|the|this|that|these|those|my|our|your|his|her|their|vacation|holiday|trips?|dates?|tour|strike|leave|stage|air|online)\b)|living\b(?! (in|here|there|with|at|off|on|near|together)\b)|being alive|staying alive|existing|life\b(?! (insurance|admin|drawing|coaching|skills?|lessons?|hacks?)\b))",
     r"\b(i'?m|i am|just|so|honestly|completely|totally|really) (so |just |really |completely |totally |honestly )?(done|finished) with (my |this )?(life|living|being alive|existing)\b(?! (admin|insurance|drawing|science|sciences|coaching|lessons?|skills?|story|stories|situation|arrangements?|room|space|expenses|costs?|in|with|at|here|there|on|for)\b)",
     # An older person saying they have lived long enough. "lived long enough to know better" is an
-    # everyday idiom, so anything that carries on the sentence keeps it calm.
-    r"\b(i'?ve|i have) (already )?lived (long )?enough\b(?! (to|in|here|there|with|at|on|life|lives|years|that|for|of)\b)",
+    # everyday idiom, so a word that carries the idiom on keeps it calm, even after "now" or "by now".
+    # "and i'm ready to go" carries on too but means the wish, so only the idiom's own words are listed.
+    r"\b(i'?ve|i have) (already )?lived (long )?enough\b(?! (now |by now |already )?(to|in|here|there|with|at|on|life|lives|years|that|for|of|as (a|an))\b)",
     # Researching a method. "how many pills to take a day" and "how many advil i can take" are dosing
     # questions, so only "it would take" or "would kill" counts, and a per-day or kick-in tail stays calm.
     # So does "to fall asleep" or "to see results", unless "forever" or "for good" follows.
