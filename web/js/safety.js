@@ -30,8 +30,9 @@ export const CRISIS_PATTERNS = [
   // "i" or "been". The anchor sits in the match because Safari before 16.4 can't parse lookbehind.
   // "i cut today's meeting short" is a possessive, so an apostrophe after the time word stays calm.
   /(^|[.!?;:,] |\bi |\bi'?m |\bi'?ve |\b(been|started|start|keep|kept|back to) )(cut|cutting) (again|last night|tonight|today|yesterday|this morning|this week|last week)\b(?!')/i,
-  // "want to cut my hair" names what gets cut; with nothing after it, the cut is the person.
-  /\b(want(ed|s|ing)? to|wanna|urges? to|tempted to) (cut|burn)( (again|so bad|so badly|really bad|tonight|right now)\b|[.!?,;]|$)/i,
+  // "want to cut my hair" or "cut back" names what gets cut. Anything else after it ("so much",
+  // "but i wont", ":(") or nothing at all means the cut is the person.
+  /\b(want(ed|s|ing)? to|wanna|urges? to|tempted to) (cut|burn)\b(?! (my|the|a|an|your|his|her|him|their|them|it|this|that|these|those|some|back|down|off|out|up|in|into|through|loose|ahead|class|school|ties|costs?|corners|carbs|sugar|calories|fat|weight|hair|bridges|everything)\b)/i,
   /\b(burned|burnt) my ?self\b(?! out\b| (on|with) (the|a|my) (stove|stovetop|oven|pan|pot|kettle|iron|curling iron|straightener|grill|toaster|tea|coffee)\b| (while|making|cooking|ironing|baking)\b)/i,
   /\brelaps(e|ed|es|ing) (on |into |with )?(sh|self[- ]?harm|cutting|burning)\b/i,
   /\b(sh|cutting) relaps(e|ed|es|ing)\b/i,
