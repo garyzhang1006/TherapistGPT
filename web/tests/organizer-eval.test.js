@@ -9,13 +9,17 @@ const FIXTURES_URL = new URL("./fixtures/", import.meta.url);
 const TUNED_FILE = "brain-dumps.json";
 
 // brain-dumps.json is the set the rules were tuned on. Every brain-dumps-<name>.json beside it was
-// written blind by someone who never saw the organizer, so it shows whether the rules generalize.
+// written blind by someone who never saw the organizer. A blind set stops measuring generalization
+// once rules are written from its cases, so it moves to SEEN_BY_RULES and its label says so; only
+// the blind sets still unseen show whether the rules generalize.
 // A file that fails to parse is kept with its error, so one bad file fails its own test only.
+const SEEN_BY_RULES = new Set(["brain-dumps-heldout.json"]);
 const FIXTURES = readdirSync(FIXTURES_URL)
   .filter((file) => /^brain-dumps(?:-[\w-]+)?\.json$/.test(file))
   .sort((a, b) => (a === TUNED_FILE ? -1 : b === TUNED_FILE ? 1 : a.localeCompare(b)))
   .map((file) => {
-    const fixture = { file, tuned: file === TUNED_FILE, name: file === TUNED_FILE ? "tuned" : file.slice("brain-dumps-".length, -".json".length) };
+    const base = file === TUNED_FILE ? "tuned" : file.slice("brain-dumps-".length, -".json".length);
+    const fixture = { file, tuned: file === TUNED_FILE, name: SEEN_BY_RULES.has(file) ? `${base} (tuned)` : base };
     try {
       fixture.cases = JSON.parse(readFileSync(new URL(file, FIXTURES_URL), "utf8")).cases;
     } catch (error) {
@@ -26,7 +30,7 @@ const FIXTURES = readdirSync(FIXTURES_URL)
 
 // Floors for the tuned set only, at 90% of the score CI last reported (100% on every metric),
 // rounded down. A general rule may cost a tuned case or two, but not the tuned set as a whole.
-// The blind sets are report-only, apart from crisis recall.
+// The other sets are report-only, apart from crisis recall.
 const THRESHOLDS = {
   todoRecall: 0.9,
   todoPrecision: 0.9,
@@ -116,7 +120,8 @@ test("the tuned brain-dump fixture is present", () => {
 });
 
 for (const fixture of FIXTURES) {
-  // The tuned set keeps the plain wording it always had in the CI log; a blind set is named by its suffix.
+  // The tuned set keeps the plain wording it always had in the CI log; any other set is named by its
+  // suffix, marked "(tuned)" once rules have been written from it.
   const label = fixture.tuned ? "" : `${fixture.name} `;
   const set = fixture.tuned ? "the fixed brain-dump set" : `the ${fixture.name} brain-dump set`;
   let evaluated = null;
