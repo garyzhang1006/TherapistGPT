@@ -31,7 +31,7 @@ export const CRISIS_PATTERNS = [
   /(^|[.!?;:,] |\bi |\bi'?m |\bi'?ve |\b(been|started|start|keep|kept|back to) )(cut|cutting) (again|last night|tonight|today|yesterday|this morning|this week|last week)\b/i,
   // "want to cut my hair" names what gets cut; with nothing after it, the cut is the person.
   /\b(want(ed|s|ing)? to|wanna|urges? to|tempted to) (cut|burn)( (again|so bad|so badly|really bad|tonight|right now)\b|[.!?,;]|$)/i,
-  /\b(burned|burnt) my ?self\b(?! (on|with) (the|a|my) (stove|stovetop|oven|pan|pot|kettle|iron|curling iron|straightener|grill|toaster|tea|coffee)\b| (while|making|cooking|ironing|baking)\b)/i,
+  /\b(burned|burnt) my ?self\b(?! out\b| (on|with) (the|a|my) (stove|stovetop|oven|pan|pot|kettle|iron|curling iron|straightener|grill|toaster|tea|coffee)\b| (while|making|cooking|ironing|baking)\b)/i,
   /\brelaps(e|ed|es|ing) (on |into |with )?(sh|self[- ]?harm|cutting|burning)\b/i,
   /\b(sh|cutting) relaps(e|ed|es|ing)\b/i,
   /\b(cut|cutting|slit|slitting) (my |both )?(wrists?|thighs|forearms)\b/i,
