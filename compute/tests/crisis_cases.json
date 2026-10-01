@@ -113,7 +113,9 @@
     "keep thinking about driving into a wall on the highway",
     "thinking of throwing myself in front of the next train",
     "i keep thinking about stepping off\nthen the train comes and i get on",
-    "thinking about jumping off\nwork was fine"
+    "thinking about jumping off\nwork was fine",
+    "i keep thinking about stepping off then the train comes and i get on",
+    "been thinking about jumping off and nobody would know"
   ],
   "should_not_flag": [
     "this exam will kill me lol",
