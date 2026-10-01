@@ -25,6 +25,16 @@ export const CRISIS_PATTERNS = [
   /\b(shoot|shooting) my ?self\b(?! in the foot)/i,
   /\b(drown|drowning) my ?self\b(?! in\b)/i,
   /\bself[- ]?harm\b/i,
+  // Relapse is often said without "myself" ("cut again last night"). "my hours got cut again" and
+  // "they cut the budget again" are calm, so the cut must open the text or a clause, or follow
+  // "i" or "been". The anchor sits in the match because Safari before 16.4 can't parse lookbehind.
+  /(^|[.!?;:,] |\bi |\bi'?m |\bi'?ve |\b(been|started|start|keep|kept|back to) )(cut|cutting) (again|last night|tonight|today|yesterday|this morning|this week|last week)\b/i,
+  // "want to cut my hair" names what gets cut; with nothing after it, the cut is the person.
+  /\b(want(ed|s|ing)? to|wanna|urges? to|tempted to) (cut|burn)( (again|so bad|so badly|really bad|tonight|right now)\b|[.!?,;]|$)/i,
+  /\b(burned|burnt) my ?self\b(?! (on|with) (the|a|my) (stove|stovetop|oven|pan|pot|kettle|iron|curling iron|straightener|grill|toaster|tea|coffee)\b| (while|making|cooking|ironing|baking)\b)/i,
+  /\brelaps(e|ed|es|ing) (on |into |with )?(sh|self[- ]?harm|cutting|burning)\b/i,
+  /\b(sh|cutting) relaps(e|ed|es|ing)\b/i,
+  /\b(cut|cutting|slit|slitting) (my |both )?(wrists?|thighs|forearms)\b/i,
   /\bscratch(ing)? my (arms|legs|skin)\b/i,
   /\boverdos(e|ed|es|ing)\b/i,
   /\b(saving|saved|stockpiling|stockpiled|hoarding) (up )?(my |the )?(pills|meds)\b/i,
