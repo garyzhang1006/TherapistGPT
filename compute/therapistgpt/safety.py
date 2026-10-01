@@ -76,8 +76,8 @@ CRISIS_PATTERNS = [
 # sudden calm and stop planning ahead. Each sign alone is everyday ("gave my old notes to sam",
 # "wrote letters to colleges"), so only two different ones together flag. One pattern per sign.
 WARNING_SIGNS = [
-    # Giving away belongings.
-    r"\b(gave|give|giving|given|gifted|gifting) (away (my|all my|most of my)\b|(my|all my|most of my|some of my)( \w+){0,2} (to|away)\b)",
+    # Giving away belongings. "gave my keys to the landlord" hands something over, so "to" needs a belonging.
+    r"\b(gave|give|giving|given|gifted|gifting) (away (my|all my|most of my)\b|(my|all my|most of my|some of my)( \w+){0,2} away\b|(my|all my|most of my|some of my) (\w+ )?(guitar|piano|books?|clothes|stuff|things|belongings|possessions|cat|dog|pets?|plants?|games|console|records|vinyl|jewelry|necklace|ring|watch|car|bike|laptop|camera|art|paintings?|journals?|collection) to\b)",
     # Goodbye letters or notes. Plain "notes" are class notes, so a note needs a goodbye word.
     r"\b(wrote|write|writing|written|left|leaving) (a |some |the |my )?((goodbye|farewell|final|last) (letters?|notes?)|letters (to|for))\b",
     # A sudden calm, often after a decision.
