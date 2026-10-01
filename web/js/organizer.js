@@ -79,6 +79,13 @@ const INTENT_AT = /\b(?:need to|needs to|have to|has to|gotta|got to|should(?: r
 const PAST = /\b(did|finally|already|yesterday|last (night|week|month|year)|missed|went|was|were)\b/i;
 // "Deck for Marisol by thurs" sets a deadline, and a deadline means there is something to do.
 const DEADLINE = /\bby (?:end of (?:the )?(?:day|week|month)|eod|eow|cob|tonight|tomorrow|tmrw|tmr|noon|midnight|monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tues?|wed|thu|thurs?|fri|sat|sun|next week|the \d+(?:st|nd|rd|th)?|\d{1,2}(?::\d\d)?\s?(?:am|pm)|\d{1,2}:\d\d)\b/i;
+// "My mom gets home by 6pm" is a time in someone's sentence, not a deadline. A clause that opens
+// with a subject needs a piece of work in it before its "by" counts.
+const SUBJECT_LEAD = /^(?:I|I'm|I'll|we|he|she|they|it|my|our|his|her|their|the)\b/i;
+
+function isDeadline(clause) {
+  return DEADLINE.test(clause) && (WORK_THING.test(clause) || !SUBJECT_LEAD.test(clause));
+}
 // "I said I'd tutor my cousin on Sunday" is a promise, and a promise is a to-do.
 const PROMISED = /(?:^|\b(?:I|we)\s+(?:\w+\s+)?)(?:said|told \w+)(?: that)? (?:I'?d|id|I would|I'll|we'?d|we'll)\s+(?!(?:be|never|not|feel|have been)\b)(.+)$|(?:^|\b(?:I|we)\s+(?:\w+\s+)?)(?:promised|agreed|offered)(?: \w+)? to\s+(.+)$/i;
 // "I told Jess I'd come to her party last night" promised something already past. "I told him
@@ -599,7 +606,7 @@ export function organize(text) {
     const promise = clause.match(PROMISED);
     const promised = promise !== null && !PAST_WHEN.test(promise[1] || promise[2]);
     const isTask =
-      (TASK_CUE.test(clause) || IMPERATIVE.test(clause) || unmet || LEFT_TO.test(clause) || DEADLINE.test(clause) || promised || MY_PLAN.test(clause) || (items[i].listed && isWorkItem(clause))) &&
+      (TASK_CUE.test(clause) || IMPERATIVE.test(clause) || unmet || LEFT_TO.test(clause) || isDeadline(clause) || promised || MY_PLAN.test(clause) || (items[i].listed && isWorkItem(clause))) &&
       !(PAST.test(clause) && !INTENT.test(clause) && !unmet && !promised) &&
       // A promise is a plan made in the past, so "but I bailed" rules it out just as it does "was supposed to".
       !((PAST_PLAN.test(clause) || promised) && !STILL_OWED.test(clause) && (FELL_THROUGH.test(clause) || FELL_THROUGH_LEAD.test(clauses[i + 1] || ""))) &&
