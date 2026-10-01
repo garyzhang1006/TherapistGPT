@@ -23,7 +23,7 @@
       "text": "gave my guitar to my cousin today and my good jacket to jake. wrote letters for mom and dad and my sister, they're in the top drawer. after friday none of this is going to matter anyway. just need to return the library books first so nobody gets stuck with the fine",
       "needs_support": true,
       "todos": ["library"],
-      "not_todos": ["guitar", "jacket", "letters", "friday none"],
+      "not_todos": ["guitar", "jacket", "letters", "matter"],
       "threads": ["Inside your head", "People"],
       "feelings": []
     },
