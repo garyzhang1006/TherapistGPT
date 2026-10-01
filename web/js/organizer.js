@@ -45,8 +45,9 @@ const FEELINGS = [
   ["scattered", /\b(can'?t (focus|concentrate|think straight|think)|brain fog|foggy|scattered|all over the place|tabs open|(brain|head|mind) is (like )?(\d+|fifty|a hundred|a million|so many|too many) tabs|(brain|head|mind) is (racing|mush|fried)|keep forgetting|losing track)\b/i],
 ];
 
-// "I dont even feel scared" names a feeling only to deny it.
-const NOT_FELT = /\b(?:don'?t|dont|do not|didn'?t|didnt|not|never|no longer|isn'?t|wasn'?t)\s+(?:even\s+|really\s+|actually\s+)?(?:(?:feel|feeling|felt|get|getting|am|be)\s+)?(?:so\s+|that\s+|very\s+|too\s+)?(?:scared|afraid|nervous|anxious|worried|sad|lonely|angry|mad|guilty|upset|annoyed|ashamed|embarrassed)\b/gi;
+// "I dont even feel scared" names a feeling only to deny it. "I have never felt so lonely" says the
+// opposite: the feeling is stronger than ever, so "never" before felt or feel plus so or that stays.
+const NOT_FELT = /\b(?:don'?t|dont|do not|didn'?t|didnt|not|never(?!\s+(?:felt|feel)\s+(?:so|that)\b)|no longer|isn'?t|wasn'?t)\s+(?:even\s+|really\s+|actually\s+)?(?:(?:feel|feeling|felt|get|getting|am|be)\s+)?(?:so\s+|that\s+|very\s+|too\s+)?(?:scared|afraid|nervous|anxious|worried|sad|lonely|angry|mad|guilty|upset|annoyed|ashamed|embarrassed)\b/gi;
 // "I know she's annoyed" is someone else's anger. It lands on the writer as worry and guilt, so it
 // counts as those and not as the writer's own anger. The linking word is required, because "my
 // roommate annoyed me" and "she's disappointed me" use the word as a verb, and there the writer is
