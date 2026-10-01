@@ -13,7 +13,7 @@ const TUNED_FILE = "brain-dumps.json";
 // once rules are written from its cases, so it moves to SEEN_BY_RULES and its label says so; only
 // the blind sets still unseen show whether the rules generalize.
 // A file that fails to parse is kept with its error, so one bad file fails its own test only.
-const SEEN_BY_RULES = new Set(["brain-dumps-heldout.json", "brain-dumps-blind2.json"]);
+const SEEN_BY_RULES = new Set(["brain-dumps-heldout.json", "brain-dumps-blind2.json", "brain-dumps-blind3.json"]);
 const FIXTURES = readdirSync(FIXTURES_URL)
   .filter((file) => /^brain-dumps(?:-[\w-]+)?\.json$/.test(file))
   .sort((a, b) => (a === TUNED_FILE ? -1 : b === TUNED_FILE ? 1 : a.localeCompare(b)))
