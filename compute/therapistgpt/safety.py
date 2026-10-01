@@ -93,11 +93,53 @@ WARNING_SIGNS = [
 _COMPILED = [re.compile(p, re.IGNORECASE) for p in CRISIS_PATTERNS]
 _WARNING_SIGNS = [re.compile(p, re.IGNORECASE) for p in WARNING_SIGNS]
 
+# Fast typing swaps letters, and a word spelled wrong should still count: "i wnat to die" must flag
+# whichever engine organizes the text. Only slips that are never real words are listed. Same list as
+# TYPOS in safety.js; a parity test compares them.
+TYPOS = {
+    "ahve": "have",
+    "hvae": "have",
+    "haev": "have",
+    "teh": "the",
+    "adn": "and",
+    "dealine": "deadline",
+    "deadine": "deadline",
+    "becuase": "because",
+    "becasue": "because",
+    "beacuse": "because",
+    "shoudl": "should",
+    "shuold": "should",
+    "woudl": "would",
+    "nede": "need",
+    "emial": "email",
+    "eamil": "email",
+    "apointment": "appointment",
+    "appointmnet": "appointment",
+    "tommorow": "tomorrow",
+    "tomorow": "tomorrow",
+    "tommorrow": "tomorrow",
+    "wierd": "weird",
+    "thier": "their",
+    "freind": "friend",
+    "freinds": "friends",
+    "wnat": "want",
+    "waht": "what",
+    "jsut": "just",
+    "taht": "that",
+    "alot": "a lot",
+}
+
+_TYPO_WORDS = re.compile(r"\b(" + "|".join(TYPOS) + r")\b", re.IGNORECASE)
+
+
+def fix_typos(text: str) -> str:
+    return _TYPO_WORDS.sub(lambda m: TYPOS[m.group(1).lower()], text)
+
 
 def mentions_crisis(text: str) -> bool:
     # Phones and keyboards type apostrophes many ways: ‘ ’ ʼ ` ´ and fullwidth ＇. Same set as safety.js.
     # Whitespace runs collapse too, so "I want to\ndie" reads the same as "I want to die".
-    normalized = re.sub(r"\s+", " ", re.sub("[\u2018\u2019\u02bc\u0060\u00b4\uff07]", "'", text))
+    normalized = fix_typos(re.sub(r"\s+", " ", re.sub("[\u2018\u2019\u02bc\u0060\u00b4\uff07]", "'", text)))
     if any(p.search(normalized) for p in _COMPILED):
         return True
     # Each sign counts once, so the same sign said twice is still one.

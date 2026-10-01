@@ -2,7 +2,7 @@
 // the model is trained to produce (compute/therapistgpt/schema.py), so the UI renders either.
 // No network, no storage. Pure functions only, so it runs under `node --test` as well.
 
-import { mentionsCrisis, CRISIS_PATTERNS, CRISIS_SUMMARY, CRISIS_STEP } from "./safety.js?v=5";
+import { mentionsCrisis, fixTypos, CRISIS_PATTERNS, CRISIS_SUMMARY, CRISIS_STEP } from "./safety.js?v=5";
 
 const LIMITS = { threads: 5, points: 6, todos: 6, reframes: 3, feelings: 6 };
 
@@ -189,24 +189,15 @@ function capitalize(s) {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-// Fast typing swaps letters, and a cue spelled wrong should still count: "i ahve to" is "i have to".
-// Only slips that are never real words are listed.
-const TYPOS = {
-  ahve: "have", hvae: "have", haev: "have", teh: "the", adn: "and", dealine: "deadline", deadine: "deadline",
-  becuase: "because", becasue: "because", beacuse: "because", shoudl: "should", shuold: "should", woudl: "would",
-  nede: "need", emial: "email", eamil: "email", apointment: "appointment", appointmnet: "appointment",
-  tommorow: "tomorrow", tomorow: "tomorrow", tommorrow: "tomorrow", wierd: "weird", thier: "their",
-  freind: "friend", freinds: "friends", wnat: "want", waht: "what", jsut: "just", taht: "that", alot: "a lot",
-};
-const TYPO_WORDS = new RegExp(`\\b(${Object.keys(TYPOS).join("|")})\\b`, "gi");
-
+// A cue spelled wrong should still count: "i ahve to" is "i have to". safety.js keeps the list,
+// so crisis checks and cue reading fix the same slips.
 function normalize(text) {
-  return String(text)
-    .replace(/[‘’]/g, "'")
-    .replace(/[“”]/g, '"')
-    .replace(/\r/g, "")
-    .replace(TYPO_WORDS, (word) => TYPOS[word.toLowerCase()])
-    .trim();
+  return fixTypos(
+    String(text)
+      .replace(/[‘’]/g, "'")
+      .replace(/[“”]/g, '"')
+      .replace(/\r/g, "")
+  ).trim();
 }
 
 // "idk" is filler, except in "idk why im like this" or "idk where to start", where it is the point.
@@ -563,8 +554,7 @@ function pickSmallStep(todos, feelings, lower) {
 export function organize(text) {
   const clauses = splitClauses(text);
   const lower = normalize(text).toLowerCase();
-  // The clauses are checked with typos fixed, so the whole text is too: "i wnat to die" must flag.
-  const needsSupport = mentionsCrisis(text) || mentionsCrisis(lower);
+  const needsSupport = mentionsCrisis(text);
   const feelings = feelingsIn(lower, needsSupport);
   // One course named anywhere in the dump says which class a bare "30 problems" belongs to.
   const courses = new Set(lower.match(new RegExp(COURSE.source, "gi")) || []);

@@ -82,10 +82,26 @@ export const WARNING_SIGNS = [
   /\b((what'?s|what is) (even )?the point( (of|in) (any of (it|this)|anything|it all|all of (it|this)|trying|even trying|going on)\b|( anymore| at all)?([.!?,;]|$))|nothing (really )?matters (anymore|any more)\b)/i,
 ];
 
+// Fast typing swaps letters, and a word spelled wrong should still count: "i wnat to die" must flag
+// whichever engine organizes the text, so the fixes live here and in safety.py, not in one engine.
+// Only slips that are never real words are listed.
+export const TYPOS = {
+  ahve: "have", hvae: "have", haev: "have", teh: "the", adn: "and", dealine: "deadline", deadine: "deadline",
+  becuase: "because", becasue: "because", beacuse: "because", shoudl: "should", shuold: "should", woudl: "would",
+  nede: "need", emial: "email", eamil: "email", apointment: "appointment", appointmnet: "appointment",
+  tommorow: "tomorrow", tomorow: "tomorrow", tommorrow: "tomorrow", wierd: "weird", thier: "their",
+  freind: "friend", freinds: "friends", wnat: "want", waht: "what", jsut: "just", taht: "that", alot: "a lot",
+};
+const TYPO_WORDS = new RegExp(`\\b(${Object.keys(TYPOS).join("|")})\\b`, "gi");
+
+export function fixTypos(text) {
+  return String(text).replace(TYPO_WORDS, (word) => TYPOS[word.toLowerCase()]);
+}
+
 export function mentionsCrisis(text) {
   // Phones and keyboards type apostrophes many ways: ‘ ’ ʼ ` ´ and fullwidth ＇. Line breaks and
   // double spaces are collapsed too, so "I want to\ndie" reads the same as "I want to die".
-  const normalized = String(text).replace(/[\u2018\u2019\u02BC\u0060\u00B4\uFF07]/g, "'").replace(/\s+/g, " ");
+  const normalized = fixTypos(String(text).replace(/[\u2018\u2019\u02BC\u0060\u00B4\uFF07]/g, "'").replace(/\s+/g, " "));
   if (CRISIS_PATTERNS.some((pattern) => pattern.test(normalized))) return true;
   // Each sign counts once, so the same sign said twice is still one.
   return WARNING_SIGNS.filter((pattern) => pattern.test(normalized)).length >= 2;

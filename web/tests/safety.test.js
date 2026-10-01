@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { CRISIS_PATTERNS, WARNING_SIGNS, mentionsCrisis, applySafetyFloor } from "../js/safety.js";
+import { CRISIS_PATTERNS, WARNING_SIGNS, TYPOS, mentionsCrisis, applySafetyFloor } from "../js/safety.js";
 
 const PY = readFileSync(new URL("../../compute/therapistgpt/safety.py", import.meta.url), "utf8");
 const PATTERN_LINE = /^\s+r"(.*)",$/gm;
@@ -35,6 +35,11 @@ test("one warning sign alone stays calm, and two different ones flag", () => {
   for (const text of ["gave my guitar to marcus and wrote letters for my mom", "feels calm finally. wont need it anymore"]) {
     assert.equal(mentionsCrisis(text), true, text);
   }
+});
+
+test("JS typo fixes match the Python list exactly", () => {
+  const pyTypos = Object.fromEntries([...PY.matchAll(/^\s+"(\w+)": "([\w ]+)",$/gm)].map((m) => [m[1], m[2]]));
+  assert.deepEqual(TYPOS, pyTypos);
 });
 
 test("catches direct and indirect crisis language, including curly apostrophes", () => {
