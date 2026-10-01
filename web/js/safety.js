@@ -123,13 +123,21 @@ export function fixTypos(text) {
   return String(text).replace(TYPO_WORDS, (word) => TYPOS[word.toLowerCase()]);
 }
 
-export function mentionsCrisis(text) {
+function normalize(text) {
   // Phones and keyboards type apostrophes many ways: ‘ ’ ʼ ` ´ and fullwidth ＇. Line breaks and
   // double spaces are collapsed too, so "I want to\ndie" reads the same as "I want to die".
-  const normalized = fixTypos(String(text).replace(/[\u2018\u2019\u02BC\u0060\u00B4\uFF07]/g, "'").replace(/\s+/g, " "));
-  if (CRISIS_PATTERNS.some((pattern) => pattern.test(normalized))) return true;
+  return fixTypos(String(text).replace(/[\u2018\u2019\u02BC\u0060\u00B4\uFF07]/g, "'").replace(/\s+/g, " "));
+}
+
+export function mentionsCrisis(text) {
+  const normalized = normalize(text);
+  // A line break also often ends a clause ("thinking about stepping off\nthen the train comes"), so
+  // the text is read a second time with each break as a full stop. A hit in either reading counts.
+  const broken = normalize(String(text).replace(/\s*[\r\n]+\s*/g, ". "));
+  const hits = (pattern) => pattern.test(normalized) || pattern.test(broken);
+  if (CRISIS_PATTERNS.some(hits)) return true;
   // Each sign counts once, so the same sign said twice is still one.
-  return WARNING_SIGNS.filter((pattern) => pattern.test(normalized)).length >= 2;
+  return WARNING_SIGNS.filter(hits).length >= 2;
 }
 
 export const CRISIS_SUMMARY =

@@ -111,7 +111,9 @@
     "tempted to step in front of the bus this morning",
     "had the urge to walk into traffic",
     "keep thinking about driving into a wall on the highway",
-    "thinking of throwing myself in front of the next train"
+    "thinking of throwing myself in front of the next train",
+    "i keep thinking about stepping off\nthen the train comes and i get on",
+    "thinking about jumping off\nwork was fine"
   ],
   "should_not_flag": [
     "this exam will kill me lol",

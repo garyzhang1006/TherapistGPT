@@ -161,11 +161,22 @@ def fix_typos(text: str) -> str:
     return _TYPO_WORDS.sub(lambda m: TYPOS[m.group(1).lower()], text)
 
 
-def mentions_crisis(text: str) -> bool:
+def _normalize(text: str) -> str:
     # Phones and keyboards type apostrophes many ways: ‘ ’ ʼ ` ´ and fullwidth ＇. Same set as safety.js.
     # Whitespace runs collapse too, so "I want to\ndie" reads the same as "I want to die".
-    normalized = fix_typos(re.sub(r"\s+", " ", re.sub("[\u2018\u2019\u02bc\u0060\u00b4\uff07]", "'", text)))
-    if any(p.search(normalized) for p in _COMPILED):
+    return fix_typos(re.sub(r"\s+", " ", re.sub("[\u2018\u2019\u02bc\u0060\u00b4\uff07]", "'", text)))
+
+
+def mentions_crisis(text: str) -> bool:
+    normalized = _normalize(text)
+    # A line break also often ends a clause ("thinking about stepping off\nthen the train comes"), so
+    # the text is read a second time with each break as a full stop. A hit in either reading counts.
+    broken = _normalize(re.sub(r"\s*[\r\n]+\s*", ". ", text))
+
+    def hits(p: re.Pattern[str]) -> bool:
+        return bool(p.search(normalized) or p.search(broken))
+
+    if any(hits(p) for p in _COMPILED):
         return True
     # Each sign counts once, so the same sign said twice is still one.
-    return sum(1 for p in _WARNING_SIGNS if p.search(normalized)) >= 2
+    return sum(1 for p in _WARNING_SIGNS if hits(p)) >= 2
