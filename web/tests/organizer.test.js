@@ -203,6 +203,8 @@ test("a habit that slipped for days is not a to-do, but one thing still waiting 
 test("a feeling that runs on without a break is cut from the to-do", () => {
   assert.equal(organize("need to call the insurance office I really feel sick about it").to_dos[0].task, "Call the insurance office");
   assert.deepEqual(organize("i havent done that yet i feel like im sinking").to_dos, []);
+  assert.equal(organize("need to tell my partner how I feel").to_dos[0].task, "Tell my partner how I feel");
+  assert.equal(organize("need to tell him what I felt").to_dos[0].task, "Tell him what I felt");
 });
 
 test("only chores left to do become to-dos", () => {

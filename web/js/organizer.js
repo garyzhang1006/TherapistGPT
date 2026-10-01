@@ -456,7 +456,9 @@ function trimTail(task) {
     // "Finish the chapter and I haven't opened it" is one task plus a feeling about it.
     .replace(/\s+(?:and|but|so)\s+(?:I|I'm|I've|I'd)\b.*$/i, "")
     // Spoken run-ons start the next thought with no "and": "done that either I just feel like I'm drowning".
-    .replace(/\s+I\s+(?:just\s+|really\s+|honestly\s+|kinda\s+|still\s+)?(?:feel|felt)\b.*$/i, "")
+    // "Tell my partner how I feel" names the feeling as the task, so a wh-word or "that" keeps it.
+    .replace(/(\S*)\s+I\s+(?:just\s+|really\s+|honestly\s+|kinda\s+|still\s+)?(?:feel|felt)\b.*$/i, (all, before) =>
+      /^(?:how|what|why|when|that)$/i.test(before) ? all : before)
     .replace(/,\s*(?:I|I'm|I've|I'd|I'll|it|it's|its|they|they're|she|she's|he|he's|we)\b.*$/i, "")
     .replace(/\s+(?:because|bc|cuz|cause|since|even though|otherwise|or else|or (?:I|I'll|ill|I'm|else))\b.*$/i, "")
     .replace(/\s+(?:that |which )?(?:I|I've|ive)\s+(?:keep|kept|been|have been)\s+\w+ing\b.*$/i, "")
