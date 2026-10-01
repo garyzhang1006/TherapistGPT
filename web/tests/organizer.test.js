@@ -126,6 +126,12 @@ test("a follow-up that only says them and it stays with the errand it belongs to
   assert.deepEqual(organize("need to call the clinic and book a checkup").to_dos.map((t) => t.task), ["Call the clinic", "Book a checkup"]);
 });
 
+test("him or her in a gift task means the person named before it", () => {
+  const tasks = organize("my sisters graduation is friday so i need to buy her a gift").to_dos.map((t) => t.task);
+  assert.deepEqual(tasks, ["Buy my sister a gift"]);
+  assert.deepEqual(organize("my mom is sick. need to get her meds").to_dos.map((t) => t.task), ["Get her meds"]);
+});
+
 test("list lines become separate to-dos without their bullets", () => {
   assert.deepEqual(organize("- call mom\n- pay rent\n- groceries").to_dos.map((t) => t.task), ["Call mom", "Pay rent", "Groceries"]);
   assert.deepEqual(
