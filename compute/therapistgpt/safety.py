@@ -80,6 +80,13 @@ CRISIS_PATTERNS = [
     # An older person saying they have lived long enough. "lived long enough to know better" is an
     # everyday idiom, so anything that carries on the sentence keeps it calm.
     r"\b(i'?ve|i have) (already )?lived (long )?enough\b(?! (to|in|here|there|with|at|on|life|lives|years|that|for|of)\b)",
+    # Researching a method. "how many pills to take a day" and "how many advil i can take" are dosing
+    # questions, so only "it would take" or "would kill" counts, and a per-day or kick-in tail stays calm.
+    r"\bhow (many|much) (of (my|the|these|those|her|his) )?(\w+ )?(pills|tablets|meds|medication|medicine|capsules|painkillers|tylenol|advil|ibuprofen|acetaminophen|paracetamol|aspirin|xanax|benadryl) (it would|it'?d|would it|it will|it'?ll|will it|does it|it does|would|it) (takes?|kills?)\b(?! to (work|kick in|help|feel|start)\b| effect\b| for (a|an|the|my|your|his|her|their|cramps|pain)\b| (a|per) day\b| daily\b)",
+    r"\b(lethal|fatal|deadly) (dose|doses|dosage|amount|amounts|quantity)\b",
+    r"\bhow long (does it|would it|will it|it'?d|it would|it will|it does|it|to|(until|till|before) (you|i|someone|a person|people)) (take |takes )?(to )?(die|dies|bleed out|bleeds out|drown|drowns|suffocate)\b(?! (my|your|his|her|their) hair| of (boredom|embarrassment|laughter|old age)\b)",
+    # "dumb ways to die in minecraft" and "how to die my hair" are calm, so a place or hair after it stays out.
+    r"\b((look(s|ed|ing)? up|search(es|ed|ing)?( for| up)?|googl(e|es|ed|ing)|research(es|ed|ing)?|read(ing)? up on) (\w+ ){0,2}(ways?|methods?|how) to|(painless|easiest|quickest|fastest|least painful|surest) (ways?|methods?) to) (die|bleed out|overdose)\b(?! (in|on|from|of|my hair|your hair|her hair|his hair|their hair)\b)",
 ]
 
 # Someone who has decided often says nothing direct: they give things away, write letters, feel a
