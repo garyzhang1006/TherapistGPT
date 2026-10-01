@@ -36,7 +36,12 @@ export const CRISIS_PATTERNS = [
   /\bunaliv(e|ed|es|ing)\b/i,
   /\bcan'?t (go on|do this anymore|take (it|this) anymore)\b/i,
   /\bdisappear forever\b/i,
+  // "the stain should disappear for good" is calm, so "for good" needs the person to want it.
+  /\b(want(ed|s)? to|wanna|wish i could|i could|rather|i'?m going to|i'?m gonna|i need to) (just )?(disappear|vanish) (for good|permanently|and never come back)\b/i,
   /\bstop existing\b/i,
+  // "the file does not exist" is calm: only a wish ("to", "and", "just", "rather") before it flags.
+  /\b(to|and|just|simply|rather|wanna) not exist\b/i,
+  /\bwish(ed)? i (didn'?t|did not|don'?t|do not) exist\b/i,
   /\b(notice|care|miss me) if i (died|disappeared|was gone|were gone|wasn'?t here|weren'?t here)\b/i,
   /\bno point (in )?living\b/i,
   // "what's the point of this class" stays calm: only living, being alive or existing flags.

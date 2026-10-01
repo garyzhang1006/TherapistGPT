@@ -44,7 +44,12 @@ CRISIS_PATTERNS = [
     r"\bunaliv(e|ed|es|ing)\b",
     r"\bcan'?t (go on|do this anymore|take (it|this) anymore)\b",
     r"\bdisappear forever\b",
+    # "the stain should disappear for good" is calm, so "for good" needs the person to want it.
+    r"\b(want(ed|s)? to|wanna|wish i could|i could|rather|i'?m going to|i'?m gonna|i need to) (just )?(disappear|vanish) (for good|permanently|and never come back)\b",
     r"\bstop existing\b",
+    # "the file does not exist" is calm: only a wish ("to", "and", "just", "rather") before it flags.
+    r"\b(to|and|just|simply|rather|wanna) not exist\b",
+    r"\bwish(ed)? i (didn'?t|did not|don'?t|do not) exist\b",
     r"\b(notice|care|miss me) if i (died|disappeared|was gone|were gone|wasn'?t here|weren'?t here)\b",
     r"\bno point (in )?living\b",
     # "what's the point of this class" stays calm: only living, being alive or existing flags.
