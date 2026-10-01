@@ -70,6 +70,9 @@ CRISIS_PATTERNS = [
     r"\bnothing (left )?to live for\b",
     r"\btired of (living|being alive|existing)\b",
     r"\b(goodbye|suicide) (note|letter)\b",
+    # A passive wish shrugged off as indifference ("wouldnt mind if i didnt wake up"). Sleeping in,
+    # "die on this hill" and "gone for the weekend" are calm, so those tails stay out.
+    r"\b((wouldn'?t|would not|won'?t|will not|don'?t|do not) (really |even |honestly )?(mind|care)|(would|i'?d|it'?d) (honestly |really |probably |just )?be (fine|okay|ok|alright|all right|happy|relieved)) if i (just |simply )?((didn'?t|did not|don'?t|do not|never) (wake|woke) up\b(?! (on time|early|before|in time|until|till|at)\b)|(died|die)\b(?! (my|your|his|her|their) hair| on (this|that) hill| trying| laughing| of (embarrassment|boredom|shame|laughter))|(was|were) (dead|gone)\b(?! (for|by|on|till|until|before|from|over|this|next|all|a|tomorrow|tonight|today|tired|last|wrong|serious)\b)|(wasn'?t|weren'?t) (alive|(here|around) anymore)|stopped existing|didn'?t exist)",
 ]
 
 # Someone who has decided often says nothing direct: they give things away, write letters, feel a
