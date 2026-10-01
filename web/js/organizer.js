@@ -401,12 +401,16 @@ function trimTail(task) {
     .replace(/\s+(?:because|bc|cuz|cause|since|even though|otherwise|or else|or (?:I|I'll|ill|I'm|else))\b.*$/i, "")
     .replace(/\s+(?:that |which )?(?:I|I've|ive)\s+(?:keep|kept|been|have been)\s+\w+ing\b.*$/i, "")
     .replace(/\s+it'?s been\b.*$/i, "")
-    .replace(/\s+(?:in|for) (?:a|an|\d+|two|three|four|five|a few|a couple of|several|like \d+) (?:days?|weeks?|months?|years?|ages)\b.*$/i, "");
+    .replace(/\s+(?:in|for) (?:a|an|\d+|two|three|four|five|a few|a couple of|several|like \d+) (?:days?|weeks?|months?|years?|ages)\b.*$/i, "")
+    // "Sit through one more meeting just shoot me" ends in a dark joke that is not part of the task.
+    .replace(/\s+(?:just |someone |somebody |please )?(?:shoot|kill) me(?: now)?\b.*$/i, "")
+    // "but every time I try I just sit there" is how the task feels, not what it is.
+    .replace(/\s+but\b.*$/i, "");
   const harsh = s.search(SELF_CRITIC);
   if (harsh > 0) s = s.slice(0, harsh);
   return s
     .replace(/\s+(I guess|I think|probably|maybe|lol|idk)$/i, "")
-    .replace(/\s+(at some point|asap|soon|today|tomorrow|tonight|this week)$/i, "")
+    .replace(/\s+(at some point|asap|soon|today|tomorrow|tonight|this week|last week|last night|yesterday)$/i, "")
     .replace(/[\s,;:.!?-]+$/, "");
 }
 
@@ -430,7 +434,14 @@ function unmetTask(clause) {
   return isFragment(task) ? null : task;
 }
 
-function toTask(clause) {
+// "30 problems due at midnight" names the work only by its count, so the to-do says what to do
+// with it, and the one course named elsewhere in the dump says which: "Finish 30 calc problems".
+const COUNT_LED = /^(\d+|a few|a couple(?: of)?|two|three|four|five|six|seven|eight|nine|ten|twenty|thirty|forty|fifty|so many|like \d+)\s+(\w+(?:\s+\w+)?)\s+((?:due|by)\b.*)$/i;
+const COURSE = /\b(calc|calculus|chem|chemistry|bio|biology|physics|math|stats|statistics|english|history|econ|psych|orgo|spanish|french)\b/i;
+// "My manager wants the inventory spreadsheet by end of day" is the writer's to-do.
+const WANTS_IT = /^(?:my |the |our )?(?:\w+ )?(?:boss|manager|professor|prof|teacher|client|advisor|supervisor|editor|lead)\s+(?:wants|needs|asked for|expects|is waiting on|is waiting for)\s+(?:me to\s+)?(.+)$/i;
+
+function toTask(clause, course) {
   const chores = clause.match(CHORES_ARE);
   if (chores) return capitalize(trimTail(chores[1]));
   const intent = clause.match(INTENT_AT);
@@ -443,9 +454,29 @@ function toTask(clause) {
     if (plan) return capitalize(trimTail(plan[1] || plan[2]));
   }
   const task = trimTail(intent ? intent[1] : clause.replace(TASK_LEAD, ""))
-    .replace(/^(?:I|I've|we) (?:have|got) (?=(?:the|a|an|my|this|that)\b)/i, "")
-    .replace(DUE_LATE, (_, bill) => `Pay ${bill.toLowerCase()}`);
+    .replace(intent ? /^(?:I|I've|we) (?:have|got) (?=(?:the|a|an|my|this|that)\b)/i : /^(?:(?:I|I've|we) )?(?:have|got) (?=(?:the|a|an|my|this|that)\b)/i, "")
+    .replace(DUE_LATE, (_, bill) => `Pay ${bill.toLowerCase()}`)
+    .replace(WANTS_IT, (_, thing) => (/^(?:the|a|an|my|our|this|that)\b/i.test(thing) ? `finish ${thing}` : thing))
+    .replace(COUNT_LED, (_, count, thing, rest) => `finish ${count} ${course && !COURSE.test(thing) ? `${course} ` : ""}${thing} ${rest}`);
   return capitalize(task);
+}
+
+// "Tell her I won't make the deadline" means the person named before it, "my advisor", and "take
+// it out" means the thing the sentence before was about, "the trash has been sitting there".
+const PERSON = /\bmy\s+(advisor|professor|prof|teacher|tutor|boss|manager|supervisor|coworker|landlord|therapist|doctor|dentist|lawyer|coach|mom|mum|dad|mother|father|sister|brother|friend|roommate|partner|boyfriend|girlfriend|husband|wife|bf|gf|grandma|grandpa|aunt|uncle|cousin)\b/i;
+const TO_PERSON = /^(?:tell|email|call|text|ask|remind|message|thank|meet|visit|update|reply to|write to)\s+(?:her|him)\b/i;
+const THING_SUBJECT = /^(?:the|my|our|this|that)\s+(\w+(?:\s+\w+)?)\s+(?:has|have|is|are|was|were|keeps|still|needs)\b/i;
+
+function resolveTask(task, earlier) {
+  if (TO_PERSON.test(task)) {
+    for (let k = earlier.length - 1; k >= 0; k--) {
+      const person = earlier[k].match(PERSON);
+      if (person) return task.replace(/\b(?:her|him)\b/i, `my ${person[1].toLowerCase()}`);
+    }
+  }
+  const thing = (earlier[earlier.length - 1] || "").match(THING_SUBJECT);
+  if (thing && /^\w+ it\b/i.test(task)) return task.replace(/\bit\b/i, `the ${thing[1].toLowerCase()}`);
+  return task;
 }
 
 function isFragment(task) {
@@ -454,7 +485,8 @@ function isFragment(task) {
 
 // "Laundry, groceries, the school form" is three chores, not one.
 function splitTaskList(task) {
-  const verbJoin = /\s+and\s+(?=(?:call|book|email|text|pay|clean|do|finish|get|buy|make|send|check|refill|start|reply|submit|schedule)\b)/i;
+  // "Take it out and actually buy groceries" is two chores even with a word between "and" and the verb.
+  const verbJoin = /\s+and\s+(?:(?:actually|also|then|maybe|finally|just|still)\s+)?(?=(?:call|book|email|text|pay|clean|do|finish|get|buy|make|send|check|refill|start|reply|submit|schedule|return|cancel|sign|update|ask|take|pick|fill|file|order|renew|apply|register|print)\b)/i;
   if (verbJoin.test(task)) return task.split(verbJoin).map((t) => capitalize(t.trim().replace(/[,;]+$/, "")));
   if ((task.match(/,/g) || []).length < 2) return [task];
   const parts = task
@@ -520,6 +552,9 @@ export function organize(text) {
   // The clauses are checked with typos fixed, so the whole text is too: "i wnat to die" must flag.
   const needsSupport = mentionsCrisis(text) || mentionsCrisis(lower);
   const feelings = feelingsIn(lower, needsSupport);
+  // One course named anywhere in the dump says which class a bare "30 problems" belongs to.
+  const courses = new Set(lower.match(new RegExp(COURSE.source, "gi")) || []);
+  const course = courses.size === 1 ? [...courses][0] : null;
 
   const todos = [];
   const reframes = [];
@@ -550,7 +585,7 @@ export function organize(text) {
       !NOT_A_TASK.test(clause) &&
       !mentionsCrisis(clause);
     if (isTask && todos.length < LIMITS.todos) {
-      for (const task of splitTaskList(toTask(clause))) {
+      for (const task of splitTaskList(resolveTask(toTask(clause, course), clauses.slice(0, i)))) {
         if (!task.trim() || isFragment(task)) continue;
         if (todos.length < LIMITS.todos && !todos.some((t) => t.task.toLowerCase() === task.toLowerCase())) {
           todos.push({ task, first_step: firstStepFor(task) });
