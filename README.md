@@ -31,7 +31,7 @@ Both halves share one output contract, defined in [`compute/therapistgpt/schema.
 
 - A dusk palette with no pure white and no alarm red, and a light "morning" theme for people who find dark screens heavy. Both themes meet WCAG AA contrast.
 - One text box and one button. No accounts, streaks, scores, word counts or timers.
-- The draft saves itself as you type, and clearing it can be undone.
+- The draft is kept on the device as you type, so closing the tab doesn't lose it, and it's erased once sorted. Clearing it by hand can be undone.
 - A larger-text toggle, full keyboard use, and no motion at all when the system asks for reduced motion.
 - Copy that validates first and never lectures. Reframes avoid diagnosing ("that's depression") and avoid false cheer.
 - The moon in the corner breathes at six breaths a minute, the pace of slow, calming breathing.
