@@ -70,11 +70,33 @@ CRISIS_PATTERNS = [
     r"\b(goodbye|suicide) (note|letter)\b",
 ]
 
+# Someone who has decided often says nothing direct: they give things away, write letters, feel a
+# sudden calm and stop planning ahead. Each sign alone is everyday ("gave my old notes to sam",
+# "wrote letters to colleges"), so only two different ones together flag. One pattern per sign.
+WARNING_SIGNS = [
+    # Giving away belongings.
+    r"\b(gave|give|giving|given|gifted|gifting) (away (my|all my|most of my)\b|(my|all my|most of my|some of my)( \w+){0,2} (to|away)\b)",
+    # Goodbye letters or notes. Plain "notes" are class notes, so a note needs a goodbye word.
+    r"\b(wrote|write|writing|written|left|leaving) (a |some |the |my )?((goodbye|farewell|final|last) (letters?|notes?)|letters (to|for))\b",
+    # A sudden calm, often after a decision.
+    r"\b((feel|feels|feeling|felt) (so |really |weirdly |strangely |oddly |kind of )?(calm|peaceful|at peace) (finally|now)|finally (feel |feels |feeling )?(calm|at peace)|(calm|peace|peaceful|relieved) now that i('ve| have)? (decided|made))\b",
+    # No longer needing things or plans that only matter for a future.
+    r"\b((won'?t|will not|not gonna|not going to) (need|be needing) (it|this|that|them|these|those|any of (it|this|that|them|these|those)|my (\w+ )?\w+) (anymore|any more|much longer)|(don'?t|do not|no) (really |even )?(need|point|reason) (to|in) (renew|extend|book|plan|refill|register|enroll|sign up))",
+    # Saying goodbye to people.
+    r"\b(said|saying|say) (my )?goodbyes?( to\b|[.!?,;]|$)",
+    # Hopelessness about everything. "what's the point of this meeting" names one thing and stays calm.
+    r"\b((what'?s|what is) (even )?the point( (of|in) (any of (it|this)|anything|it all|all of (it|this)|trying|even trying|going on)\b|( anymore| at all)?([.!?,;]|$))|nothing (really )?matters (anymore|any more)\b)",
+]
+
 _COMPILED = [re.compile(p, re.IGNORECASE) for p in CRISIS_PATTERNS]
+_WARNING_SIGNS = [re.compile(p, re.IGNORECASE) for p in WARNING_SIGNS]
 
 
 def mentions_crisis(text: str) -> bool:
     # Phones and keyboards type apostrophes many ways: ‘ ’ ʼ ` ´ and fullwidth ＇. Same set as safety.js.
     # Whitespace runs collapse too, so "I want to\ndie" reads the same as "I want to die".
     normalized = re.sub(r"\s+", " ", re.sub("[\u2018\u2019\u02bc\u0060\u00b4\uff07]", "'", text))
-    return any(p.search(normalized) for p in _COMPILED)
+    if any(p.search(normalized) for p in _COMPILED):
+        return True
+    # Each sign counts once, so the same sign said twice is still one.
+    return sum(1 for p in _WARNING_SIGNS if p.search(normalized)) >= 2

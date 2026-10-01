@@ -1,12 +1,40 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { CRISIS_PATTERNS, mentionsCrisis, applySafetyFloor } from "../js/safety.js";
+import { CRISIS_PATTERNS, WARNING_SIGNS, mentionsCrisis, applySafetyFloor } from "../js/safety.js";
+
+const PY = readFileSync(new URL("../../compute/therapistgpt/safety.py", import.meta.url), "utf8");
+const PATTERN_LINE = /^\s+r"(.*)",$/gm;
+
+// Reads one named list from safety.py, so a warning sign can never pass as a crisis pattern. A
+// pattern may contain "]", so the list ends at the first "]" alone on its line.
+function pyList(name) {
+  const start = PY.indexOf(`\n${name} = [\n`);
+  assert.ok(start >= 0, `${name} = [ not found in safety.py`);
+  const end = PY.indexOf("\n]\n", start);
+  assert.ok(end > start, `${name} has no closing ] in safety.py`);
+  return [...PY.slice(start, end).matchAll(PATTERN_LINE)].map((m) => m[1]);
+}
 
 test("JS crisis patterns match the Python list exactly", () => {
-  const py = readFileSync(new URL("../../compute/therapistgpt/safety.py", import.meta.url), "utf8");
-  const pyPatterns = [...py.matchAll(/^\s+r"(.*)",$/gm)].map((m) => m[1]);
-  assert.deepEqual(CRISIS_PATTERNS.map((p) => p.source), pyPatterns);
+  assert.deepEqual(CRISIS_PATTERNS.map((p) => p.source), pyList("CRISIS_PATTERNS"));
+});
+
+test("JS warning signs match the Python list exactly", () => {
+  assert.deepEqual(WARNING_SIGNS.map((p) => p.source), pyList("WARNING_SIGNS"));
+});
+
+test("every pattern line in safety.py belongs to one of the two lists", () => {
+  assert.equal([...PY.matchAll(PATTERN_LINE)].length, CRISIS_PATTERNS.length + WARNING_SIGNS.length);
+});
+
+test("one warning sign alone stays calm, and two different ones flag", () => {
+  for (const text of ["gave my old notes to sam", "wrote letters to colleges", "i feel calm finally after yoga", "whats the point of this meeting", "gave my guitar to marcus and gave my books to jen"]) {
+    assert.equal(mentionsCrisis(text), false, text);
+  }
+  for (const text of ["gave my guitar to marcus and wrote letters for my mom", "feels calm finally. wont need it anymore"]) {
+    assert.equal(mentionsCrisis(text), true, text);
+  }
 });
 
 test("catches direct and indirect crisis language, including curly apostrophes", () => {

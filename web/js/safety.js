@@ -1,4 +1,4 @@
-// Crisis phrase detection. Mirrors compute/therapistgpt/safety.py; keep the two lists in sync.
+// Crisis phrase detection. Mirrors compute/therapistgpt/safety.py; keep both pairs of lists in sync.
 // Runs on every brain dump before any engine, so the helpline card never depends on a model.
 
 export const CRISIS_PATTERNS = [
@@ -62,11 +62,31 @@ export const CRISIS_PATTERNS = [
   /\b(goodbye|suicide) (note|letter)\b/i,
 ];
 
+// Someone who has decided often says nothing direct: they give things away, write letters, feel a
+// sudden calm and stop planning ahead. Each sign alone is everyday ("gave my old notes to sam",
+// "wrote letters to colleges"), so only two different ones together flag. One pattern per sign.
+export const WARNING_SIGNS = [
+  // Giving away belongings.
+  /\b(gave|give|giving|given|gifted|gifting) (away (my|all my|most of my)\b|(my|all my|most of my|some of my)( \w+){0,2} (to|away)\b)/i,
+  // Goodbye letters or notes. Plain "notes" are class notes, so a note needs a goodbye word.
+  /\b(wrote|write|writing|written|left|leaving) (a |some |the |my )?((goodbye|farewell|final|last) (letters?|notes?)|letters (to|for))\b/i,
+  // A sudden calm, often after a decision.
+  /\b((feel|feels|feeling|felt) (so |really |weirdly |strangely |oddly |kind of )?(calm|peaceful|at peace) (finally|now)|finally (feel |feels |feeling )?(calm|at peace)|(calm|peace|peaceful|relieved) now that i('ve| have)? (decided|made))\b/i,
+  // No longer needing things or plans that only matter for a future.
+  /\b((won'?t|will not|not gonna|not going to) (need|be needing) (it|this|that|them|these|those|any of (it|this|that|them|these|those)|my (\w+ )?\w+) (anymore|any more|much longer)|(don'?t|do not|no) (really |even )?(need|point|reason) (to|in) (renew|extend|book|plan|refill|register|enroll|sign up))/i,
+  // Saying goodbye to people.
+  /\b(said|saying|say) (my )?goodbyes?( to\b|[.!?,;]|$)/i,
+  // Hopelessness about everything. "what's the point of this meeting" names one thing and stays calm.
+  /\b((what'?s|what is) (even )?the point( (of|in) (any of (it|this)|anything|it all|all of (it|this)|trying|even trying|going on)\b|( anymore| at all)?([.!?,;]|$))|nothing (really )?matters (anymore|any more)\b)/i,
+];
+
 export function mentionsCrisis(text) {
   // Phones and keyboards type apostrophes many ways: ‘ ’ ʼ ` ´ and fullwidth ＇. Line breaks and
   // double spaces are collapsed too, so "I want to\ndie" reads the same as "I want to die".
   const normalized = String(text).replace(/[\u2018\u2019\u02BC\u0060\u00B4\uFF07]/g, "'").replace(/\s+/g, " ");
-  return CRISIS_PATTERNS.some((pattern) => pattern.test(normalized));
+  if (CRISIS_PATTERNS.some((pattern) => pattern.test(normalized))) return true;
+  // Each sign counts once, so the same sign said twice is still one.
+  return WARNING_SIGNS.filter((pattern) => pattern.test(normalized)).length >= 2;
 }
 
 export const CRISIS_SUMMARY =
