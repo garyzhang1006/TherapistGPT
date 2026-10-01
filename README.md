@@ -36,6 +36,10 @@ Both halves share one output contract, defined in [`compute/therapistgpt/schema.
 - Copy that validates first and never lectures. Reframes avoid diagnosing ("that's depression") and avoid false cheer.
 - The moon in the corner breathes at six breaths a minute, the pace of slow, calming breathing.
 
+## Privacy
+
+With the built-in organizer, nothing you type leaves the browser. The fonts and icons come from this site, and the page sends no requests anywhere once it has loaded. Your draft sits in the browser's local storage while you write and is deleted the moment you sort it. Ticked to-dos live in session storage, which the browser clears when the tab closes, and the theme and text-size choices stay in local storage. There are no accounts, analytics or cookies. If you add a model address in **Settings**, your text goes to that server and nowhere else.
+
 ## Run it locally
 
 ```bash
