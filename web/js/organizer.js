@@ -121,6 +121,8 @@ const FELL_THROUGH_LEAD = /^(?:I|we)\s+(?:didn'?t|couldn'?t|did not|could not|ne
 const STILL_OWED = /\bsupposed to (?:pay|repay|return)\b/i;
 // "Don't really need to renew the lease" names a chore only to rule it out.
 const NO_NEED = /\b(?:don'?t|do not|doesn'?t|does not|no longer|never)\s+(?:really\s+|even\s+|actually\s+|technically\s+)?(?:need|have|has|got) to\b|\bno need to\b/i;
+// "It's due wednesday" names no thing at all, so on its own it is not a task.
+const PRONOUN_DUE = /^(?:it'?s|its|it is|it was|that'?s|that is|they'?re|they are|both are)\s+(?:all\s+|also\s+|still\s+|both\s+)?(?:due|late|overdue)\b/i;
 // "Appt got moved to the 14th" is news about a plan, not something to do.
 const SCHEDULE_NEWS = /\b(?:got|was|were|been|is|are)\s+(?:moved|pushed(?: back)?|rescheduled|cancel+ed|changed|postponed|bumped|delayed)\b/i;
 // "My sister has to drive me everywhere" is her task, not the writer's.
@@ -622,6 +624,7 @@ export function organize(text) {
       !((SOMEONE_ELSES.test(clause) || OTHERS_TASK.test(clause)) && !MY_INTENT.test(clause)) &&
       !(NO_NEED.test(clause) && !INTENT.test(clause.replace(new RegExp(NO_NEED.source, "gi"), " "))) &&
       !(SCHEDULE_NEWS.test(clause) && !INTENT.test(clause)) &&
+      !(PRONOUN_DUE.test(clause) && !INTENT.test(clause)) &&
       !WHAT_IF.test(clause) &&
       !SELF_CRITIC.test(clause) &&
       !NOT_A_TASK.test(clause) &&

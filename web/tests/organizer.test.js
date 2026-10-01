@@ -93,6 +93,13 @@ test("a joke about someone killing me is not a task, and the real task beside it
   assert.deepEqual(tasks, ["Send the draft"]);
 });
 
+test("a due date with only a pronoun for the thing is not a task by itself", () => {
+  for (const text of ["it is due on monday", "theyre both due thursday", "its due tmrw too"]) {
+    assert.deepEqual(organize(text).to_dos, [], text);
+  }
+  assert.match(organize("the lab writeup is due monday").to_dos[0].task, /lab writeup/);
+});
+
 test("list lines become separate to-dos without their bullets", () => {
   assert.deepEqual(organize("- call mom\n- pay rent\n- groceries").to_dos.map((t) => t.task), ["Call mom", "Pay rent", "Groceries"]);
   assert.deepEqual(
