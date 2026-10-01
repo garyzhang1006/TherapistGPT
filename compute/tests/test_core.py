@@ -65,6 +65,27 @@ class SafetyTests(unittest.TestCase):
         for text in ["this exam will kill me", "I want to end things with him", "my phone died"]:
             self.assertFalse(mentions_crisis(text), text)
 
+    def test_one_warning_sign_alone_stays_calm(self):
+        for text in ["gave my old notes to sam", "wrote letters to colleges", "i feel calm finally after yoga",
+                     "whats the point of this meeting", "i dont need to book anything, my sister planned the trip"]:
+            self.assertFalse(mentions_crisis(text), text)
+
+    def test_two_different_warning_signs_flag(self):
+        for text in ["gave my guitar to marcus and wrote letters for my mom", "feels calm finally. wont need it anymore",
+                     "whats the point of any of it. said my goodbyes to everyone"]:
+            self.assertTrue(mentions_crisis(text), text)
+
+    def test_the_same_warning_sign_twice_counts_once(self):
+        self.assertFalse(mentions_crisis("gave my guitar to marcus and gave my books to jen"))
+
+    def test_each_warning_sign_flags_with_a_second_one(self):
+        # Pairs each sign with the giving-away sign, so a sign that never matches fails here.
+        give = "gave my guitar to marcus"
+        for sign in ["wrote letters for mom", "feels calm finally", "dont really need to renew the lease",
+                     "said goodbye to everyone", "whats the point of any of it"]:
+            self.assertFalse(mentions_crisis(sign), sign)
+            self.assertTrue(mentions_crisis(f"{give}. {sign}"), sign)
+
     def test_floor_overrides_a_missed_crisis(self):
         out = apply_safety_floor("i want to die", {**EXAMPLE_OUTPUT, "needs_support": False})
         self.assertTrue(out["needs_support"])
@@ -74,6 +95,22 @@ class SafetyTests(unittest.TestCase):
         todos = [{"task": "End it all", "first_step": "Start small"}, {"task": "Do laundry", "first_step": "Gather clothes"}]
         out = apply_safety_floor("i have to end it all", {**EXAMPLE_OUTPUT, "needs_support": True, "to_dos": todos})
         self.assertEqual([t["task"] for t in out["to_dos"]], ["Do laundry"])
+
+    def test_floor_drops_crisis_points_and_emptied_threads(self):
+        threads = [
+            {"title": "School", "points": ["Chem quiz tomorrow", "I don't want to be here anymore"]},
+            {"title": "Inside your head", "points": ["i want to die"]},
+        ]
+        out = apply_safety_floor("chem quiz tomorrow. i want to die", {**EXAMPLE_OUTPUT, "threads": threads})
+        self.assertEqual(out["threads"], [{"title": "School", "points": ["Chem quiz tomorrow"]}])
+        validate(out)
+
+    def test_floor_keeps_one_gentle_thread_when_every_point_is_a_crisis(self):
+        threads = [{"title": "Inside your head", "points": ["i want to die", "I can't go on"]}]
+        out = apply_safety_floor("i want to die. i can't go on", {**EXAMPLE_OUTPUT, "threads": threads})
+        self.assertEqual(len(out["threads"]), 1)
+        self.assertFalse(any(mentions_crisis(p) for t in out["threads"] for p in t["points"]))
+        validate(out)
 
 
 class PromptTests(unittest.TestCase):

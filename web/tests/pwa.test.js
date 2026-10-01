@@ -71,3 +71,17 @@ test("the precache holds every file the page loads, and each one exists", () => 
   for (const url of needed) assert.ok(PRECACHE.has(url), `sw.js PRECACHE is missing ${url}`);
   for (const url of PRECACHE) assert.ok(onSite(url.replace(/\?v=\d+$/, "")), `sw.js precaches ${url}, which does not exist`);
 });
+
+// app.js touches the DOM and cannot be imported under node, yet one missing named export stops the
+// whole module from linking in the browser, crisis card and help links included. Read its imports as text.
+test("every name app.js imports is exported by its module", async () => {
+  const app = read("../js/app.js");
+  const imports = [...app.matchAll(/^import \{([^}]+)\} from "\.\/([\w-]+\.js)\?v=\d+";$/gm)];
+  assert.ok(imports.length >= 4, "could not find the local imports at the top of app.js");
+  for (const [, names, file] of imports) {
+    const mod = await import(`../js/${file}`);
+    for (const name of names.split(",").map((n) => n.trim()).filter(Boolean)) {
+      assert.equal(typeof mod[name], "function", `app.js imports ${name} from ${file}, which does not export it`);
+    }
+  }
+});

@@ -1,10 +1,10 @@
 // Every local import carries the same ?v= as index.html. Bump them all together on each release, with
 // VERSION in sw.js, or a returning visitor can get a new app.js paired with a stale cached module that
 // lacks an export.
-import { organizeText, loadSettings, saveSettings, testConnection, normalizeEndpoint } from "./engine.js?v=4";
-import { renderResult, resultToText } from "./render.js?v=4";
-import { splitClauses } from "./organizer.js?v=4";
-import { mentionsCrisis } from "./safety.js?v=4";
+import { organizeText, loadSettings, saveSettings, testConnection, normalizeEndpoint } from "./engine.js?v=7";
+import { renderResult, resultToText } from "./render.js?v=7";
+import { splitClauses, isSelfCritical } from "./organizer.js?v=7";
+import { mentionsCrisis } from "./safety.js?v=7";
 
 const $ = (id) => document.getElementById(id);
 const DRAFT_KEY = "therapistgpt.draft";
@@ -36,6 +36,29 @@ function write(key, value) {
     else localStorage.setItem(key, JSON.stringify(value));
   } catch {
     // ignore: the draft just won't survive a reload
+  }
+}
+
+// Ticked to-dos, keyed by task text, live in sessionStorage so they survive "Back to my words" and a
+// reload but never outlast the tab. They are stored with the words that were sorted, so a later,
+// different dump that yields the same task text does not arrive already ticked.
+const TICKS_KEY = "therapistgpt.ticks";
+let sortedText = "";
+
+function readTicks() {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(TICKS_KEY) || "null");
+    return new Set(saved?.text === sortedText ? saved.tasks : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function writeTicks(ticks) {
+  try {
+    sessionStorage.setItem(TICKS_KEY, JSON.stringify({ text: sortedText, tasks: [...ticks] }));
+  } catch {
+    // ignore: the ticks just won't survive a reload
   }
 }
 
@@ -184,8 +207,8 @@ function updatePrivacyNote() {
   const settings = loadSettings();
   $("privacy-text").textContent =
     settings.engine === "model" && settings.endpoint
-      ? "Sent only to your own model's address, and never saved there."
-      : "Stays on this device. Nothing is sent anywhere.";
+      ? "Sent only to your own model. Your draft is erased once sorted."
+      : "Nothing leaves this device. Your draft is erased once sorted.";
 }
 
 $("save-settings").addEventListener("click", (event) => {
@@ -205,6 +228,9 @@ $("save-settings").addEventListener("click", (event) => {
   saveSettings({ engine, endpoint, apiKey: apiKeyInput.value.trim() });
   updatePrivacyNote();
 });
+
+// Closing without Save leaves the stored settings alone; the form refills from storage on next open.
+$("cancel-settings").addEventListener("click", () => $("settings-dialog").close());
 
 $("test-endpoint").addEventListener("click", async () => {
   const endpoint = endpointInput.value.trim();
@@ -228,14 +254,16 @@ updatePrivacyNote();
 
 // Fragments of the person's own words drift up and settle before the calm version appears.
 // Purely decorative: skipped for reduced-motion users, and for crisis text so painful words
-// never drift across the screen.
+// never drift across the screen. Harsh self-talk is left out for the same reason.
 function settle(text) {
   if (reduceMotion.matches || mentionsCrisis(text)) return Promise.resolve();
   const stage = $("settle");
   const box = dump.getBoundingClientRect();
   // The textarea can be partly scrolled away on a phone; keep every fragment on screen.
   const clamp = (value, max) => Math.min(Math.max(value, 8), Math.max(max, 8));
-  const fragments = splitClauses(text).slice(0, 12);
+  const fragments = splitClauses(text)
+    .filter((fragment) => !isSelfCritical(fragment))
+    .slice(0, 12);
   const motes = fragments.map((fragment, i) => {
     const mote = document.createElement("span");
     mote.className = "mote";
@@ -278,25 +306,37 @@ function showWrite() {
 }
 
 async function run() {
-  // Ctrl+Enter can fire while a request is already in flight.
-  if (organizeBtn.disabled) return;
+  // Ctrl+Enter can fire while a request is already in flight. aria-disabled, not disabled, so focus
+  // stays on the button instead of dropping to the page.
+  if (organizeBtn.getAttribute("aria-disabled") === "true") return;
   const text = dump.value.trim();
   if (!text) {
     writeStatus.textContent = "Even one word is enough to start.";
     dump.focus();
     return;
   }
-  writeStatus.textContent = "";
-  organizeBtn.disabled = true;
+  writeStatus.textContent = "Sorting your thoughts...";
+  organizeBtn.setAttribute("aria-disabled", "true");
   organizeBtn.textContent = "Sorting...";
   try {
     const [outcome] = await Promise.all([organizeText(text), settle(text)]);
     lastResult = outcome.result;
+    sortedText = text;
     renderResult($("result-cards"), outcome.result);
+    restoreTicks();
+    // Once sorted, the words should not wait in storage to greet the next reload. They stay in the
+    // textarea for "Back to my words", and typing there saves a new draft.
+    clearTimeout(saveTimer);
+    write(DRAFT_KEY, null);
+    // After crisis words, "a little quieter" and a privacy footnote read as cheerful and beside the point.
+    // A fallback notice still shows, so nobody thinks their own model wrote this when it was skipped.
+    const crisis = outcome.result.needs_support;
+    $("result-title").textContent = crisis ? "Thank you for writing this down." : "Here it is, a little quieter.";
     $("engine-note").textContent =
       outcome.notice ||
-      (outcome.engine === "model" ? "Sorted by your TherapistGPT model." : "Sorted on this device. Nothing left your browser.");
+      (crisis ? "" : outcome.engine === "model" ? "Sorted by your TherapistGPT model." : "Sorted on this device. Nothing left your browser.");
     status.textContent = "";
+    writeStatus.textContent = "";
     writeView.hidden = true;
     resultView.hidden = false;
     window.scrollTo({ top: 0 });
@@ -308,7 +348,7 @@ async function run() {
     console.error(error);
     writeStatus.textContent = "Something went wrong while sorting. Your words are still here, so you can try again.";
   } finally {
-    organizeBtn.disabled = false;
+    organizeBtn.removeAttribute("aria-disabled");
     organizeBtn.textContent = "Sort my thoughts";
   }
 }
@@ -326,6 +366,24 @@ dump.addEventListener("keydown", (event) => {
 });
 
 // ---------- result actions ----------
+
+const todoTask = (item) => item.querySelector(".todo-task").textContent;
+
+function restoreTicks() {
+  const ticks = readTicks();
+  $("result-cards").querySelectorAll(".todo").forEach((item) => {
+    item.querySelector("input").checked = ticks.has(todoTask(item));
+  });
+}
+
+$("result-cards").addEventListener("change", (event) => {
+  const item = event.target.closest(".todo");
+  if (!item) return;
+  const ticks = readTicks();
+  if (event.target.checked) ticks.add(todoTask(item));
+  else ticks.delete(todoTask(item));
+  writeTicks(ticks);
+});
 
 $("back-btn").addEventListener("click", showWrite);
 

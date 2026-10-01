@@ -48,7 +48,9 @@ function crisisCard() {
 
 export function renderResult(container, result) {
   container.replaceChildren();
+  // Most useful first: what was heard, then the one thing to try, then the longer lists.
   const cards = [];
+  const rest = [];
 
   if (result.needs_support) cards.push(crisisCard());
 
@@ -62,18 +64,9 @@ export function renderResult(container, result) {
   }
   cards.push(summary);
 
-  const threads = section("The threads in it", "threads");
-  const grid = el("div", "thread-grid");
-  for (const thread of result.threads) {
-    const box = el("article", "thread");
-    box.append(el("h3", "thread-title", thread.title));
-    const list = el("ul", "thread-points");
-    for (const point of thread.points) list.append(el("li", "", point));
-    box.append(list);
-    grid.append(box);
-  }
-  threads.append(grid);
-  cards.push(threads);
+  const step = section("One small step", "small-step");
+  step.append(el("p", "small-step-text", result.one_small_step));
+  cards.push(step);
 
   if (result.to_dos.length) {
     const todos = section("Things on your plate", "todos");
@@ -92,7 +85,7 @@ export function renderResult(container, result) {
       list.append(item);
     });
     todos.append(list);
-    cards.push(todos);
+    rest.push(todos);
   }
 
   if (result.kinder_view.length) {
@@ -102,12 +95,33 @@ export function renderResult(container, result) {
       pair.append(el("p", "reframe-thought", `“${item.thought}”`), el("p", "reframe-text", item.reframe));
       kind.append(pair);
     }
-    cards.push(kind);
+    rest.push(kind);
   }
 
-  const step = section("One small step", "small-step");
-  step.append(el("p", "small-step-text", result.one_small_step));
-  cards.push(step);
+  const threads = section("The threads in it", "threads");
+  const grid = el("div", "thread-grid");
+  for (const thread of result.threads) {
+    const box = el("article", "thread");
+    box.append(el("h3", "thread-title", thread.title));
+    const list = el("ul", "thread-points");
+    for (const point of thread.points) list.append(el("li", "", point));
+    box.append(list);
+    grid.append(box);
+  }
+  threads.append(grid);
+  rest.push(threads);
+
+  // In a crisis, screens of sorted pieces bury the help. They stay one tap away, closed.
+  if (result.needs_support) {
+    const more = el("details", "rest");
+    more.append(el("summary", "", "The rest of what you wrote"));
+    const inner = el("div", "rest-cards");
+    rest.forEach((card) => inner.append(card));
+    more.append(inner);
+    cards.push(more);
+  } else {
+    cards.push(...rest);
+  }
 
   cards.forEach((card, i) => {
     card.style.setProperty("--i", String(i));

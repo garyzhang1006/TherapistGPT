@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { organizeText, looksValid, normalizeEndpoint, loadSettings, saveSettings } from "../js/engine.js";
+import { mentionsCrisis } from "../js/safety.js";
 
 test("device engine returns valid output with no network", async () => {
   const { result, engine, notice } = await organizeText("I need to do the dishes and I'm so tired", { engine: "device", endpoint: "" });
@@ -60,6 +61,21 @@ test("the keyword safety floor still applies to a model that missed a crisis", a
   const { result, engine } = await organizeText("i want to die", { engine: "model", endpoint: "https://example.invalid" });
   assert.equal(engine, "model");
   assert.equal(result.needs_support, true);
+});
+
+test("device results never print a crisis sentence back and stay renderable", async () => {
+  for (const text of [
+    "i want to kill myself",
+    "i have a chem quiz tmrw and rent is late and honestly i dont want to be here anymore",
+    "i just want to sleep, and never wake up",
+  ]) {
+    const { result } = await organizeText(text, { engine: "device", endpoint: "" });
+    assert.ok(looksValid(result), text);
+    assert.equal(result.needs_support, true, text);
+    assert.ok(result.threads.every((t) => t.points.length && t.points.every((p) => !mentionsCrisis(p))), text);
+    // A clause split off from its crisis phrase can look calm to mentionsCrisis, so check the words too.
+    assert.ok(result.threads.every((t) => t.points.every((p) => !/wake up/i.test(p))), text);
+  }
 });
 
 test("settings survive the visit when storage is blocked", () => {

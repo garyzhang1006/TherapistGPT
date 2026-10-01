@@ -1,12 +1,45 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { CRISIS_PATTERNS, mentionsCrisis, applySafetyFloor } from "../js/safety.js";
+import { CRISIS_PATTERNS, WARNING_SIGNS, TYPOS, mentionsCrisis, applySafetyFloor } from "../js/safety.js";
+
+const PY = readFileSync(new URL("../../compute/therapistgpt/safety.py", import.meta.url), "utf8");
+const PATTERN_LINE = /^\s+r"(.*)",$/gm;
+
+// Reads one named list from safety.py, so a warning sign can never pass as a crisis pattern. A
+// pattern may contain "]", so the list ends at the first "]" alone on its line.
+function pyList(name) {
+  const start = PY.indexOf(`\n${name} = [\n`);
+  assert.ok(start >= 0, `${name} = [ not found in safety.py`);
+  const end = PY.indexOf("\n]\n", start);
+  assert.ok(end > start, `${name} has no closing ] in safety.py`);
+  return [...PY.slice(start, end).matchAll(PATTERN_LINE)].map((m) => m[1]);
+}
 
 test("JS crisis patterns match the Python list exactly", () => {
-  const py = readFileSync(new URL("../../compute/therapistgpt/safety.py", import.meta.url), "utf8");
-  const pyPatterns = [...py.matchAll(/^\s+r"(.*)",$/gm)].map((m) => m[1]);
-  assert.deepEqual(CRISIS_PATTERNS.map((p) => p.source), pyPatterns);
+  assert.deepEqual(CRISIS_PATTERNS.map((p) => p.source), pyList("CRISIS_PATTERNS"));
+});
+
+test("JS warning signs match the Python list exactly", () => {
+  assert.deepEqual(WARNING_SIGNS.map((p) => p.source), pyList("WARNING_SIGNS"));
+});
+
+test("every pattern line in safety.py belongs to one of the two lists", () => {
+  assert.equal([...PY.matchAll(PATTERN_LINE)].length, CRISIS_PATTERNS.length + WARNING_SIGNS.length);
+});
+
+test("one warning sign alone stays calm, and two different ones flag", () => {
+  for (const text of ["gave my old notes to sam", "wrote letters to colleges", "i feel calm finally after yoga", "whats the point of this meeting", "gave my guitar to marcus and gave my books to jen"]) {
+    assert.equal(mentionsCrisis(text), false, text);
+  }
+  for (const text of ["gave my guitar to marcus and wrote letters for my mom", "feels calm finally. wont need it anymore"]) {
+    assert.equal(mentionsCrisis(text), true, text);
+  }
+});
+
+test("JS typo fixes match the Python list exactly", () => {
+  const pyTypos = Object.fromEntries([...PY.matchAll(/^\s+"(\w+)": "([\w ]+)",$/gm)].map((m) => [m[1], m[2]]));
+  assert.deepEqual(TYPOS, pyTypos);
 });
 
 test("catches direct and indirect crisis language, including curly apostrophes", () => {
@@ -45,4 +78,28 @@ test("safety floor drops crisis to-dos even when the model flagged the crisis it
   };
   const out = applySafetyFloor("i have to end it all and do laundry", modelOut);
   assert.deepEqual(out.to_dos.map((t) => t.task), ["Do laundry"]);
+});
+
+test("safety floor drops crisis points and any thread they leave empty", () => {
+  const modelOut = {
+    summary: "x", feelings: [], to_dos: [], kinder_view: [], one_small_step: "y", needs_support: true,
+    threads: [
+      { title: "School", points: ["Chem quiz tomorrow", "I don’t want to be here anymore"] },
+      { title: "Inside your head", points: ["i want to die"] },
+    ],
+  };
+  const out = applySafetyFloor("chem quiz tomorrow. i want to die", modelOut);
+  assert.deepEqual(out.threads, [{ title: "School", points: ["Chem quiz tomorrow"] }]);
+});
+
+test("safety floor keeps one gentle thread when every point was a crisis", () => {
+  const modelOut = {
+    summary: "x", feelings: [], to_dos: [], kinder_view: [], one_small_step: "y", needs_support: false,
+    threads: [{ title: "Inside your head", points: ["i want to die", "I can't go on"] }],
+  };
+  const out = applySafetyFloor("i want to die. i can't go on", modelOut);
+  assert.equal(out.threads.length, 1);
+  assert.ok(out.threads[0].title.trim() && out.threads[0].points.length === 1 && out.threads[0].points[0].trim());
+  assert.ok(out.threads.every((t) => t.points.every((p) => !mentionsCrisis(p))));
+  assert.equal(out.needs_support, true);
 });

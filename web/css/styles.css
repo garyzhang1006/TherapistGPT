@@ -131,8 +131,10 @@
   color-scheme: light;
 }
 
+/* Scaling the root, not only --text-size, so every rem-sized line (footer, hints, labels, chips)
+   grows too. 17px x 1.175 is about 20px body text. */
 :root[data-size="large"] {
-  --text-size: 1.25rem;
+  font-size: 117.5%;
 }
 
 *,
@@ -156,8 +158,8 @@ body {
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
-  /* Background only: fading the text color too left light text on the already-light cards mid-switch. */
-  transition: background-color 0.6s ease;
+  /* No background transition: text colors switch at once, so any fade left text at about 1.3:1
+     mid-switch. One clean cut is calmer. */
 }
 
 /* Two slow glows: depth without anything that demands attention. */
@@ -209,7 +211,7 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  width: min(100% - 32px, 920px);
+  width: min(100% - 32px, 760px);
   margin: 0 auto;
   padding: 1.25rem 0 0.5rem;
 }
@@ -336,7 +338,7 @@ button {
   transform: translateY(-1px);
 }
 
-.primary:disabled {
+.primary[aria-disabled="true"] {
   opacity: 0.55;
   cursor: default;
   transform: none;
@@ -391,7 +393,8 @@ h1 {
 textarea {
   display: block;
   width: 100%;
-  min-height: clamp(240px, 42vh, 460px);
+  /* Short enough that "Sort my thoughts" stays on a 375x667 screen; it grows by dragging. */
+  min-height: clamp(180px, 34vh, 460px);
   resize: vertical;
   border: 0;
   border-radius: var(--radius);
@@ -408,8 +411,11 @@ textarea:focus {
   outline: none;
 }
 
+/* The textarea has no outline of its own, so this ring is the only focus sign; a full-strength
+   2px edge clears the 3:1 minimum for non-text contrast in both themes. */
 .dump-form:focus-within {
-  border-color: color-mix(in srgb, var(--sage) 45%, transparent);
+  border-color: var(--focus);
+  box-shadow: 0 0 0 1px var(--focus);
 }
 
 textarea::placeholder {
@@ -727,40 +733,41 @@ main:focus,
   font-size: calc(var(--text-size) * 1.08);
 }
 
-.crisis-actions,
-.help-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
-  gap: 0.6rem;
-}
-
+/* Plain rows with a hairline between, like the to-do list: tiles here were cards inside a card
+   and made the crisis card two screens tall on a phone. */
 .help-list {
   list-style: none;
   margin: 1rem 0;
   padding: 0;
 }
 
+.crisis-link + .crisis-link,
+.help-list li + li {
+  border-top: 1px solid var(--line);
+}
+
 .crisis-link,
 .help-list a {
   display: grid;
+  align-content: center;
   gap: 0.1rem;
-  padding: 0.85rem 1rem;
-  border-radius: 12px;
-  background: var(--surface-2);
-  border: 1px solid var(--line);
+  min-height: 44px;
+  padding: 0.6rem 0;
   color: var(--text);
   text-decoration: none;
-  transition: border-color 0.3s ease, background-color 0.3s ease;
 }
 
-.crisis-link:hover,
-.help-list a:hover {
-  border-color: color-mix(in srgb, var(--rose) 50%, transparent);
+.crisis-link:hover strong,
+.help-list a:hover strong {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
+/* Plain --muted drops to about 4.2:1 where the rose tint meets the sky glow; halfway to --text
+   stays near 6:1 there in both themes. */
 .crisis-link span,
 .help-list a span {
-  color: var(--muted);
+  color: color-mix(in srgb, var(--text) 50%, var(--muted));
   font-size: 0.86rem;
 }
 
@@ -768,6 +775,24 @@ main:focus,
   margin: 1rem 0 0;
   color: var(--muted);
   font-size: 0.9rem;
+}
+
+/* After a crisis the other pieces wait behind plain text, not another card. */
+/* Left as a list-item so browsers keep their own disclosure triangle; the padding makes a 44px row. */
+.rest > summary {
+  padding: 0.6rem 0;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.rest > summary:hover {
+  color: var(--text);
+}
+
+.rest-cards {
+  display: grid;
+  gap: 1rem;
+  margin-top: 0.5rem;
 }
 
 .result-actions {
@@ -835,9 +860,15 @@ dialog[open] {
 
 .dialog-actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: 0.5rem;
   margin-top: 1.25rem;
+}
+
+/* Test sits apart from Cancel and Save, and on a phone wraps onto its own line above them. */
+#test-endpoint {
+  margin-right: auto;
 }
 
 .muted {
@@ -847,6 +878,12 @@ dialog[open] {
 .small {
   font-size: 0.88rem;
   min-height: 1.3em;
+}
+
+/* Collapsed, not display: none, so the live region stays in place to announce the next message. */
+.small:empty {
+  min-height: 0;
+  margin: 0;
 }
 
 fieldset {
@@ -920,14 +957,14 @@ legend {
 /* ---------- small screens ---------- */
 
 @media (max-width: 560px) {
+  /* Larger text widens the help button; a tighter gap keeps the bar on one line at 375px. */
+  .topbar {
+    gap: 0.5rem;
+  }
+
   .help-now {
     padding: 0.5rem 0.8rem;
     font-size: 0.85rem;
-  }
-
-  .icon {
-    width: 38px;
-    height: 38px;
   }
 
   .wordmark {

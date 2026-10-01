@@ -2,8 +2,8 @@
 // trained model behind compute/serve.py. Any remote failure falls back to on-device, so the
 // person always gets an answer.
 
-import { organize as organizeOnDevice } from "./organizer.js?v=4";
-import { applySafetyFloor } from "./safety.js?v=4";
+import { organize as organizeOnDevice } from "./organizer.js?v=7";
+import { applySafetyFloor } from "./safety.js?v=7";
 
 const SETTINGS_KEY = "therapistgpt.settings";
 const REMOTE_TIMEOUT_MS = 60000;

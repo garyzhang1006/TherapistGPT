@@ -31,10 +31,20 @@ Both halves share one output contract, defined in [`compute/therapistgpt/schema.
 
 - A dusk palette with no pure white and no alarm red, and a light "morning" theme for people who find dark screens heavy. Both themes meet WCAG AA contrast.
 - One text box and one button. No accounts, streaks, scores, word counts or timers.
-- The draft saves itself as you type, and clearing it can be undone.
+- The draft is kept on the device as you type, so closing the tab doesn't lose it, and it's erased once sorted. Clearing it by hand can be undone.
 - A larger-text toggle, full keyboard use, and no motion at all when the system asks for reduced motion.
 - Copy that validates first and never lectures. Reframes avoid diagnosing ("that's depression") and avoid false cheer.
 - The moon in the corner breathes at six breaths a minute, the pace of slow, calming breathing.
+
+## In a crisis
+
+A **Need help now?** button at the top of every screen opens call and text links for 988, the Crisis Text Line, and findahelpline.com for other countries. When a brain dump mentions suicide or self-harm, the results open with that card, the rest of the sort waits behind a closed "The rest of what you wrote" section, and no crisis sentence is handed back as a to-do or a thread.
+
+The app will not talk with you, contact anyone, or judge how much danger someone is in. Its crisis check is a list of phrases, and phrasings it has not seen get past it: on two sets of brain dumps written after the rules and kept from them, it caught 6 of 11 and then 6 of 12 crisis dumps on the first run. Every miss became a new rule, but the next unseen wording can still slip through. If you are thinking about ending your life, call or text 988 in the US or Canada, or your local emergency number. Don't count on this app to notice.
+
+## Privacy
+
+With the built-in organizer, nothing you type leaves the browser. The fonts and icons come from this site, and the page sends no requests anywhere once it has loaded. Your draft sits in the browser's local storage while you write and is deleted the moment you sort it. Ticked to-dos live in session storage, which the browser clears when the tab closes, and the theme and text-size choices stay in local storage. There are no accounts, analytics or cookies. If you add a model address in **Settings**, your text goes to that server and nowhere else.
 
 ## Run it locally
 

@@ -1,7 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { organize, splitClauses } from "../js/organizer.js";
+import { organize, splitClauses, isSelfCritical } from "../js/organizer.js";
+import { mentionsCrisis } from "../js/safety.js";
 
 const seeds = readFileSync(new URL("../../compute/data/seed.jsonl", import.meta.url), "utf8")
   .trim()
@@ -85,6 +86,66 @@ test("crisis words never become to-dos", () => {
   }
 });
 
+test("a joke about someone killing me is not a task, and the real task beside it stays", () => {
+  assert.deepEqual(organize("my coach is going to murder me if i blow another deadline").to_dos, []);
+  assert.deepEqual(organize("mom will literally strangle me if the deadline slips").to_dos, []);
+  const tasks = organize("my editor is gonna murder me if the deadline slips so i need to send the draft tonight").to_dos.map((t) => t.task);
+  assert.deepEqual(tasks, ["Send the draft"]);
+});
+
+test("a due date with only a pronoun for the thing is not a task by itself", () => {
+  for (const text of ["it is due on monday", "theyre both due thursday", "its due tmrw too"]) {
+    assert.deepEqual(organize(text).to_dos, [], text);
+  }
+  assert.match(organize("the lab writeup is due monday").to_dos[0].task, /lab writeup/);
+});
+
+test("a vague it or the form carries the thing named just before it", () => {
+  assert.deepEqual(organize("bio quiz tmrw, need to study for it").to_dos.map((t) => t.task), ["Study for the bio quiz"]);
+  const tasks = organize("passport appointment saturday. i have to fill out the form").to_dos.map((t) => t.task);
+  assert.ok(tasks.includes("Fill out the form for the passport appointment"), tasks.join(" | "));
+  assert.deepEqual(organize("ugh need to finish it").to_dos, []);
+});
+
+test("hiding an injury and settling affairs never show up as to-dos", () => {
+  for (const text of [
+    "need to grab a big scarf so nobody notices the bruises",
+    "have to wear jeans to the pool party so my friends dont see the marks",
+  ]) {
+    assert.deepEqual(organize(text).to_dos, [], text);
+  }
+  // Keeping a boss from asking or guests from seeing a mess is an ordinary chore.
+  assert.ok(organize("need to finish the report tonight so my boss doesnt ask about it again").to_dos.some((t) => t.task === "Finish the report"));
+  assert.equal(organize("need to clean my room so no one sees the mess").to_dos.length, 1);
+  // Giving belongings away beside a crisis phrase marks every errand as part of a goodbye.
+  assert.deepEqual(organize("i want to kill myself. gave my bike to my neighbor. need to return the drill to my uncle").to_dos, []);
+  assert.deepEqual(organize("left farewell notes for my friends. have to sell the car so nobody is stuck with it").to_dos, []);
+  // An ordinary crisis dump keeps its chores, and handing in a notice gives nothing away.
+  assert.equal(organize("i want to kill myself. need to return the drill to my uncle").to_dos.length, 1);
+  assert.equal(organize("i dont want to be here anymore. gave my notice to my boss today. need to pick up my meds").to_dos.length, 1);
+});
+
+test("a follow-up that only says them and it stays with the errand it belongs to", () => {
+  assert.deepEqual(organize("need to email the landlord and ask him to fix it").to_dos.map((t) => t.task), ["Email the landlord and ask him to fix it"]);
+  assert.deepEqual(organize("need to call the clinic and book a checkup").to_dos.map((t) => t.task), ["Call the clinic", "Book a checkup"]);
+});
+
+test("him or her in a gift task means the person named before it", () => {
+  const tasks = organize("my sisters graduation is friday so i need to buy her a gift").to_dos.map((t) => t.task);
+  assert.deepEqual(tasks, ["Buy my sister a gift"]);
+  assert.deepEqual(organize("my mom is sick. need to get her meds").to_dos.map((t) => t.task), ["Get her meds"]);
+});
+
+test("needing something to buy is a to-do, but needing a break is not", () => {
+  assert.equal(organize("need new running shoes before the 5k").to_dos[0].task, "Get new running shoes before the 5k");
+  assert.equal(organize("the twins need diapers and wipes").to_dos[0].task, "Get diapers and wipes");
+  for (const text of ["i dont need new shoes", "i need a break", "i need the money"]) assert.deepEqual(organize(text).to_dos, [], text);
+});
+
+test("an errand named in a list line is a to-do without a verb", () => {
+  assert.deepEqual(organize("- prescription pickup at cvs\n- call the plumber").to_dos.map((t) => t.task), ["Prescription pickup at cvs", "Call the plumber"]);
+});
+
 test("list lines become separate to-dos without their bullets", () => {
   assert.deepEqual(organize("- call mom\n- pay rent\n- groceries").to_dos.map((t) => t.task), ["Call mom", "Pay rent", "Groceries"]);
   assert.deepEqual(
@@ -111,9 +172,51 @@ test("plans that already fell through are not to-dos, but plans still ahead are"
   assert.match(organize("i'm supposed to call mom tonight").to_dos[0].task, /^Call mom/);
 });
 
+test("a promise to my someone is a to-do", () => {
+  assert.equal(organize("i told my landlord id fix the screen door").to_dos[0].task, "Fix the screen door");
+  assert.equal(organize("told the team i would send notes").to_dos[0].task, "Send notes");
+});
+
+test("a request from a boss or a doctor is the task, even after a preamble", () => {
+  assert.equal(organize("cant think straight today my manager wants the budget slides by friday").to_dos[0].task, "Finish the budget slides by friday");
+  assert.equal(organize("dentist wants me to come in for a cleaning").to_dos[0].task, "See the dentist for a cleaning");
+  assert.equal(organize("the nurse told me to get bloodwork done").to_dos[0].task, "Get bloodwork done");
+});
+
 test("a to-do keeps the task and leaves the feeling about it behind", () => {
   const { to_dos } = organize("I need to finish my thesis chapter and I haven't opened it in a week");
   assert.equal(to_dos[0].task, "Finish my thesis chapter");
+});
+
+test("a verdict on the day is not a to-do, but a named thing still waiting is", () => {
+  for (const text of ["i cant even do anything right", "i havent done anything productive today", "i havent done anything all day"]) {
+    assert.deepEqual(organize(text).to_dos, [], text);
+  }
+  assert.equal(organize("i cant even do anything right").kinder_view.length, 1);
+  assert.equal(organize("i havent eaten anything all day").to_dos[0].task, "Eat something");
+  assert.equal(organize("i still havent emailed my advisor").to_dos[0].task, "Email my advisor");
+});
+
+test("a habit that slipped for days is not a to-do, but one thing still waiting is", () => {
+  for (const text of ["i havent called my sister in weeks", "havent replied to anyone for a few days"]) {
+    assert.deepEqual(organize(text).to_dos, [], text);
+  }
+  assert.equal(organize("i havent paid the water bill, its been on my mind for weeks").to_dos[0].task, "Pay the water bill");
+  // An overdue bill or form is still one thing waiting, however long it has waited.
+  assert.equal(organize("i havent filed my taxes in two years").to_dos[0].task, "File my taxes");
+  assert.equal(organize("i havent paid my phone bill in 2 months").to_dos[0].task, "Pay my phone bill");
+});
+
+test("a feeling that runs on without a break is cut from the to-do", () => {
+  assert.equal(organize("need to call the insurance office I really feel sick about it").to_dos[0].task, "Call the insurance office");
+  assert.deepEqual(organize("i havent done that yet i feel like im sinking").to_dos, []);
+  assert.equal(organize("need to tell my partner how I feel").to_dos[0].task, "Tell my partner how I feel");
+  assert.equal(organize("need to tell him what I felt").to_dos[0].task, "Tell him what I felt");
+});
+
+test("only chores left to do become to-dos", () => {
+  assert.equal(organize("i have 3 chapters left to read").to_dos[0].task, "Read 3 chapters");
+  assert.deepEqual(organize("i have a few days left to live").to_dos, []);
 });
 
 test("blank input still gets one gentle thread", () => {
@@ -127,9 +230,46 @@ test("harsh self-talk gets a kinder view and its own thread, and plain words don
   assert.equal(organize("I always love seeing my dog").kinder_view.length, 0);
 });
 
+test("isSelfCritical matches the thoughts that get a kinder view, and nothing else", () => {
+  for (const text of ["im such a failure", "I’m so stupid", "i hate myself", "I feel like a burden"]) assert.equal(isSelfCritical(text), true, text);
+  for (const text of ["I always love seeing my dog", "need to do laundry", "my mom called"]) assert.equal(isSelfCritical(text), false, text);
+});
+
 test("feelings come from feeling words, not colors or objects", () => {
   assert.deepEqual(organize("wore my grey hoodie, got a flat tire, told him to leave me alone").feelings, []);
   assert.ok(organize("i miss sam so much").feelings.includes("sad"));
+});
+
+test("everyday ways of saying a feeling without naming it", () => {
+  const cases = [
+    ["walking around like a zombie all week", "exhausted"],
+    ["desperate for some sleep", "exhausted"],
+    ["everybody wants something from me at once", "overwhelmed"],
+    ["the apartment feels so empty without her", "lonely"],
+    ["six weeks since my uncle passed and the calls stopped", "sad"],
+    ["my son deserves a better father", "guilty"],
+    ["i feel like such a fraud at this job", "ashamed"],
+    ["wished the ground would open up, wanted the earth to swallow me", "ashamed"],
+    ["cant see any point in trying anymore", "hopeless"],
+  ];
+  for (const [text, feeling] of cases) assert.ok(organize(text).feelings.includes(feeling), `${text} -> ${organize(text).feelings}`);
+  assert.ok(!organize("since the bill passed my rent went up").feelings.includes("sad"));
+  for (const text of ["since my laptop died ive been using the library computers", "when my phone died i missed the bus"]) {
+    assert.ok(!organize(text).feelings.includes("sad"), text);
+  }
+});
+
+test("common words for each topic land under it", () => {
+  const cases = [
+    ["seminar ran long again", "School"],
+    ["my cert expires next month", "Work"],
+    ["applying for unemployment is a maze", "Money"],
+    ["the bedroom is a disaster", "Home"],
+    ["my brothers keep fighting", "People"],
+    ["packing the kids lunches every morning", "Home"],
+    ["my sister ate the last of my cereal", "People"],
+  ];
+  for (const [text, title] of cases) assert.equal(organize(text).threads[0].title, title, text);
 });
 
 test("too many topics fold into Everything else without losing any topic", () => {
@@ -139,13 +279,29 @@ test("too many topics fold into Everything else without losing any topic", () =>
   assert.equal(out.threads.flatMap((t) => t.points).length, 6);
 });
 
+test("a meal already missed goes to the small step, not the to-do list", () => {
+  const out = organize("forgot to eat breakfast again today");
+  assert.deepEqual(out.to_dos, []);
+  assert.match(out.one_small_step, /food/);
+  assert.equal(organize("forgot to pay the phone bill").to_dos[0].task, "Pay the phone bill");
+});
+
 test("not eating comes before anything else in the one small step", () => {
   const out = organize("i need to email my professor. i haven't eaten since breakfast");
   assert.match(out.one_small_step, /food/);
+});
+
+test("the one small step names the to-do it comes from", () => {
+  assert.match(organize("- laundry\n- text sam back").one_small_step, /^Text sam back: type one short line/);
 });
 
 test("crisis words sit under Inside your head, not the topic they mention", () => {
   const out = organize("i have to pay rent. i just want to sleep and never wake up");
   const home = out.threads.find((t) => t.points.some((p) => /never wake up/.test(p)));
   assert.equal(home.title, "Inside your head");
+});
+
+test("a comma before a crisis phrase does not split off a calm-looking piece of it", () => {
+  const points = organize("i just want to sleep, and never wake up").threads.flatMap((t) => t.points);
+  assert.ok(points.filter((p) => /wake up/i.test(p)).every(mentionsCrisis), points.join(" | "));
 });
