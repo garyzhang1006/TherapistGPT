@@ -79,6 +79,11 @@ export const CRISIS_PATTERNS = [
   /\bhow long (does it|would it|will it|it'?d|it would|it will|it does|it|to|(until|till|before) (you|i|someone|a person|people)) (take |takes )?(to )?(die|dies|bleed out|bleeds out|drown|drowns|suffocate)\b(?! (my|your|his|her|their) hair| of (boredom|embarrassment|laughter|old age)\b)/i,
   // "dumb ways to die in minecraft" and "how to die my hair" are calm, so a place or hair after it stays out.
   /\b((look(s|ed|ing)? up|search(es|ed|ing)?( for| up)?|googl(e|es|ed|ing)|research(es|ed|ing)?|read(ing)? up on) (\w+ ){0,2}(ways?|methods?|how) to|(painless|easiest|quickest|fastest|least painful|surest) (ways?|methods?) to) (die|bleed out|overdose)\b(?! (in|on|from|of|my hair|your hair|her hair|his hair|their hair)\b)/i,
+  // An urge to step or jump off somewhere. "stepping off the train at my stop" and "jumping off the
+  // diving board" name a calm place, so only a height or a bare "off" that ends the clause counts.
+  /\b(think(s|ing)? (about|of)|thought (about|of)|urges? to|tempted to|want(s|ed)? to|wanna|wish i could|could just|feel like) (just )?(step(ping)?|jump(ing)?|leap(ing)?|throw(ing)? my ?self) off( (the|a|an|that|this|my) (top of (the|a|an|that|this) )?(\w+ )?(platform|ledge|roof|rooftop|bridge|balcony|building|cliff|edge|overpass|tower|parking garage)\b|[.!?,;]|$)/i,
+  // The same urge toward a vehicle, traffic or a wall. "driving into the city" and "the bus stop" stay calm.
+  /\b(think(s|ing)? (about|of)|thought (about|of)|urges? to|tempted to|want(s|ed)? to|wanna|wish i could|could just|feel like) (just )?((step(ping)?|jump(ing)?|throw(ing)? my ?self|walk(ing)?|run(ning)?|lie|lying|lay(ing)?) (down |out )?(in front of (a|an|the|some|that|this|oncoming)( \w+)? (train|subway|bus|car|truck|lorry|tram)|into (the |oncoming |the oncoming )?traffic)|(driv(e|ing)|crash(ing)?|swerv(e|ing)|steer(ing)?) (my car |the car )?(into|off) (a|an|the|oncoming)( \w+)? (wall|tree|pole|barrier|guardrail|bridge|cliff|overpass|river|lake|truck|traffic))\b(?! (stop|stops|station|line|schedule|lights?|court|house|driver|ride)\b)/i,
 ];
 
 // Someone who has decided often says nothing direct: they give things away, write letters, feel a
