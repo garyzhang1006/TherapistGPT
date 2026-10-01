@@ -15,6 +15,14 @@ If the text mentions suicide or self-harm, a support card with 988, the Crisis T
 
 **Try it:** [garyzhang1006.github.io/TherapistGPT](https://garyzhang1006.github.io/TherapistGPT/)
 
+<p>
+  <img src="docs/screenshots/write-phone.png" alt="The writing screen on a phone: one text box, a privacy line and a Sort my thoughts button" width="250">
+  <img src="docs/screenshots/results-phone.png" alt="A sorted brain dump in the dark theme: what I'm hearing, one small step, a to-do and the threads" width="250">
+  <img src="docs/screenshots/results-phone-light.png" alt="The same results in the light morning theme" width="250">
+</p>
+
+The [desktop layout](docs/screenshots/results-desktop.png) puts the threads in two columns. `.github/workflows/screenshots.yml` retakes these from the live site.
+
 TherapistGPT organizes words. It is not a therapist, a diagnosis, or a crisis service.
 
 ## How it works

@@ -26,7 +26,8 @@ try {
 
 // Fails with the element's name and the page address, so a renamed id is obvious from the log.
 async function need(page, selector, what) {
-  const locator = page.locator(selector);
+  // waitFor is strict and throws when a selector matches several elements, as the result cards do.
+  const locator = page.locator(selector).first();
   try {
     await locator.waitFor({ state: "visible", timeout: 15000 });
   } catch {
