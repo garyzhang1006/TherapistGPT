@@ -76,7 +76,8 @@ export const CRISIS_PATTERNS = [
   // questions, so only "it would take" or "would kill" counts, and a per-day or kick-in tail stays calm.
   // So does "to fall asleep" or "to see results", unless "forever" or "for good" follows.
   /\bhow (many|much) (of (my|the|these|those|her|his) )?(\w+ )?(pills|tablets|meds|medication|medicine|capsules|painkillers|tylenol|advil|ibuprofen|acetaminophen|paracetamol|aspirin|xanax|benadryl) (it would|it'?d|would it|it will|it'?ll|will it|does it|it does|would|it) (takes?|kills?)\b(?! to (work|kick in|help|feel|start)\b| to (get to sleep|get some sleep|fall asleep|see (results|a difference|any difference|an effect)|take effect)\b(?! forever| for good| permanently)| effect\b| for (a|an|the|my|your|his|her|their|cramps|pain)\b| (a|per) day\b| daily\b)/i,
-  /\b(lethal|fatal|deadly) (dose|doses|dosage|amount|amounts|quantity)\b/i,
+  // "a lethal amount of coffee" is a joke. Caffeine stays in, since caffeine pills are a real method.
+  /\b(lethal|fatal|deadly) (dose|doses|dosage|amount|amounts|quantity)\b(?! of (coffee|espresso|sugar|homework|work|cringe|sarcasm)\b)/i,
   /\bhow long (does it|would it|will it|it'?d|it would|it will|it does|it|to|(until|till|before) (you|i|someone|a person|people)) (take |takes )?(to )?(die|dies|bleed out|bleeds out|drown|drowns|suffocate)\b(?! (my|your|his|her|their) hair| of (boredom|embarrassment|laughter|old age)\b)/i,
   // "dumb ways to die in minecraft" and "how to die my hair" are calm, so a place or hair after it stays out.
   /\b((look(s|ed|ing)? up|search(es|ed|ing)?( for| up)?|googl(e|es|ed|ing)|research(es|ed|ing)?|read(ing)? up on) (\w+ ){0,2}(ways?|methods?|how) to|(painless|easiest|quickest|fastest|least painful|surest) (ways?|methods?) to) (die|bleed out|overdose)\b(?! (in|on|from|of|my hair|your hair|her hair|his hair|their hair)\b)/i,
