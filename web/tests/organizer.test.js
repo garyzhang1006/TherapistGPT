@@ -254,6 +254,9 @@ test("everyday ways of saying a feeling without naming it", () => {
   ];
   for (const [text, feeling] of cases) assert.ok(organize(text).feelings.includes(feeling), `${text} -> ${organize(text).feelings}`);
   assert.ok(!organize("since the bill passed my rent went up").feelings.includes("sad"));
+  for (const text of ["since my laptop died ive been using the library computers", "when my phone died i missed the bus"]) {
+    assert.ok(!organize(text).feelings.includes("sad"), text);
+  }
 });
 
 test("common words for each topic land under it", () => {
