@@ -2,7 +2,7 @@
 // the model is trained to produce (compute/therapistgpt/schema.py), so the UI renders either.
 // No network, no storage. Pure functions only, so it runs under `node --test` as well.
 
-import { mentionsCrisis, fixTypos, CRISIS_PATTERNS, CRISIS_SUMMARY, CRISIS_STEP } from "./safety.js?v=5";
+import { mentionsCrisis, fixTypos, CRISIS_PATTERNS, CRISIS_SUMMARY, CRISIS_STEP } from "./safety.js?v=6";
 
 const LIMITS = { threads: 5, points: 6, todos: 6, reframes: 3, feelings: 6 };
 
