@@ -129,6 +129,9 @@ const CONCEAL = /\bso (?:that )?(?:no one|nobody|noone|no-one) (?:will |can |wou
 // goodbye, so none of them is listed as a to-do.
 const SETTLING_AFFAIRS = /\b(?:goodbye|farewell) (?:letters?|notes?)\b|\bletters (?:to|for) (?:my |everyone|mom|dad)|\b(?:gave|giving|given|gifted) (?:away (?:my|all my)\b|(?:my|all my|most of my)(?: \w+){1,2} (?:to|away)\b)/i;
 const STUCK_WITH = /\bso (?:that )?(?:no one|nobody|noone|my \w+|they) (?:gets?|is|are|ends? up|will be|would be|has to|have to) (?:stuck|left) (?:with|holding|paying|dealing)\b/i;
+// "Forgot to eat lunch again" is a meal already missed. The one small step answers it with food,
+// so it is not also a to-do.
+const MISSED_MEAL = /\bforgot to eat\b/i;
 // "It's due wednesday" names no thing at all, so on its own it is not a task.
 const PRONOUN_DUE = /^(?:it'?s|its|it is|it was|that'?s|that is|they'?re|they are|both are)\s+(?:all\s+|also\s+|still\s+|both\s+)?(?:due|late|overdue)\b/i;
 // "Appt got moved to the 14th" is news about a plan, not something to do.
@@ -663,6 +666,7 @@ export function organize(text) {
       !(NO_NEED.test(clause) && !INTENT.test(clause.replace(new RegExp(NO_NEED.source, "gi"), " "))) &&
       !(SCHEDULE_NEWS.test(clause) && !INTENT.test(clause)) &&
       !(PRONOUN_DUE.test(clause) && !INTENT.test(clause)) &&
+      !(MISSED_MEAL.test(clause) && !INTENT.test(clause.replace(/\bforgot to\b/gi, " "))) &&
       !WHAT_IF.test(clause) &&
       !SELF_CRITIC.test(clause) &&
       !NOT_A_TASK.test(clause) &&

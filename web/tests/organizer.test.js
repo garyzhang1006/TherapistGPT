@@ -201,6 +201,13 @@ test("too many topics fold into Everything else without losing any topic", () =>
   assert.equal(out.threads.flatMap((t) => t.points).length, 6);
 });
 
+test("a meal already missed goes to the small step, not the to-do list", () => {
+  const out = organize("forgot to eat breakfast again today");
+  assert.deepEqual(out.to_dos, []);
+  assert.match(out.one_small_step, /food/);
+  assert.equal(organize("forgot to pay the phone bill").to_dos[0].task, "Pay the phone bill");
+});
+
 test("not eating comes before anything else in the one small step", () => {
   const out = organize("i need to email my professor. i haven't eaten since breakfast");
   assert.match(out.one_small_step, /food/);
