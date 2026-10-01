@@ -147,6 +147,13 @@ test("a verdict on the day is not a to-do, but a named thing still waiting is", 
   assert.equal(organize("i still havent emailed my advisor").to_dos[0].task, "Email my advisor");
 });
 
+test("a habit that slipped for days is not a to-do, but one thing still waiting is", () => {
+  for (const text of ["i havent called my sister in weeks", "havent replied to anyone for a few days"]) {
+    assert.deepEqual(organize(text).to_dos, [], text);
+  }
+  assert.equal(organize("i havent paid the water bill, its been on my mind for weeks").to_dos[0].task, "Pay the water bill");
+});
+
 test("only chores left to do become to-dos", () => {
   assert.equal(organize("i have 3 chapters left to read").to_dos[0].task, "Read 3 chapters");
   assert.deepEqual(organize("i have a few days left to live").to_dos, []);
