@@ -26,7 +26,8 @@ CRISIS_PATTERNS = [
     r"\bbetter off if i (was|were) (gone|dead)\b",
     r"\bbetter off if i (wasn'?t|weren'?t) (here|around|alive)\b",
     r"\bno reason to live\b",
-    r"\b(and|to) (not|never) wake up\b(?! (on time|early|before|in time|until|till)\b)",
+    # People soften the wish with a filler or two ("and just not wake up"), which must not hide it.
+    r"\b(and|to) ((just|simply|ever|really|finally|then|maybe|honestly) ){0,2}(not|never)( ever)? wake up\b(?! (on time|early|before|in time|until|till)\b)",
     r"\b(hope|wish) i (don'?t|do not|never) wake up\b",
     r"\b(hurt|hurting|cut|cutting|burn|burning|harm|harming|hang|hanging|starve|starving) my ?self\b",
     r"\b(shoot|shooting) my ?self\b(?! in the foot)",
