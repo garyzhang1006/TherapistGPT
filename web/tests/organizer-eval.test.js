@@ -1,23 +1,37 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { existsSync, readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { organize } from "../js/organizer.js";
 
 // Scores the on-device organizer against brain dumps labeled by a human reader. Missing a crisis
-// fails CI outright. Everything else is reported so the CI log alone shows what to fix next.
-const load = (url) => JSON.parse(readFileSync(url, "utf8")).cases;
-const CASES = load(new URL("./fixtures/brain-dumps.json", import.meta.url));
-// Written blind by someone who never saw the organizer, so it shows whether the rules generalize.
-// Only its crisis recall is held to a bar; the rest is reported.
-const HELDOUT_URL = new URL("./fixtures/brain-dumps-heldout.json", import.meta.url);
-const HELDOUT = existsSync(HELDOUT_URL) ? load(HELDOUT_URL) : null;
+// fails CI outright on every fixture. Everything else is reported so the CI log alone shows what to fix next.
+const FIXTURES_URL = new URL("./fixtures/", import.meta.url);
+const TUNED_FILE = "brain-dumps.json";
 
-// Each one sits at the score CI last reported, so any regression fails. Raise them as the organizer improves.
+// brain-dumps.json is the set the rules were tuned on. Every brain-dumps-<name>.json beside it was
+// written blind by someone who never saw the organizer, so it shows whether the rules generalize.
+// A file that fails to parse is kept with its error, so one bad file fails its own test only.
+const FIXTURES = readdirSync(FIXTURES_URL)
+  .filter((file) => /^brain-dumps(?:-[\w-]+)?\.json$/.test(file))
+  .sort((a, b) => (a === TUNED_FILE ? -1 : b === TUNED_FILE ? 1 : a.localeCompare(b)))
+  .map((file) => {
+    const fixture = { file, tuned: file === TUNED_FILE, name: file === TUNED_FILE ? "tuned" : file.slice("brain-dumps-".length, -".json".length) };
+    try {
+      fixture.cases = JSON.parse(readFileSync(new URL(file, FIXTURES_URL), "utf8")).cases;
+    } catch (error) {
+      fixture.error = error;
+    }
+    return fixture;
+  });
+
+// Floors for the tuned set only, at 90% of the score CI last reported (100% on every metric),
+// rounded down. A general rule may cost a tuned case or two, but not the tuned set as a whole.
+// The blind sets are report-only, apart from crisis recall.
 const THRESHOLDS = {
-  todoRecall: 20 / 30,
-  todoPrecision: 19 / 22,
-  threadRecall: 34 / 44,
-  feelingRecall: 13 / 27,
+  todoRecall: 0.9,
+  todoPrecision: 0.9,
+  threadRecall: 0.9,
+  feelingRecall: 0.9,
   maxFalseAlarms: 0,
   maxNotTodoViolations: 1,
 };
@@ -97,38 +111,48 @@ function report(t, label, { results, calmCases, metrics }) {
   }
 }
 
-const fixed = evaluate(CASES);
-
-test("the brain-dump fixture is well formed", () => {
-  assert.ok(CASES.length >= 45, `only ${CASES.length} cases`);
-  assert.ok(CASES.filter((c) => c.needs_support).length >= 8, "fewer than 8 crisis cases");
-  assert.equal(new Set(CASES.map((c) => c.id)).size, CASES.length, "duplicate case ids");
-  for (const c of CASES) {
-    assert.equal(typeof c.text, "string", c.id);
-    assert.equal(typeof c.needs_support, "boolean", c.id);
-    for (const key of ["todos", "not_todos", "threads", "feelings"]) assert.ok(Array.isArray(c[key]), `${c.id}.${key}`);
-  }
+test("the tuned brain-dump fixture is present", () => {
+  assert.ok(FIXTURES.some((f) => f.tuned), `${TUNED_FILE} is missing from tests/fixtures`);
 });
 
-test("every crisis brain dump gets the helpline card", () => {
-  const missed = fixed.crisisCases.filter((r) => !r.flagged).map((r) => r.id);
-  assert.deepEqual(missed, [], `crisis missed: ${missed.join(", ")}`);
-});
+for (const fixture of FIXTURES) {
+  // The tuned set keeps the plain wording it always had in the CI log; a blind set is named by its suffix.
+  const label = fixture.tuned ? "" : `${fixture.name} `;
+  const set = fixture.tuned ? "the fixed brain-dump set" : `the ${fixture.name} brain-dump set`;
+  let evaluated = null;
+  const evaluation = () => (evaluated ??= evaluate(fixture.cases));
 
-test("organizer scores on the fixed brain-dump set", (t) => {
-  const { metrics } = fixed;
-  report(t, "", fixed);
-  assert.ok(metrics.todoRecall.value >= THRESHOLDS.todoRecall, "to-do recall fell below its threshold");
-  assert.ok(metrics.todoPrecision.value >= THRESHOLDS.todoPrecision, "to-do precision fell below its threshold");
-  assert.ok(metrics.threadRecall.value >= THRESHOLDS.threadRecall, "thread recall fell below its threshold");
-  assert.ok(metrics.feelingRecall.value >= THRESHOLDS.feelingRecall, "feeling recall fell below its threshold");
-  assert.ok(metrics.falseAlarms <= THRESHOLDS.maxFalseAlarms, "too many false crisis alarms");
-  assert.ok(metrics.notTodoViolations <= THRESHOLDS.maxNotTodoViolations, "too many not_todos became to-dos");
-});
+  test(`${set} is well formed`, () => {
+    assert.ifError(fixture.error);
+    const { cases } = fixture;
+    assert.ok(Array.isArray(cases) && cases.length, `${fixture.file} has no cases array`);
+    if (fixture.tuned) {
+      assert.ok(cases.length >= 45, `only ${cases.length} cases`);
+      assert.ok(cases.filter((c) => c.needs_support).length >= 8, "fewer than 8 crisis cases");
+    }
+    assert.equal(new Set(cases.map((c) => c.id)).size, cases.length, `duplicate case ids in ${fixture.file}`);
+    for (const c of cases) {
+      assert.equal(typeof c.text, "string", c.id);
+      assert.equal(typeof c.needs_support, "boolean", c.id);
+      for (const key of ["todos", "not_todos", "threads", "feelings"]) assert.ok(Array.isArray(c[key]), `${c.id}.${key}`);
+    }
+  });
 
-test("organizer scores on the held-out brain-dump set", { skip: HELDOUT ? false : "no held-out fixture yet" }, (t) => {
-  const heldout = evaluate(HELDOUT);
-  report(t, "held-out ", heldout);
-  const missed = heldout.crisisCases.filter((r) => !r.flagged).map((r) => r.id);
-  assert.deepEqual(missed, [], `held-out crisis missed: ${missed.join(", ")}`);
-});
+  test(`every crisis brain dump in ${set} gets the helpline card`, { skip: fixture.error ? "fixture did not parse" : false }, () => {
+    const missed = evaluation().crisisCases.filter((r) => !r.flagged).map((r) => r.id);
+    assert.deepEqual(missed, [], `${label}crisis missed: ${missed.join(", ")}`);
+  });
+
+  test(`organizer scores on ${set}`, { skip: fixture.error ? "fixture did not parse" : false }, (t) => {
+    const result = evaluation();
+    report(t, label, result);
+    if (!fixture.tuned) return;
+    const { metrics } = result;
+    assert.ok(metrics.todoRecall.value >= THRESHOLDS.todoRecall, "to-do recall fell below its threshold");
+    assert.ok(metrics.todoPrecision.value >= THRESHOLDS.todoPrecision, "to-do precision fell below its threshold");
+    assert.ok(metrics.threadRecall.value >= THRESHOLDS.threadRecall, "thread recall fell below its threshold");
+    assert.ok(metrics.feelingRecall.value >= THRESHOLDS.feelingRecall, "feeling recall fell below its threshold");
+    assert.ok(metrics.falseAlarms <= THRESHOLDS.maxFalseAlarms, "too many false crisis alarms");
+    assert.ok(metrics.notTodoViolations <= THRESHOLDS.maxNotTodoViolations, "too many not_todos became to-dos");
+  });
+}
