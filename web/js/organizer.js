@@ -92,6 +92,7 @@ const MY_PLAN = /(?:^|\b(?:I|I'm|I am|we|we're)\s+)(?:also\s+|really\s+|finally\
 const CHORES_ARE = /\b(?:all|what|the (?:only )?things?|stuff|everything)\s+(?:I|we)\s+(?:have to|need to|gotta|got to|should)\s+do\s+(?:today\s+|this week\s+|tomorrow\s+)?(?:is|are)\s+(.+)$/i;
 // A short list line that names a piece of work is a to-do even without a verb: "the vendor
 // contract renewal", "club fundraiser forms". A subject or a past-tense verb makes it a sentence.
+// Only list items count, because in running prose "worst exam ever" is a complaint.
 const WORK_THING = /\b(deck|contracts?|renewal|report|essay|paper|forms?|application|presentation|slides|homework|assignment|midterm|final|exam|test|quiz|project|proposal|invoice|taxes|spreadsheet|draft|resume|cover letter|problem set|pset|reading|paperwork|lab)\b/i;
 const SENTENCE_WORD = /\b(?:I|I'm|I've|I'd|me|he|she|they|we|it|it's|you|is|are|was|were|went|got|\w{2,}ed)\b/i;
 
@@ -292,7 +293,7 @@ function crisisSpan(part) {
 // fall inside the crisis phrase itself ("sleep and never wake up") are left alone, and so is a
 // break whose cleaned clause would lose the phrase: in "sleep, and never wake up" the comma sits
 // right before "and", which cleanClause strips as filler, leaving a calm-looking "Never wake up".
-function splitAroundCrisis(part) {
+function splitAroundCrisis(part, listed) {
   const span = crisisSpan(part);
   if (!span) return [part];
   const breaks = [...part.matchAll(BREAK)];
@@ -303,20 +304,22 @@ function splitAroundCrisis(part) {
   return [
     ...(before ? splitLoose(part.slice(0, before.index)) : []),
     part.slice(before ? before.index + before[0].length : 0, after ? after.index : part.length),
-    ...(after ? splitPart(part.slice(after.index + after[0].length)) : []),
+    ...(after ? splitPart(part.slice(after.index + after[0].length), listed) : []),
   ];
 }
 
 // "work, school, my mom being sick, the apartment is a disaster" lists separate worries, so each
 // keeps its own topic, and "chem midterm monday, english paper due wed, club forms" lists separate
 // pieces of work. A list after an intent ("need to do laundry, groceries, the form") stays whole
-// so it becomes one to-do per chore.
-function splitList(part) {
+// so it becomes one to-do per chore. Each piece of a split list goes into listed.
+function splitList(part, listed) {
   if ((part.match(/,/g) || []).length < 2 || INTENT.test(part)) return [part];
   const pieces = part.split(/,\s*(?:and\s+)?/).filter((p) => p.trim());
   const topics = new Set(pieces.filter((p) => TOPICS.some((t) => t.words.test(p))).map((p) => topicFor(p)));
   const tasks = pieces.map(cleanClause).filter((c) => TASK_CUE.test(c) || IMPERATIVE.test(c) || isWorkItem(c));
-  return topics.size >= 2 || tasks.length >= 2 ? pieces : [part];
+  if (topics.size < 2 && tasks.length < 2) return [part];
+  for (const piece of pieces) listed.add(piece.trim());
+  return pieces;
 }
 
 // "im such a failure i still havent sent the email" is a harsh thought and then a task, so the
@@ -344,13 +347,18 @@ function splitChores(part) {
   return [part];
 }
 
-function splitPart(part) {
-  if (mentionsCrisis(part)) return splitAroundCrisis(part);
-  return splitRunOn(part).flatMap(splitSelfTalk).flatMap(splitList).flatMap(splitChores);
+function splitPart(part, listed) {
+  if (mentionsCrisis(part)) return splitAroundCrisis(part, listed);
+  return splitRunOn(part).flatMap(splitSelfTalk).flatMap((piece) => splitList(piece, listed)).flatMap(splitChores);
 }
 
-export function splitClauses(text) {
-  const parts = normalize(text)
+// Each clause, and whether it was a list item: a line of its own in a dump of several lines, or a
+// piece of a comma list. A sentence cut off by a period is not one.
+function clauseItems(text) {
+  const normalized = normalize(text);
+  const lines = normalized.split(/\n+/).map((line) => line.trim()).filter(Boolean);
+  const listed = new Set(lines.length > 1 ? lines : []);
+  const parts = normalized
     // Sentence ends become line breaks first. A lookbehind would do it in one regex, but Safari
     // before 16.4 can't parse lookbehinds, and one bad regex stops the whole page from loading.
     .replace(/([.!?;])\s+/g, "$1\n")
@@ -359,8 +367,8 @@ export function splitClauses(text) {
     .replace(/\s+(lol|lmao|lmfao|haha\w*|tbh|ngl)\s+(?=(?:i|i'm|im|i've|ive|my)\b)/gi, " $1\n")
     .replace(/\b((?:idk|i don'?t know|i dont know) where (?:to|do i) (?:even )?(?:start|begin))\s+(?=(?:i|i'm|im|i've|ive|my)\b)/gi, "$1\n")
     .split(/\n+|\s+(?:and then|but also|and also|oh and|plus|anyway|anyways)\s+/i)
-    .flatMap(splitPart);
-  const clauses = [];
+    .flatMap((part) => splitPart(part, listed));
+  const items = [];
   const seen = new Set();
   for (const part of parts) {
     const clause = cleanClause(part);
@@ -368,12 +376,16 @@ export function splitClauses(text) {
     const oneWordOk = TASK_CUE.test(clause) || TOPICS.some((t) => t.words.test(clause));
     if (!clause || (clause.split(/\s+/).length < 2 && !oneWordOk) || seen.has(key)) continue;
     seen.add(key);
-    clauses.push(clause);
+    items.push({ clause, listed: listed.has(part.trim()) });
   }
   // A one-word dump ("tired") still deserves a response, and punctuation or blank space gets a
   // gentle placeholder instead of an empty thread.
-  if (!clauses.length) clauses.push(cleanClause(normalize(text)) || "Something you haven't found words for yet");
-  return clauses;
+  if (!items.length) items.push({ clause: cleanClause(normalized) || "Something you haven't found words for yet", listed: false });
+  return items;
+}
+
+export function splitClauses(text) {
+  return clauseItems(text).map((item) => item.clause);
 }
 
 // On a tie the topic named first wins: "do laundry or I have nothing to wear to work" is about
@@ -559,7 +571,8 @@ function pickSmallStep(todos, feelings, lower) {
 }
 
 export function organize(text) {
-  const clauses = splitClauses(text);
+  const items = clauseItems(text);
+  const clauses = items.map((item) => item.clause);
   const lower = normalize(text).toLowerCase();
   const needsSupport = mentionsCrisis(text);
   const feelings = feelingsIn(lower, needsSupport);
@@ -586,7 +599,7 @@ export function organize(text) {
     const promise = clause.match(PROMISED);
     const promised = promise !== null && !PAST_WHEN.test(promise[1] || promise[2]);
     const isTask =
-      (TASK_CUE.test(clause) || IMPERATIVE.test(clause) || unmet || LEFT_TO.test(clause) || DEADLINE.test(clause) || promised || MY_PLAN.test(clause) || isWorkItem(clause)) &&
+      (TASK_CUE.test(clause) || IMPERATIVE.test(clause) || unmet || LEFT_TO.test(clause) || DEADLINE.test(clause) || promised || MY_PLAN.test(clause) || (items[i].listed && isWorkItem(clause))) &&
       !(PAST.test(clause) && !INTENT.test(clause) && !unmet && !promised) &&
       // A promise is a plan made in the past, so "but I bailed" rules it out just as it does "was supposed to".
       !((PAST_PLAN.test(clause) || promised) && !STILL_OWED.test(clause) && (FELL_THROUGH.test(clause) || FELL_THROUGH_LEAD.test(clauses[i + 1] || ""))) &&
