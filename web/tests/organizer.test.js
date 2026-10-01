@@ -114,6 +114,9 @@ test("hiding an injury and settling affairs never show up as to-dos", () => {
   ]) {
     assert.deepEqual(organize(text).to_dos, [], text);
   }
+  // Keeping a boss from asking or guests from seeing a mess is an ordinary chore.
+  assert.ok(organize("need to finish the report tonight so my boss doesnt ask about it again").to_dos.some((t) => t.task === "Finish the report"));
+  assert.equal(organize("need to clean my room so no one sees the mess").to_dos.length, 1);
   // Giving belongings away beside a crisis phrase marks every errand as part of a goodbye.
   assert.deepEqual(organize("i want to kill myself. gave my bike to my neighbor. need to return the drill to my uncle").to_dos, []);
   assert.deepEqual(organize("left farewell notes for my friends. have to sell the car so nobody is stuck with it").to_dos, []);

@@ -125,8 +125,9 @@ const STILL_OWED = /\bsupposed to (?:pay|repay|return)\b/i;
 // "Don't really need to renew the lease" names a chore only to rule it out.
 const NO_NEED = /\b(?:don'?t|do not|doesn'?t|does not|no longer|never)\s+(?:really\s+|even\s+|actually\s+|technically\s+)?(?:need|have|has|got) to\b|\bno need to\b/i;
 // "Wear long sleeves so no one sees" hides something, often an injury, and a to-do list should
-// never coach hiding.
-const CONCEAL = /\bso (?:that )?(?:no one|nobody|noone|no-one) (?:will |can |would |ever )?(?:sees?|knows?|notices?|finds? out|asks?)\b|\bso (?:that )?(?:they|people|he|she|my \w+) (?:won'?t|wont|can'?t|cant|don'?t|dont|doesn'?t|doesnt) (?:see|know|notice|find out|ask)\b|\bto (?:hide|cover) (?:up )?(?:the |my )?(?:cuts|scars|marks|bruises|burns)\b/i;
+// never coach hiding. Only being seen counts, and only with nothing named or with a mark on the
+// body named, because "so my boss doesnt ask" or "so no one sees the mess" is an ordinary chore.
+const CONCEAL = /\bso (?:that )?(?:(?:no one|nobody|noone|no-one) (?:will |can |would |ever )?(?:sees?|notices?)|(?:they|people|he|she|my \w+) (?:won'?t|wont|can'?t|cant|don'?t|dont|doesn'?t|doesnt) (?:see|notice))(?:\s+(?:the |my |any )?(?:cuts|scars|marks|bruises|burns|arms|wrists|legs|thighs)\b|(?:\s+(?:them|it))?\s*(?:[.!?,;]|$))|\bto (?:hide|cover) (?:up )?(?:the |my )?(?:cuts|scars|marks|bruises|burns)\b/i;
 // Someone settling their affairs before a crisis gives things away, writes goodbye letters and
 // pays things off "so nobody gets stuck with it". In a dump like that every errand is part of the
 // goodbye, so none of them is listed as a to-do.
@@ -286,7 +287,7 @@ function splitRunOn(part) {
     const next = part.slice(m.index + m[0].length, k + 1 < cuts.length ? cuts[k + 1].index : part.length);
     if (!hasAnchor(next) || /^(?:my|the)\s+\S+(?:\s+\S+)?$/i.test(next.trim())) return;
     // "so nobody sees" is the reason for the task before it, so it stays with that task.
-    if (/^\s+so\s+$/i.test(m[0]) && (/^(?:nobody|no one)\b/i.test(next) || CONCEAL.test(`so ${next}`) || STUCK_WITH.test(`so ${next}`))) return;
+    if (/^\s+so\s+$/i.test(m[0]) && (CONCEAL.test(`so ${next}`) || STUCK_WITH.test(`so ${next}`))) return;
     pieces.push(part.slice(start, m.index));
     start = m.index + m[0].length;
   });
