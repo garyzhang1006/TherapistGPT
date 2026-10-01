@@ -121,6 +121,11 @@ test("hiding an injury and settling affairs never show up as to-dos", () => {
   assert.equal(organize("i want to kill myself. need to return the drill to my uncle").to_dos.length, 1);
 });
 
+test("a follow-up that only says them and it stays with the errand it belongs to", () => {
+  assert.deepEqual(organize("need to email the landlord and ask him to fix it").to_dos.map((t) => t.task), ["Email the landlord and ask him to fix it"]);
+  assert.deepEqual(organize("need to call the clinic and book a checkup").to_dos.map((t) => t.task), ["Call the clinic", "Book a checkup"]);
+});
+
 test("list lines become separate to-dos without their bullets", () => {
   assert.deepEqual(organize("- call mom\n- pay rent\n- groceries").to_dos.map((t) => t.task), ["Call mom", "Pay rent", "Groceries"]);
   assert.deepEqual(

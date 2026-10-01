@@ -579,7 +579,17 @@ function isFragment(task) {
 function splitTaskList(task) {
   // "Take it out and actually buy groceries" is two chores even with a word between "and" and the verb.
   const verbJoin = /\s+and\s+(?:(?:actually|also|then|maybe|finally|just|still)\s+)?(?=(?:call|book|email|text|pay|clean|do|finish|get|buy|make|send|check|refill|start|reply|submit|schedule|return|cancel|sign|update|ask|take|pick|fill|file|order|renew|apply|register|print)\b)/i;
-  if (verbJoin.test(task)) return task.split(verbJoin).map((t) => capitalize(t.trim().replace(/[,;]+$/, "")));
+  if (verbJoin.test(task)) {
+    // "Call the bank and ask them to waive it" is one errand: a part that names nothing but them
+    // and it leans on the part before it.
+    const parts = [];
+    for (const part of task.split(verbJoin).map((t) => t.trim().replace(/[,;]+$/, ""))) {
+      const leans = parts.length && /\b(?:it|them|that|this)$/i.test(part) && !/\b(?:the|a|an|my|your|his|their|our|some)\b/i.test(part);
+      if (leans) parts[parts.length - 1] += ` and ${part}`;
+      else parts.push(part);
+    }
+    return parts.map(capitalize);
+  }
   if ((task.match(/,/g) || []).length < 2) return [task];
   const parts = task
     .split(/,\s*(?:and\s+)?|\s+and\s+/i)
