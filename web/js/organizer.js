@@ -48,8 +48,10 @@ const FEELINGS = [
 // "I dont even feel scared" names a feeling only to deny it.
 const NOT_FELT = /\b(?:don'?t|dont|do not|didn'?t|didnt|not|never|no longer|isn'?t|wasn'?t)\s+(?:even\s+|really\s+|actually\s+)?(?:(?:feel|feeling|felt|get|getting|am|be)\s+)?(?:so\s+|that\s+|very\s+|too\s+)?(?:scared|afraid|nervous|anxious|worried|sad|lonely|angry|mad|guilty|upset|annoyed|ashamed|embarrassed)\b/gi;
 // "I know she's annoyed" is someone else's anger. It lands on the writer as worry and guilt, so it
-// counts as those and not as the writer's own anger.
-const OTHERS_UPSET = /\b(?:she|he|they|everyone|my (?:\w+ )?(?:mom|mum|dad|mother|father|sister|brother|partner|boyfriend|girlfriend|husband|wife|bf|gf|roommate|friend|friends|boss|manager|professor|advisor|parents))(?:'s|s|'re| is| are| was| were| seems?| must be| probably| prob)?\s+(?:(?:so|really|super|probably|prob|kinda|pretty|totally|definitely|still|def)\s+)?(?:annoyed|mad|pissed|angry|upset|furious|disappointed|frustrated)\b/i;
+// counts as those and not as the writer's own anger. The linking word is required, because "my
+// roommate annoyed me" and "she's disappointed me" use the word as a verb, and there the writer is
+// the one who is upset.
+const OTHERS_UPSET = /\b(?:she|he|they|everyone|my (?:\w+ )?(?:mom|mum|dad|mother|father|sister|brother|partner|boyfriend|girlfriend|husband|wife|bf|gf|roommate|friend|friends|boss|manager|professor|advisor|parents))(?:'s|s|'re| is| are| was| were| seems?| must be| probably| prob)\s+(?:(?:so|really|super|probably|prob|kinda|pretty|totally|definitely|still|def)\s+)?(?:annoyed|mad|pissed|angry|upset|furious|disappointed|frustrated)\b(?!\s+(?:me|us)\b)/i;
 
 function feelingsIn(lower, crisis) {
   const othersUpset = OTHERS_UPSET.test(lower);
