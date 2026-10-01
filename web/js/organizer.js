@@ -20,6 +20,7 @@ const TOPICS = [
 // Words that point at someone without naming a topic. Harsh self-talk that only mentions
 // "everyone" stays about the person.
 const GENERIC_PEOPLE = /^(?:everyone|nobody|people|ppl|she|he|she'?s|he'?s|shes)$/i;
+const PAST_VERB_HIT = /^(?:ate|slept|paid|texted|cleaned|moved|studied)$/i;
 const FALLBACK_TOPIC = "Inside your head";
 const OVERFLOW_TOPIC = "Everything else";
 
@@ -427,9 +428,11 @@ function topicFor(clause, specificOnly = false) {
   const hits = TOPICS.flatMap((topic) =>
     [...clause.matchAll(new RegExp(topic.words.source, "gi"))]
       .filter((m) => !(specificOnly && GENERIC_PEOPLE.test(m[0])))
-      .map((m) => ({ title: topic.title, start: m.index, end: m.index + m[0].length }))
+      .map((m) => ({ title: topic.title, start: m.index, end: m.index + m[0].length, word: m[0] }))
   );
-  const heads = hits.filter((h) => !hits.some((o) => o.title !== h.title && o.start === h.end + 1));
+  // "My roommate ate my leftovers" is a person doing something, not a compound like "budget
+  // meeting", so a past-tense verb after a topic word never takes its place.
+  const heads = hits.filter((h) => !hits.some((o) => o.title !== h.title && o.start === h.end + 1 && !PAST_VERB_HIT.test(o.word)));
   let best = null;
   let bestScore = 0;
   let bestAt = Infinity;

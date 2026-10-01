@@ -255,6 +255,7 @@ test("common words for each topic land under it", () => {
     ["the bedroom is a disaster", "Home"],
     ["my brothers keep fighting", "People"],
     ["packing the kids lunches every morning", "Home"],
+    ["my sister ate the last of my cereal", "People"],
   ];
   for (const [text, title] of cases) assert.equal(organize(text).threads[0].title, title, text);
 });
