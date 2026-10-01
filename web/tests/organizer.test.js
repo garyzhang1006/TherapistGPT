@@ -231,6 +231,22 @@ test("feelings come from feeling words, not colors or objects", () => {
   assert.ok(organize("i miss sam so much").feelings.includes("sad"));
 });
 
+test("everyday ways of saying a feeling without naming it", () => {
+  const cases = [
+    ["walking around like a zombie all week", "exhausted"],
+    ["desperate for some sleep", "exhausted"],
+    ["everybody wants something from me at once", "overwhelmed"],
+    ["the apartment feels so empty without her", "lonely"],
+    ["six weeks since my uncle passed and the calls stopped", "sad"],
+    ["my son deserves a better father", "guilty"],
+    ["i feel like such a fraud at this job", "ashamed"],
+    ["wished the ground would open up, wanted the earth to swallow me", "ashamed"],
+    ["cant see any point in trying anymore", "hopeless"],
+  ];
+  for (const [text, feeling] of cases) assert.ok(organize(text).feelings.includes(feeling), `${text} -> ${organize(text).feelings}`);
+  assert.ok(!organize("since the bill passed my rent went up").feelings.includes("sad"));
+});
+
 test("too many topics fold into Everything else without losing any topic", () => {
   const out = organize("my exam is monday. my boss yelled. rent is due. my mom called. i can't sleep. my room is a mess");
   assert.equal(out.threads.length, 5);
