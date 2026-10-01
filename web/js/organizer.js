@@ -79,8 +79,18 @@ const NOT_A_TASK = /\b(disappear|exist|existing|die|dead|kill|hurt|end it|stop b
 // "I was supposed to go to Jess's party but I didn't" is a plan that already fell through: it goes
 // with the feelings, not on the plate. A long run-on may split the "but I didn't" into the next clause.
 const PAST_PLAN = /\b(?:was|were) supposed to\b/i;
-const FELL_THROUGH = /\b(?:but|and)\s+(?:I|we)\s+(?:didn'?t|couldn'?t|did not|could not|never|wasn'?t able to|weren'?t able to)\b/i;
-const FELL_THROUGH_LEAD = /^(?:I|we)\s+(?:didn'?t|couldn'?t|did not|could not|never|wasn'?t able to|weren'?t able to)\b/i;
+const FELL_THROUGH = /\b(?:but|and)\s+(?:I|we)\s+(?:didn'?t|couldn'?t|did not|could not|never|wasn'?t able to|weren'?t able to|bailed|cancel+ed|flaked|skipped|missed|forgot|backed out|ditched|overslept|blew (?:it|them|her|him) off)\b/i;
+const FELL_THROUGH_LEAD = /^(?:I|we)\s+(?:didn'?t|couldn'?t|did not|could not|never|wasn'?t able to|weren'?t able to|bailed|cancel+ed|flaked|skipped|missed|forgot|backed out|ditched|overslept)\b/i;
+// A debt outlives the plan: "I was supposed to pay Kira back last week and I didn't" is still owed.
+const STILL_OWED = /\bsupposed to (?:pay|repay|return)\b/i;
+// "Don't really need to renew the lease" names a chore only to rule it out.
+const NO_NEED = /\b(?:don'?t|do not|doesn'?t|does not|no longer|never)\s+(?:really\s+|even\s+|actually\s+|technically\s+)?(?:need|have|has|got) to\b|\bno need to\b/i;
+// "Appt got moved to the 14th" is news about a plan, not something to do.
+const SCHEDULE_NEWS = /\b(?:got|was|were|been|is|are)\s+(?:moved|pushed(?: back)?|rescheduled|cancel+ed|changed|postponed|bumped|delayed)\b/i;
+// "My sister has to drive me everywhere" is her task, not the writer's.
+const OTHERS_TASK = /\b(?:he|she|they|my (?:\w+ )?(?:mom|mum|dad|mother|father|sister|brother|partner|boyfriend|girlfriend|husband|wife|bf|gf|roommates?|friends?|son|daughter|kids?|boss|manager|landlord|grandma|grandpa|aunt|uncle|cousin|parents))\s+(?:(?:still|also|really|just|always|now)\s+)?(?:has to|have to|needs to|need to|gotta|must|should|is supposed to|are supposed to|wants to|want to)\b/i;
+// "If I have to sit through one more meeting just shoot me" is a what-if, not a plan.
+const WHAT_IF = /^if\s+(?:I|we)\s+(?:\w+\s+)?(?:have to|need to|gotta|got to|must)\b/i;
 const TASK_LEAD = /^(and |so |but |also |i |im |i'?m |i am |really |still )*(need to|needs to|have to|has to|gotta|got to|should( really)?|am supposed to|supposed to|must|forgot to|want to|also need to)\s+/i;
 // "I still haven't emailed my advisor" is an obligation still open, so it is a to-do without any
 // "need to". Only the writer's own (I, we, or no subject): "she hasn't paid me back" is hers.
@@ -502,8 +512,11 @@ export function organize(text) {
     const isTask =
       (TASK_CUE.test(clause) || IMPERATIVE.test(clause) || unmet || LEFT_TO.test(clause)) &&
       !(PAST.test(clause) && !INTENT.test(clause) && !unmet) &&
-      !(PAST_PLAN.test(clause) && (FELL_THROUGH.test(clause) || FELL_THROUGH_LEAD.test(clauses[i + 1] || ""))) &&
-      !(SOMEONE_ELSES.test(clause) && !MY_INTENT.test(clause)) &&
+      !(PAST_PLAN.test(clause) && !STILL_OWED.test(clause) && (FELL_THROUGH.test(clause) || FELL_THROUGH_LEAD.test(clauses[i + 1] || ""))) &&
+      !((SOMEONE_ELSES.test(clause) || OTHERS_TASK.test(clause)) && !MY_INTENT.test(clause)) &&
+      !(NO_NEED.test(clause) && !INTENT.test(clause.replace(new RegExp(NO_NEED.source, "gi"), " "))) &&
+      !(SCHEDULE_NEWS.test(clause) && !INTENT.test(clause)) &&
+      !WHAT_IF.test(clause) &&
       !SELF_CRITIC.test(clause) &&
       !NOT_A_TASK.test(clause) &&
       !mentionsCrisis(clause);
