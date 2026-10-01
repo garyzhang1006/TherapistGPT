@@ -81,6 +81,9 @@ const PAST = /\b(did|finally|already|yesterday|last (night|week|month|year)|miss
 const DEADLINE = /\bby (?:end of (?:the )?(?:day|week|month)|eod|eow|cob|tonight|tomorrow|tmrw|tmr|noon|midnight|monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tues?|wed|thu|thurs?|fri|sat|sun|next week|the \d+(?:st|nd|rd|th)?|\d{1,2}(?::\d\d)?\s?(?:am|pm)|\d{1,2}:\d\d)\b/i;
 // "I said I'd tutor my cousin on Sunday" is a promise, and a promise is a to-do.
 const PROMISED = /(?:^|\b(?:I|we)\s+(?:\w+\s+)?)(?:said|told \w+)(?: that)? (?:I'?d|id|I would|I'll|we'?d|we'll)\s+(?!(?:be|never|not|feel|have been)\b)(.+)$|(?:^|\b(?:I|we)\s+(?:\w+\s+)?)(?:promised|agreed|offered)(?: \w+)? to\s+(.+)$/i;
+// "I told Jess I'd come to her party last night" promised something already past. "I told him
+// yesterday I'd call" still owes the call, so only a past time inside the promise counts.
+const PAST_WHEN = /\b(?:yesterday|last (?:night|week|weekend|month|year)|(?:\d+|a few|a couple of|two|three) (?:days|weeks) ago)\b/i;
 // "Gonna file a complaint with the city" is the writer's own plan. "I'm gonna cry", "I'm gonna get
 // fired" and "going to miss the deadline" are worries about what will happen to them, and there
 // are too many of those to list, so only a chore verb makes a plan.
@@ -580,11 +583,13 @@ export function organize(text) {
     }
     // "haven't sent it" says the thing is still waiting, whatever else in the clause is past.
     const unmet = unmetTask(clause) !== null;
-    const promised = PROMISED.test(clause);
+    const promise = clause.match(PROMISED);
+    const promised = promise !== null && !PAST_WHEN.test(promise[1] || promise[2]);
     const isTask =
       (TASK_CUE.test(clause) || IMPERATIVE.test(clause) || unmet || LEFT_TO.test(clause) || DEADLINE.test(clause) || promised || MY_PLAN.test(clause) || isWorkItem(clause)) &&
       !(PAST.test(clause) && !INTENT.test(clause) && !unmet && !promised) &&
-      !(PAST_PLAN.test(clause) && !STILL_OWED.test(clause) && (FELL_THROUGH.test(clause) || FELL_THROUGH_LEAD.test(clauses[i + 1] || ""))) &&
+      // A promise is a plan made in the past, so "but I bailed" rules it out just as it does "was supposed to".
+      !((PAST_PLAN.test(clause) || promised) && !STILL_OWED.test(clause) && (FELL_THROUGH.test(clause) || FELL_THROUGH_LEAD.test(clauses[i + 1] || ""))) &&
       !((SOMEONE_ELSES.test(clause) || OTHERS_TASK.test(clause)) && !MY_INTENT.test(clause)) &&
       !(NO_NEED.test(clause) && !INTENT.test(clause.replace(new RegExp(NO_NEED.source, "gi"), " "))) &&
       !(SCHEDULE_NEWS.test(clause) && !INTENT.test(clause)) &&
