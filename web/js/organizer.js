@@ -495,6 +495,11 @@ const COUNT_LED = /^(\d+|a few|a couple(?: of)?|two|three|four|five|six|seven|ei
 const COURSE = /\b(calc|calculus|chem|chemistry|bio|biology|physics|math|stats|statistics|english|history|econ|psych|orgo|spanish|french)\b/i;
 // "My manager wants the inventory spreadsheet by end of day" is the writer's to-do.
 const WANTS_IT = /^(?:my |the |our )?(?:\w+ )?(?:boss|manager|professor|prof|teacher|client|advisor|supervisor|editor|lead)\s+(?:wants|needs|asked for|expects|is waiting on|is waiting for)\s+(?:me to\s+)?(.+)$/i;
+// "I can't type anymore my advisor wants the draft by Monday" says the request after a preamble, and
+// the request is the task.
+const WANTS_MID = new RegExp(`\\b${WANTS_IT.source.slice(1)}`, "i");
+// "Doctor wants me to come in about my blood pressure" is a visit to book, even without "need to".
+const MEDICAL_ASK = /\b(?:my |the )?(doctor|doc|dentist|therapist|nurse|pediatrician|specialist|cardiologist|psychiatrist|dermatologist)\s+(?:wants|needs|asked|told)\s+me\s+to\s+(.+)$/i;
 
 function toTask(clause, course) {
   const chores = clause.match(CHORES_ARE);
@@ -507,8 +512,11 @@ function toTask(clause, course) {
     if (left) return capitalize(`${left[2].toLowerCase()} ${left[1]}`);
     const plan = clause.match(PROMISED) || clause.match(MY_PLAN);
     if (plan) return capitalize(trimTail(plan[1] || plan[2]));
+    const ask = clause.match(MEDICAL_ASK);
+    if (ask) return capitalize(trimTail(ask[2].replace(/^(?:come|go)(?: back)?(?: in)?(?=\s+(?:about|for|to|so|and)\b|$)/i, `see the ${ask[1].toLowerCase()}`)));
   }
-  const task = trimTail(intent ? intent[1] : clause.replace(TASK_LEAD, ""))
+  const wanted = !intent && clause.match(WANTS_MID);
+  const task = trimTail(intent ? intent[1] : wanted ? wanted[0] : clause.replace(TASK_LEAD, ""))
     .replace(intent ? /^(?:I|I've|we) (?:have|got) (?=(?:the|a|an|my|this|that)\b)/i : /^(?:(?:I|I've|we) )?(?:have|got) (?=(?:the|a|an|my|this|that)\b)/i, "")
     .replace(DUE_LATE, (_, bill) => `Pay ${bill.toLowerCase()}`)
     .replace(WANTS_IT, (_, thing) => (/^(?:the|a|an|my|our|this|that)\b/i.test(thing) ? `finish ${thing}` : thing))
@@ -659,7 +667,7 @@ export function organize(text) {
     const promise = clause.match(PROMISED);
     const promised = promise !== null && !PAST_WHEN.test(promise[1] || promise[2]);
     const isTask =
-      (TASK_CUE.test(clause) || IMPERATIVE.test(clause) || unmet || LEFT_TO.test(clause) || isDeadline(clause) || promised || MY_PLAN.test(clause) || (items[i].listed && isWorkItem(clause))) &&
+      (TASK_CUE.test(clause) || IMPERATIVE.test(clause) || unmet || MEDICAL_ASK.test(clause) || LEFT_TO.test(clause) || isDeadline(clause) || promised || MY_PLAN.test(clause) || (items[i].listed && isWorkItem(clause))) &&
       !(PAST.test(clause) && !INTENT.test(clause) && !unmet && !promised) &&
       // A promise is a plan made in the past, so "but I bailed" rules it out just as it does "was supposed to".
       !((PAST_PLAN.test(clause) || promised) && !STILL_OWED.test(clause) && (FELL_THROUGH.test(clause) || FELL_THROUGH_LEAD.test(clauses[i + 1] || ""))) &&

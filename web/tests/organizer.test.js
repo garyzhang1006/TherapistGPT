@@ -152,6 +152,12 @@ test("a promise to my someone is a to-do", () => {
   assert.equal(organize("told the team i would send notes").to_dos[0].task, "Send notes");
 });
 
+test("a request from a boss or a doctor is the task, even after a preamble", () => {
+  assert.equal(organize("cant think straight today my manager wants the budget slides by friday").to_dos[0].task, "Finish the budget slides by friday");
+  assert.equal(organize("dentist wants me to come in for a cleaning").to_dos[0].task, "See the dentist for a cleaning");
+  assert.equal(organize("the nurse told me to get bloodwork done").to_dos[0].task, "Get bloodwork done");
+});
+
 test("a to-do keeps the task and leaves the feeling about it behind", () => {
   const { to_dos } = organize("I need to finish my thesis chapter and I haven't opened it in a week");
   assert.equal(to_dos[0].task, "Finish my thesis chapter");
