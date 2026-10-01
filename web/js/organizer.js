@@ -499,11 +499,16 @@ const TO_PERSON = /^(?:tell|email|call|text|ask|remind|message|thank|meet|visit|
 // The second word is optional and never one of the verbs, so "the trash still hasn't" names "trash".
 const THING_SUBJECT = /^(?:the|my|our|this|that)\s+(\w+(?:\s+(?!(?:has|have|is|are|was|were|keeps|still|needs)\b)\w+)??)\s+(?:has|have|is|are|was|were|keeps|still|needs)\b/i;
 
+// "Email her" never means "my brother", so a role that names the other gender is passed over.
+const MALE_ROLE = /^(?:dad|father|brother|boyfriend|husband|bf|grandpa|uncle)$/i;
+const FEMALE_ROLE = /^(?:mom|mum|mother|sister|girlfriend|wife|gf|grandma|aunt)$/i;
+
 function resolveTask(task, earlier) {
   if (TO_PERSON.test(task)) {
+    const conflicting = /her$/i.test(task.match(TO_PERSON)[0]) ? MALE_ROLE : FEMALE_ROLE;
     for (let k = earlier.length - 1; k >= 0; k--) {
-      const person = earlier[k].match(PERSON);
-      if (person) return task.replace(/\b(?:her|him)\b/i, `my ${person[1].toLowerCase()}`);
+      const people = [...earlier[k].matchAll(new RegExp(PERSON.source, "gi"))].map((m) => m[1]).filter((role) => !conflicting.test(role));
+      if (people.length) return task.replace(/\b(?:her|him)\b/i, `my ${people[0].toLowerCase()}`);
     }
   }
   const thing = (earlier[earlier.length - 1] || "").match(THING_SUBJECT);
