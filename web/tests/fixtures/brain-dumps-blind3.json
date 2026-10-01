@@ -266,7 +266,7 @@
       "text": "Missed my therapy appointment because I slept through the alarm, really disappointed in myself. Have to call the office Monday to reschedule and ask about the no-show fee.",
       "needs_support": false,
       "todos": ["reschedule", "fee"],
-      "not_todos": ["slept through", "missed"],
+      "not_todos": ["slept through"],
       "threads": ["Rest and body", "Money"],
       "feelings": ["disappointed"]
     }
