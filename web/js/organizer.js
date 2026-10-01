@@ -121,6 +121,14 @@ const FELL_THROUGH_LEAD = /^(?:I|we)\s+(?:didn'?t|couldn'?t|did not|could not|ne
 const STILL_OWED = /\bsupposed to (?:pay|repay|return)\b/i;
 // "Don't really need to renew the lease" names a chore only to rule it out.
 const NO_NEED = /\b(?:don'?t|do not|doesn'?t|does not|no longer|never)\s+(?:really\s+|even\s+|actually\s+|technically\s+)?(?:need|have|has|got) to\b|\bno need to\b/i;
+// "Wear long sleeves so no one sees" hides something, often an injury, and a to-do list should
+// never coach hiding.
+const CONCEAL = /\bso (?:that )?(?:no one|nobody|noone|no-one) (?:will |can |would |ever )?(?:sees?|knows?|notices?|finds? out|asks?)\b|\bso (?:that )?(?:they|people|he|she|my \w+) (?:won'?t|wont|can'?t|cant|don'?t|dont|doesn'?t|doesnt) (?:see|know|notice|find out|ask)\b|\bto (?:hide|cover) (?:up )?(?:the |my )?(?:cuts|scars|marks|bruises|burns)\b/i;
+// Someone settling their affairs before a crisis gives things away, writes goodbye letters and
+// pays things off "so nobody gets stuck with it". In a dump like that every errand is part of the
+// goodbye, so none of them is listed as a to-do.
+const SETTLING_AFFAIRS = /\b(?:goodbye|farewell) (?:letters?|notes?)\b|\bletters (?:to|for) (?:my |everyone|mom|dad)|\b(?:gave|giving|given|gifted) (?:away (?:my|all my)\b|(?:my|all my|most of my)(?: \w+){1,2} (?:to|away)\b)/i;
+const STUCK_WITH = /\bso (?:that )?(?:no one|nobody|noone|my \w+|they) (?:gets?|is|are|ends? up|will be|would be|has to|have to) (?:stuck|left) (?:with|holding|paying|dealing)\b/i;
 // "It's due wednesday" names no thing at all, so on its own it is not a task.
 const PRONOUN_DUE = /^(?:it'?s|its|it is|it was|that'?s|that is|they'?re|they are|both are)\s+(?:all\s+|also\s+|still\s+|both\s+)?(?:due|late|overdue)\b/i;
 // "Appt got moved to the 14th" is news about a plan, not something to do.
@@ -267,6 +275,8 @@ function splitRunOn(part) {
   cuts.forEach((m, k) => {
     const next = part.slice(m.index + m[0].length, k + 1 < cuts.length ? cuts[k + 1].index : part.length);
     if (!hasAnchor(next) || /^(?:my|the)\s+\S+(?:\s+\S+)?$/i.test(next.trim())) return;
+    // "so nobody sees" is the reason for the task before it, so it stays with that task.
+    if (/^\s+so\s+$/i.test(m[0]) && (/^(?:nobody|no one)\b/i.test(next) || CONCEAL.test(`so ${next}`) || STUCK_WITH.test(`so ${next}`))) return;
     pieces.push(part.slice(start, m.index));
     start = m.index + m[0].length;
   });
@@ -623,6 +633,8 @@ export function organize(text) {
   // One course named anywhere in the dump says which class a bare "30 problems" belongs to.
   const courses = new Set(lower.match(new RegExp(COURSE.source, "gi")) || []);
   const course = courses.size === 1 ? [...courses][0] : null;
+  const settling = SETTLING_AFFAIRS.test(lower);
+  const affairs = settling && needsSupport;
 
   const todos = [];
   const reframes = [];
@@ -655,6 +667,9 @@ export function organize(text) {
       !SELF_CRITIC.test(clause) &&
       !NOT_A_TASK.test(clause) &&
       !THREAT.test(clause) &&
+      !CONCEAL.test(clause) &&
+      !affairs &&
+      !((settling || needsSupport) && STUCK_WITH.test(clause)) &&
       !mentionsCrisis(clause);
     if (isTask && todos.length < LIMITS.todos) {
       const intentAt = clause.match(INTENT_AT);

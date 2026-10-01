@@ -107,6 +107,20 @@ test("a vague it or the form carries the thing named just before it", () => {
   assert.deepEqual(organize("ugh need to finish it").to_dos, []);
 });
 
+test("hiding an injury and settling affairs never show up as to-dos", () => {
+  for (const text of [
+    "need to grab a big scarf so nobody notices the bruises",
+    "have to wear jeans to the pool party so my friends dont see the marks",
+  ]) {
+    assert.deepEqual(organize(text).to_dos, [], text);
+  }
+  // Giving belongings away beside a crisis phrase marks every errand as part of a goodbye.
+  assert.deepEqual(organize("i want to kill myself. gave my bike to my neighbor. need to return the drill to my uncle").to_dos, []);
+  assert.deepEqual(organize("left farewell notes for my friends. have to sell the car so nobody is stuck with it").to_dos, []);
+  // An ordinary crisis dump keeps its chores.
+  assert.equal(organize("i want to kill myself. need to return the drill to my uncle").to_dos.length, 1);
+});
+
 test("list lines become separate to-dos without their bullets", () => {
   assert.deepEqual(organize("- call mom\n- pay rent\n- groceries").to_dos.map((t) => t.task), ["Call mom", "Pay rent", "Groceries"]);
   assert.deepEqual(
