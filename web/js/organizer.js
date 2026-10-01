@@ -130,6 +130,10 @@ const CONCEAL = /\bso (?:that )?(?:no one|nobody|noone|no-one) (?:will |can |wou
 // goodbye, so none of them is listed as a to-do.
 const SETTLING_AFFAIRS = /\b(?:goodbye|farewell) (?:letters?|notes?)\b|\bletters (?:to|for) (?:my |everyone|mom|dad)|\b(?:gave|giving|given|gifted) (?:away (?:my|all my)\b|(?:my|all my|most of my)(?: \w+){1,2} (?:to|away)\b)/i;
 const STUCK_WITH = /\bso (?:that )?(?:no one|nobody|noone|my \w+|they) (?:gets?|is|are|ends? up|will be|would be|has to|have to) (?:stuck|left) (?:with|holding|paying|dealing)\b/i;
+// "Need new shoes for gym" or "the kids need school supplies" is shopping, a to-do without "need to".
+// Only things that get bought count, because "I need a break" or "I need the money" is not a chore.
+const NEED_THING = /\bneeds? (?:a |an |some |more )?((?:new |more )?(?:\w+ )?(?:supplies|shoes|sneakers|cleats|boots|diapers|wipes|formula|batteries|ink|toner|uniforms?|textbooks?|glasses|tires?))\b/i;
+const NO_NEED_THING = /\b(?:don'?t|dont|do not|doesn'?t|doesnt|does not|no longer|never)\s+(?:really\s+|even\s+|actually\s+)?needs?\b/i;
 // "Forgot to eat lunch again" is a meal already missed. The one small step answers it with food,
 // so it is not also a to-do.
 const MISSED_MEAL = /\bforgot to eat\b/i;
@@ -516,6 +520,8 @@ function toTask(clause, course) {
     if (plan) return capitalize(trimTail(plan[1] || plan[2]));
     const ask = clause.match(MEDICAL_ASK);
     if (ask) return capitalize(trimTail(ask[2].replace(/^(?:come|go)(?: back)?(?: in)?(?=\s+(?:about|for|to|so|and)\b|$)/i, `see the ${ask[1].toLowerCase()}`)));
+    const need = clause.match(NEED_THING);
+    if (need) return capitalize(trimTail(`get ${need[1]}${clause.slice(need.index + need[0].length)}`));
   }
   const wanted = !intent && clause.match(WANTS_MID);
   const task = trimTail(intent ? intent[1] : wanted ? wanted[0] : clause.replace(TASK_LEAD, ""))
@@ -681,7 +687,7 @@ export function organize(text) {
     const promise = clause.match(PROMISED);
     const promised = promise !== null && !PAST_WHEN.test(promise[1] || promise[2]);
     const isTask =
-      (TASK_CUE.test(clause) || IMPERATIVE.test(clause) || unmet || MEDICAL_ASK.test(clause) || LEFT_TO.test(clause) || isDeadline(clause) || promised || MY_PLAN.test(clause) || (items[i].listed && isWorkItem(clause))) &&
+      (TASK_CUE.test(clause) || IMPERATIVE.test(clause) || unmet || MEDICAL_ASK.test(clause) || (NEED_THING.test(clause) && !NO_NEED_THING.test(clause)) || LEFT_TO.test(clause) || isDeadline(clause) || promised || MY_PLAN.test(clause) || (items[i].listed && isWorkItem(clause))) &&
       !(PAST.test(clause) && !INTENT.test(clause) && !unmet && !promised) &&
       // A promise is a plan made in the past, so "but I bailed" rules it out just as it does "was supposed to".
       !((PAST_PLAN.test(clause) || promised) && !STILL_OWED.test(clause) && (FELL_THROUGH.test(clause) || FELL_THROUGH_LEAD.test(clauses[i + 1] || ""))) &&

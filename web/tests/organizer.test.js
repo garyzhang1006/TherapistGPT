@@ -132,6 +132,12 @@ test("him or her in a gift task means the person named before it", () => {
   assert.deepEqual(organize("my mom is sick. need to get her meds").to_dos.map((t) => t.task), ["Get her meds"]);
 });
 
+test("needing something to buy is a to-do, but needing a break is not", () => {
+  assert.equal(organize("need new running shoes before the 5k").to_dos[0].task, "Get new running shoes before the 5k");
+  assert.equal(organize("the twins need diapers and wipes").to_dos[0].task, "Get diapers and wipes");
+  for (const text of ["i dont need new shoes", "i need a break", "i need the money"]) assert.deepEqual(organize(text).to_dos, [], text);
+});
+
 test("list lines become separate to-dos without their bullets", () => {
   assert.deepEqual(organize("- call mom\n- pay rent\n- groceries").to_dos.map((t) => t.task), ["Call mom", "Pay rent", "Groceries"]);
   assert.deepEqual(
