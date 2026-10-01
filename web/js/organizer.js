@@ -99,9 +99,10 @@ const MY_PLAN = /(?:^|\b(?:I|I'm|I am|we|we're)\s+)(?:also\s+|really\s+|finally\
 // "The only things I have to do are laundry and the GRE" lists its chores after "are".
 const CHORES_ARE = /\b(?:all|what|the (?:only )?things?|stuff|everything)\s+(?:I|we)\s+(?:have to|need to|gotta|got to|should)\s+do\s+(?:today\s+|this week\s+|tomorrow\s+)?(?:is|are)\s+(.+)$/i;
 // A short list line that names a piece of work is a to-do even without a verb: "the vendor
-// contract renewal", "club fundraiser forms". A subject or a past-tense verb makes it a sentence.
+// contract renewal", "club fundraiser forms", "dry cleaning pickup". A subject or a past-tense verb
+// makes it a sentence.
 // Only list items count, because in running prose "worst exam ever" is a complaint.
-const WORK_THING = /\b(deck|contracts?|renewal|report|essay|paper|forms?|application|presentation|slides|homework|assignment|midterm|final|exam|test|quiz|project|proposal|invoice|taxes|spreadsheet|draft|resume|cover letter|problem set|pset|reading|paperwork|lab)\b/i;
+const WORK_THING = /\b(deck|contracts?|renewal|report|essay|paper|forms?|application|presentation|slides|homework|assignment|midterm|final|exam|test|quiz|project|proposal|invoice|taxes|spreadsheet|draft|resume|cover letter|problem set|pset|reading|paperwork|lab|pickup|pick-up|drop-?off|errands?|prescriptions?)\b/i;
 const SENTENCE_WORD = /\b(?:I|I'm|I've|I'd|me|he|she|they|we|it|it's|you|is|are|was|were|went|got|\w{2,}ed)\b/i;
 
 function isWorkItem(clause) {

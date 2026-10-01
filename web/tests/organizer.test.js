@@ -138,6 +138,10 @@ test("needing something to buy is a to-do, but needing a break is not", () => {
   for (const text of ["i dont need new shoes", "i need a break", "i need the money"]) assert.deepEqual(organize(text).to_dos, [], text);
 });
 
+test("an errand named in a list line is a to-do without a verb", () => {
+  assert.deepEqual(organize("- prescription pickup at cvs\n- call the plumber").to_dos.map((t) => t.task), ["Prescription pickup at cvs", "Call the plumber"]);
+});
+
 test("list lines become separate to-dos without their bullets", () => {
   assert.deepEqual(organize("- call mom\n- pay rent\n- groceries").to_dos.map((t) => t.task), ["Call mom", "Pay rent", "Groceries"]);
   assert.deepEqual(
