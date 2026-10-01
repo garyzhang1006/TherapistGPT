@@ -247,6 +247,18 @@ test("everyday ways of saying a feeling without naming it", () => {
   assert.ok(!organize("since the bill passed my rent went up").feelings.includes("sad"));
 });
 
+test("common words for each topic land under it", () => {
+  const cases = [
+    ["seminar ran long again", "School"],
+    ["my cert expires next month", "Work"],
+    ["applying for unemployment is a maze", "Money"],
+    ["the bedroom is a disaster", "Home"],
+    ["my brothers keep fighting", "People"],
+    ["packing the kids lunches every morning", "Home"],
+  ];
+  for (const [text, title] of cases) assert.equal(organize(text).threads[0].title, title, text);
+});
+
 test("too many topics fold into Everything else without losing any topic", () => {
   const out = organize("my exam is monday. my boss yelled. rent is due. my mom called. i can't sleep. my room is a mess");
   assert.equal(out.threads.length, 5);
