@@ -78,9 +78,10 @@ const PAST = /\b(did|finally|already|yesterday|last (night|week|month|year)|miss
 const DEADLINE = /\bby (?:end of (?:the )?(?:day|week|month)|eod|eow|cob|tonight|tomorrow|tmrw|tmr|noon|midnight|monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tues?|wed|thu|thurs?|fri|sat|sun|next week|the \d+(?:st|nd|rd|th)?|\d{1,2}(?::\d\d)?\s?(?:am|pm)|\d{1,2}:\d\d)\b/i;
 // "I said I'd tutor my cousin on Sunday" is a promise, and a promise is a to-do.
 const PROMISED = /(?:^|\b(?:I|we)\s+(?:\w+\s+)?)(?:said|told \w+)(?: that)? (?:I'?d|id|I would|I'll|we'?d|we'll)\s+(?!(?:be|never|not|feel|have been)\b)(.+)$|(?:^|\b(?:I|we)\s+(?:\w+\s+)?)(?:promised|agreed|offered)(?: \w+)? to\s+(.+)$/i;
-// "Gonna file a complaint with the city" is the writer's own plan. "This exam is gonna kill me",
-// "I'm gonna cry" and "going to bed" are not.
-const MY_PLAN = /(?:^|\b(?:I|I'm|I am|we|we're)\s+)(?:also\s+|really\s+|finally\s+|just\s+|prob\s+|probably\s+|definitely\s+|def\s+)?(?:gonna|going to|planning to|plan to)\s+(?!(?:be|feel|cry|scream|lose|die|explode|fail|snap|throw up|puke|pass out|break down|have a|kill|sleep|bed|the|a|an|my|class|work|school|church|therapy)\b)(.+)$/i;
+// "Gonna file a complaint with the city" is the writer's own plan. "I'm gonna cry", "I'm gonna get
+// fired" and "going to miss the deadline" are worries about what will happen to them, and there
+// are too many of those to list, so only a chore verb makes a plan.
+const MY_PLAN = /(?:^|\b(?:I|I'm|I am|we|we're)\s+)(?:also\s+|really\s+|finally\s+|just\s+|prob\s+|probably\s+|definitely\s+|def\s+)?(?:gonna|going to|planning to|plan to)\s+((?:call|email|text|message|pay|finish|book|clean|buy|send|submit|schedule|refill|reply to|write|return|cancel|pick up|fill out|study|read|print|prep|prepare|practice|apply|renew|register|order|wash|fold|take out|sign up|sign|update|ask|file|fix|start|talk to|tell|reach out|look for|look into)\b.*)$/i;
 // "The only things I have to do are laundry and the GRE" lists its chores after "are".
 const CHORES_ARE = /\b(?:all|what|the (?:only )?things?|stuff|everything)\s+(?:I|we)\s+(?:have to|need to|gotta|got to|should)\s+do\s+(?:today\s+|this week\s+|tomorrow\s+)?(?:is|are)\s+(.+)$/i;
 // A short list line that names a piece of work is a to-do even without a verb: "the vendor
