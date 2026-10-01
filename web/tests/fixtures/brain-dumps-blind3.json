@@ -229,7 +229,7 @@
       "id": "roommate-dishes-angry",
       "text": "SO angry at my roommate. third time this week she left her dishes in the sink for days. I need to talk to her tonight and also buy more dish soap since apparently I'm the only one who does",
       "needs_support": false,
-      "todos": ["talk to her", "dish soap"],
+      "todos": ["talk", "dish soap"],
       "not_todos": ["angry", "third time"],
       "threads": ["Home", "People"],
       "feelings": ["angry"]
