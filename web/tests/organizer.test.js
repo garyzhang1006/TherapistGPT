@@ -147,6 +147,11 @@ test("plans that already fell through are not to-dos, but plans still ahead are"
   assert.match(organize("i'm supposed to call mom tonight").to_dos[0].task, /^Call mom/);
 });
 
+test("a promise to my someone is a to-do", () => {
+  assert.equal(organize("i told my landlord id fix the screen door").to_dos[0].task, "Fix the screen door");
+  assert.equal(organize("told the team i would send notes").to_dos[0].task, "Send notes");
+});
+
 test("a to-do keeps the task and leaves the feeling about it behind", () => {
   const { to_dos } = organize("I need to finish my thesis chapter and I haven't opened it in a week");
   assert.equal(to_dos[0].task, "Finish my thesis chapter");

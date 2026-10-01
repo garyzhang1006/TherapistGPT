@@ -86,8 +86,9 @@ const SUBJECT_LEAD = /^(?:I|I'm|I'll|we|he|she|they|it|my|our|his|her|their|the)
 function isDeadline(clause) {
   return DEADLINE.test(clause) && (WORK_THING.test(clause) || !SUBJECT_LEAD.test(clause));
 }
-// "I said I'd tutor my cousin on Sunday" is a promise, and a promise is a to-do.
-const PROMISED = /(?:^|\b(?:I|we)\s+(?:\w+\s+)?)(?:said|told \w+)(?: that)? (?:I'?d|id|I would|I'll|we'?d|we'll)\s+(?!(?:be|never|not|feel|have been)\b)(.+)$|(?:^|\b(?:I|we)\s+(?:\w+\s+)?)(?:promised|agreed|offered)(?: \w+)? to\s+(.+)$/i;
+// "I said I'd tutor my cousin on Sunday" and "I told my roommate I would clean" are promises, and a
+// promise is a to-do.
+const PROMISED = /(?:^|\b(?:I|we)\s+(?:\w+\s+)?)(?:said|told (?:my |his |her |our |the )?\w+)(?: that)? (?:I'?d|id|I would|I'll|we'?d|we'll)\s+(?!(?:be|never|not|feel|have been)\b)(.+)$|(?:^|\b(?:I|we)\s+(?:\w+\s+)?)(?:promised|agreed|offered)(?: \w+)? to\s+(.+)$/i;
 // "I told Jess I'd come to her party last night" promised something already past. "I told him
 // yesterday I'd call" still owes the call, so only a past time inside the promise counts.
 const PAST_WHEN = /\b(?:yesterday|last (?:night|week|weekend|month|year)|(?:\d+|a few|a couple of|two|three) (?:days|weeks) ago)\b/i;
