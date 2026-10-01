@@ -115,7 +115,11 @@
     "i keep thinking about stepping off\nthen the train comes and i get on",
     "thinking about jumping off\nwork was fine",
     "i keep thinking about stepping off then the train comes and i get on",
-    "been thinking about jumping off and nobody would know"
+    "been thinking about jumping off and nobody would know",
+    "ive been wanting to jump off the roof",
+    "im gonna jump off the bridge tonight",
+    "i'm going to walk into traffic",
+    "been thinking abt stepping off the platform"
   ],
   "should_not_flag": [
     "this exam will kill me lol",
