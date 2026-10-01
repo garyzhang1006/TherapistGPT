@@ -6,14 +6,20 @@ import { mentionsCrisis, CRISIS_PATTERNS, CRISIS_SUMMARY, CRISIS_STEP } from "./
 
 const LIMITS = { threads: 5, points: 6, todos: 6, reframes: 3, feelings: 6 };
 
+// Each topic lists the common words for it, course names and test names included, because people
+// write "calc" or "the GRE" far more often than "school".
 const TOPICS = [
-  { title: "School", words: /\b(class|classes|school|exam|exams|test|quiz|homework|essay|professor|teacher|grade|grades|lab|lecture|assignment|college|study|studying|semester|course|thesis|advisor)\b/i },
-  { title: "Work", words: /\b(work|job|boss|manager|shift|coworkers?|meeting|office|fired|client|clients|interview|career|promotion|deadline)\b/i },
-  { title: "Money", words: /\b(money|rent|bills?|pay|paid|bank|debt|afford|loan|broke|budget|paycheck|credit card)\b/i },
-  { title: "People", words: /\b(mom|mum|dad|mother|father|sister|brother|friends?|partner|boyfriend|girlfriend|husband|wife|hubby|ex|family|fam|parents|roommates?|kids?|son|daughter|grandma|grandpa|cousins?|aunt|uncle|everyone|nobody|people|bf|gf|bff|bffs|bestie|besties|ppl|texted|text back|miss(ing)? (you|him|her|them|[a-z]+ so much))\b/i },
-  { title: "Rest and body", words: /\b(sleep|slept|asleep|insomnia|tired|exhausted|eat|ate|eaten|eating|food|hungry|meals?|breakfast|lunch|dinner|shower|showered|sick|pain|headache|meds|medication|pills?|doctor|dentist|therapy|therapist|bed|body|weight)\b/i },
-  { title: "Home", words: /\b(room|dishes|laundry|clean|cleaning|mess|messy|apartment|house|home|groceries|move|moving|boxes|kitchen|trash)\b/i },
+  { title: "School", words: /\b(class|classes|school|exams?|tests|test|quiz|quizzes|homework|essays?|professors?|prof|teachers?|grade|grades|lab|lecture|lectures|assignments?|college|study|studying|semester|course|courses|thesis|advisor|midterms?|finals|papers?|program|tutor|tutoring|syllabus|degree|calc|calculus|chem|chemistry|bio|biology|physics|math|stats|statistics|english|history|econ|psych|orgo|gre|gmat|lsat|mcat)\b/i },
+  { title: "Work", words: /\b(work|job|jobs|boss|manager|shifts?|coworkers?|colleagues?|meetings?|office|fired|client|clients|interviews?|career|promotion|deadline|spreadsheets?|deck|contracts?|job search|applications?|applied|resume|recruiters?|commute|overtime|salary|slack)\b/i },
+  { title: "Money", words: /\b(money|rent|bills?|pay|paid|bank|debt|afford|loan|broke|budget|paycheck|credit card|overdraft\w*|fees?|tuition|insurance|taxes)\b/i },
+  // "she" and "pay kira back" name a person as surely as "mom" does.
+  { title: "People", words: /\b(mom|mum|dad|mother|father|sister|brother|friends?|partner|boyfriend|girlfriend|husband|wife|hubby|ex|family|fam|parents|roommates?|kids?|baby|son|daughter|grandma|grandpa|cousins?|aunt|uncle|everyone|nobody|people|bf|gf|bff|bffs|bestie|besties|ppl|she|he|she'?s|he'?s|shes|texted|text back|miss(ing)? (you|him|her|them|[a-z]+ so much)|(pay|paid|call|called|text|texted|write|hear from|heard from) (?!(the|a|an|my|your|his|her|their|our|it|this|that|them|him|me|you|us|everyone|someone|anyone|money|bills?|rent)\b)[a-z]+ back)\b/i },
+  { title: "Rest and body", words: /\b(sleep|slept|asleep|insomnia|tired|exhausted|eat|ate|eaten|eating|food|hungry|meals?|breakfast|lunch|dinner|shower|showered|sick|pain|headache|meds|medication|pills?|doctor|dentist|therapy|therapist|bed|body|weight|nap|naps)\b/i },
+  { title: "Home", words: /\b(room|dishes|laundry|clean|cleaning|mess|messy|apartment|house|home|groceries|move|moving|boxes|kitchen|trash|heat|heater|heating|landlord|lease|leak\w*|mold|chores)\b/i },
 ];
+// Words that point at someone without naming a topic. Harsh self-talk that only mentions
+// "everyone" stays about the person.
+const GENERIC_PEOPLE = /^(?:everyone|nobody|people|ppl|she|he|she'?s|he'?s|shes)$/i;
 const FALLBACK_TOPIC = "Inside your head";
 const OVERFLOW_TOPIC = "Everything else";
 
@@ -327,15 +333,23 @@ export function splitClauses(text) {
 }
 
 // On a tie the topic named first wins: "do laundry or I have nothing to wear to work" is about
-// the laundry, and work is only the reason.
-function topicFor(clause) {
+// the laundry, and work is only the reason. In a pair like "budget meeting" the last word names
+// the thing, so a topic word right before another topic's word gives way to it.
+// With specificOnly, words like "everyone" or "she" do not count as a topic.
+function topicFor(clause, specificOnly = false) {
+  const hits = TOPICS.flatMap((topic) =>
+    [...clause.matchAll(new RegExp(topic.words.source, "gi"))]
+      .filter((m) => !(specificOnly && GENERIC_PEOPLE.test(m[0])))
+      .map((m) => ({ title: topic.title, start: m.index, end: m.index + m[0].length }))
+  );
+  const heads = hits.filter((h) => !hits.some((o) => o.title !== h.title && o.start === h.end + 1));
   let best = null;
   let bestScore = 0;
   let bestAt = Infinity;
   for (const topic of TOPICS) {
-    const matches = [...clause.matchAll(new RegExp(topic.words.source, "gi"))];
+    const matches = heads.filter((h) => h.title === topic.title);
     const score = matches.length;
-    const at = score ? matches[0].index : Infinity;
+    const at = score ? matches[0].start : Infinity;
     if (score > bestScore || (score && score === bestScore && at < bestAt)) {
       best = topic.title;
       bestScore = score;
@@ -473,9 +487,10 @@ export function organize(text) {
   const reframes = [];
   const groups = new Map();
   for (const [i, clause] of clauses.entries()) {
-    // Self-talk ("I feel like a burden to everyone") and crisis words ("sleep and never wake up")
-    // are about the person, not the topic they happen to name.
-    const topic = SELF_CRITIC.test(clause) || mentionsCrisis(clause) ? FALLBACK_TOPIC : topicFor(clause);
+    // Crisis words ("sleep and never wake up") are about the person, not the topic they happen to
+    // name. Self-talk keeps a topic it names outright ("I'm such a failure at work"), but "I feel
+    // like a burden to everyone" is about the person.
+    const topic = mentionsCrisis(clause) ? FALLBACK_TOPIC : topicFor(clause, SELF_CRITIC.test(clause));
     if (!groups.has(topic)) groups.set(topic, []);
     groups.get(topic).push(clause);
 
