@@ -508,7 +508,28 @@ const THING_SUBJECT = /^(?:the|my|our|this|that)\s+(\w+(?:\s+(?!(?:has|have|is|a
 const MALE_ROLE = /^(?:dad|father|brother|boyfriend|husband|bf|grandpa|uncle)$/i;
 const FEMALE_ROLE = /^(?:mom|mum|mother|sister|girlfriend|wife|gf|grandma|aunt)$/i;
 
-function resolveTask(task, earlier) {
+// "Have to book the class" or "reschedule it" says what to do but not what it is for. A short
+// "dentist appt thursday" or "cert renewal is due friday" just before it, in the same clause or
+// the one before, names the thing: "Reschedule the dentist appt".
+const VAGUE_TASK = /^(\w+(?: up| out| in| off| back| for| on)?) (?:(it|that|this)|the (?:book|books|class|course|form|forms|paperwork|appointment|appt|reading|notes))$/i;
+const WHEN = "(?:today|tonight|tomorrow|tmrw|tmr|this week|next week|this weekend|(?:this |next )?(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tues?|wed|thu|thurs?|fri|sat|sun)|at \\d{1,2}(?::\\d\\d)?\\s?(?:am|pm)?|the \\d{1,2}(?:st|nd|rd|th)?)";
+const NAMED_THING = new RegExp(`^(?:the |my |our |a |an |this )?((?:\\w+ ){0,2}?\\w+) (?:(?:is |are )?(?:(?:due|on|by) )*${WHEN}|(?:is|are) due)$`, "i");
+const THING_NOUN = /\b(?:deck|contracts?|renewal|report|essay|paper|forms?|application|presentation|slides|homework|assignment|midterm|final|exam|test|quiz|project|proposal|invoice|taxes|draft|resume|reading|paperwork|lab|appts?|appointments?|class|course|certs?|certification|meeting)\b/i;
+
+function namedThing(text) {
+  const m = text.trim().replace(/[\s,;:.!?-]+$/, "").match(NAMED_THING);
+  return m && THING_NOUN.test(m[1]) && !SENTENCE_WORD.test(m[1]) ? m[1].toLowerCase() : null;
+}
+
+function resolveVague(task, lead, earlier) {
+  const m = task.match(VAGUE_TASK);
+  if (!m) return task;
+  const thing = namedThing(lead) || namedThing(earlier[earlier.length - 1] || "");
+  if (!thing) return task;
+  return m[2] ? `${m[1]} the ${thing}` : `${task} for the ${thing}`;
+}
+
+function resolveTask(task, earlier, lead = "") {
   if (TO_PERSON.test(task)) {
     const conflicting = /her$/i.test(task.match(TO_PERSON)[0]) ? MALE_ROLE : FEMALE_ROLE;
     for (let k = earlier.length - 1; k >= 0; k--) {
@@ -518,7 +539,7 @@ function resolveTask(task, earlier) {
   }
   const thing = (earlier[earlier.length - 1] || "").match(THING_SUBJECT);
   if (thing && /^\w+ it\b/i.test(task)) return task.replace(/\bit\b/i, `the ${thing[1].toLowerCase()}`);
-  return task;
+  return resolveVague(task, lead, earlier);
 }
 
 function isFragment(task) {
@@ -631,7 +652,9 @@ export function organize(text) {
       !THREAT.test(clause) &&
       !mentionsCrisis(clause);
     if (isTask && todos.length < LIMITS.todos) {
-      for (const task of splitTaskList(resolveTask(toTask(clause, course), clauses.slice(0, i)))) {
+      const intentAt = clause.match(INTENT_AT);
+      const lead = intentAt ? clause.slice(0, intentAt.index) : "";
+      for (const task of splitTaskList(resolveTask(toTask(clause, course), clauses.slice(0, i), lead))) {
         if (!task.trim() || isFragment(task)) continue;
         if (todos.length < LIMITS.todos && !todos.some((t) => t.task.toLowerCase() === task.toLowerCase())) {
           todos.push({ task, first_step: firstStepFor(task) });

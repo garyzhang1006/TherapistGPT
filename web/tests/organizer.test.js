@@ -100,6 +100,13 @@ test("a due date with only a pronoun for the thing is not a task by itself", () 
   assert.match(organize("the lab writeup is due monday").to_dos[0].task, /lab writeup/);
 });
 
+test("a vague it or the form carries the thing named just before it", () => {
+  assert.deepEqual(organize("bio quiz tmrw, need to study for it").to_dos.map((t) => t.task), ["Study for the bio quiz"]);
+  const tasks = organize("passport appointment saturday. i have to fill out the form").to_dos.map((t) => t.task);
+  assert.ok(tasks.includes("Fill out the form for the passport appointment"), tasks.join(" | "));
+  assert.deepEqual(organize("ugh need to finish it").to_dos, []);
+});
+
 test("list lines become separate to-dos without their bullets", () => {
   assert.deepEqual(organize("- call mom\n- pay rent\n- groceries").to_dos.map((t) => t.task), ["Call mom", "Pay rent", "Groceries"]);
   assert.deepEqual(
