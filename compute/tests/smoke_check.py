@@ -34,7 +34,15 @@ def check_report(path: Path) -> None:
     for key in ("valid_json", "valid_schema"):
         expect(isinstance(report.get(key), float) and 0.0 <= report[key] <= 1.0, f"{key} is {report.get(key)!r}")
     expect(isinstance(report.get("failures"), list), "report has no failures list")
-    print(f"report ok: {report['rows']} rows, valid_json {report['valid_json']:.2f}")
+    # --limit 2 keeps one crisis and one calm hand-written dump, since load() alternates them.
+    hand = report.get("handwritten") or {}
+    expect(hand.get("rows", 0) > 0, f"report has no hand-written scores: {report.get('handwritten')!r}")
+    for name in ("model", "phrase_list_tuned_on_these", "model_plus_phrase_list"):
+        expect(isinstance(hand.get(name, {}).get("caught"), str), f"handwritten {name} is {hand.get(name)!r}")
+    print(
+        f"report ok: {report['rows']} rows, valid_json {report['valid_json']:.2f}, "
+        f"{hand['rows']} hand-written, model caught {hand['model']['caught']}"
+    )
 
 
 def check_merged(path: Path) -> None:
