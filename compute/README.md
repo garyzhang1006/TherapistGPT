@@ -70,7 +70,7 @@ Use a small GPU Space with `TORCH_INDEX` set (see `space/README.md`). A free CPU
 
 ## Safety design
 
-The model is small and will make mistakes, so crisis handling never depends on it alone. `safety.py` scans every input, and a match forces `needs_support` to true and swaps in a message pointing to a crisis line. The web app runs the same check (`web/js/safety.js`) before any model is involved. `validate_data.py` refuses training rows where a crisis phrase is labeled false, and `split_data.py` puts crisis rows in every split so `evaluate.py` always measures recall on them.
+The model is small and will make mistakes, so crisis handling never depends on it alone. `safety.py` scans every input, and a match forces `needs_support` to true and swaps in a message pointing to a crisis line. The web app runs the same check (`web/js/safety.js`) before any model is involved, and text it matches is sorted on the device and never sent, so the help card does not wait on a model that can take a minute to answer. `validate_data.py` refuses training rows where a crisis phrase is labeled false, and `split_data.py` puts crisis rows in every split so `evaluate.py` always measures recall on them.
 
 ## What to look at in the eval report
 

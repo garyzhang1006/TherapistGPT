@@ -1,10 +1,10 @@
 // Every local import carries the same ?v= as index.html. Bump them all together on each release, with
 // VERSION in sw.js, or a returning visitor can get a new app.js paired with a stale cached module that
 // lacks an export.
-import { organizeText, loadSettings, saveSettings, testConnection, normalizeEndpoint } from "./engine.js?v=10";
-import { renderResult, resultToText } from "./render.js?v=10";
-import { splitClauses, isSelfCritical } from "./organizer.js?v=10";
-import { mentionsCrisis } from "./safety.js?v=10";
+import { organizeText, loadSettings, saveSettings, testConnection, normalizeEndpoint } from "./engine.js?v=11";
+import { renderResult, resultToText } from "./render.js?v=11";
+import { splitClauses, isSelfCritical } from "./organizer.js?v=11";
+import { mentionsCrisis } from "./safety.js?v=11";
 
 const $ = (id) => document.getElementById(id);
 const DRAFT_KEY = "therapistgpt.draft";
@@ -39,27 +39,19 @@ function write(key, value) {
   }
 }
 
-// Ticked to-dos, keyed by task text, live in sessionStorage so they survive "Back to my words" and a
-// reload but never outlast the tab. They are stored with the words that were sorted, so a later,
-// different dump that yields the same task text does not arrive already ticked.
-const TICKS_KEY = "therapistgpt.ticks";
+// Ticked to-dos, keyed by task text, live only in this page's memory: they survive "Back to my words",
+// and nothing about them is ever written to storage. They belong to the words that were sorted, so a
+// later, different dump that yields the same task text does not arrive already ticked. A reload has
+// already erased the sorted draft, so keeping ticks across one would save nothing anyone could see.
 let sortedText = "";
+let ticked = new Set();
 
-function readTicks() {
-  try {
-    const saved = JSON.parse(sessionStorage.getItem(TICKS_KEY) || "null");
-    return new Set(saved?.text === sortedText ? saved.tasks : []);
-  } catch {
-    return new Set();
-  }
-}
-
-function writeTicks(ticks) {
-  try {
-    sessionStorage.setItem(TICKS_KEY, JSON.stringify({ text: sortedText, tasks: [...ticks] }));
-  } catch {
-    // ignore: the ticks just won't survive a reload
-  }
+// Releases before v11 stored the sorted words with the ticks in session storage. Clear what a tab
+// left open across the update still holds.
+try {
+  sessionStorage.removeItem("therapistgpt.ticks");
+} catch {
+  // storage blocked: nothing was stored either
 }
 
 // Mac keyboards send Cmd+Enter; the handler below accepts both, the hint should say the right one.
@@ -324,6 +316,7 @@ async function run() {
   try {
     const [outcome] = await Promise.all([organizeText(text), settle(text)]);
     lastResult = outcome.result;
+    if (text !== sortedText) ticked = new Set();
     sortedText = text;
     renderResult($("result-cards"), outcome.result);
     restoreTicks();
@@ -373,19 +366,16 @@ dump.addEventListener("keydown", (event) => {
 const todoTask = (item) => item.querySelector(".todo-task").textContent;
 
 function restoreTicks() {
-  const ticks = readTicks();
   $("result-cards").querySelectorAll(".todo").forEach((item) => {
-    item.querySelector("input").checked = ticks.has(todoTask(item));
+    item.querySelector("input").checked = ticked.has(todoTask(item));
   });
 }
 
 $("result-cards").addEventListener("change", (event) => {
   const item = event.target.closest(".todo");
   if (!item) return;
-  const ticks = readTicks();
-  if (event.target.checked) ticks.add(todoTask(item));
-  else ticks.delete(todoTask(item));
-  writeTicks(ticks);
+  if (event.target.checked) ticked.add(todoTask(item));
+  else ticked.delete(todoTask(item));
 });
 
 $("back-btn").addEventListener("click", showWrite);
