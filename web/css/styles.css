@@ -309,6 +309,10 @@ button {
   transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
+a.ghost {
+  text-decoration: none;
+}
+
 .ghost:hover {
   background: var(--surface-2);
   border-color: color-mix(in srgb, var(--text) 25%, transparent);
@@ -844,6 +848,18 @@ dialog::backdrop {
 
 dialog[open] {
   animation: rise 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* If app.js never runs (a dropped request, a blocker, a bad deploy), "Need help now?" still jumps here
+   and shows the helplines in the page. Close only works on an open dialog, so it hides. */
+#help-dialog:target:not([open]) {
+  display: block;
+  position: static;
+  margin: 1.5rem auto;
+}
+
+#help-dialog:target:not([open]) .dialog-actions {
+  display: none;
 }
 
 .dialog-body {
