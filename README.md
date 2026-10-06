@@ -46,7 +46,7 @@ Both halves share one output contract, defined in [`compute/therapistgpt/schema.
 
 ## In a crisis
 
-A **Need help now?** button at the top of every screen opens call and text links for 988, the Crisis Text Line, and findahelpline.com for other countries. When a brain dump mentions suicide or self-harm, the results open with that card, the rest of the sort waits behind a closed "The rest of what you wrote" section, and no crisis sentence is handed back as a to-do or a thread.
+A **Need help now?** link at the top of every screen opens call and text links for 988, the Crisis Text Line, and findahelpline.com for other countries. It is a plain link, so it still shows those numbers if the page's script fails to load. When a brain dump mentions suicide or self-harm, the results open with that card, the rest of the sort waits behind a closed "The rest of what you wrote" section, and no crisis sentence is handed back as a to-do or a thread.
 
 The app will not talk with you, contact anyone, or judge how much danger someone is in. Its crisis check is a list of phrases, and phrasings it has not seen get past it: on two sets of brain dumps written after the rules and kept from them, it caught 6 of 11 and then 6 of 12 crisis dumps on the first run. Every miss became a new rule, but the next unseen wording can still slip through. If you are thinking about ending your life, call or text 988 in the US or Canada, or your local emergency number. Don't count on this app to notice.
 

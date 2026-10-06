@@ -1,10 +1,10 @@
 // Every local import carries the same ?v= as index.html. Bump them all together on each release, with
 // VERSION in sw.js, or a returning visitor can get a new app.js paired with a stale cached module that
 // lacks an export.
-import { organizeText, loadSettings, saveSettings, testConnection, normalizeEndpoint } from "./engine.js?v=8";
-import { renderResult, resultToText } from "./render.js?v=8";
-import { splitClauses, isSelfCritical } from "./organizer.js?v=8";
-import { mentionsCrisis } from "./safety.js?v=8";
+import { organizeText, loadSettings, saveSettings, testConnection, normalizeEndpoint } from "./engine.js?v=9";
+import { renderResult, resultToText } from "./render.js?v=9";
+import { splitClauses, isSelfCritical } from "./organizer.js?v=9";
+import { mentionsCrisis } from "./safety.js?v=9";
 
 const $ = (id) => document.getElementById(id);
 const DRAFT_KEY = "therapistgpt.draft";
@@ -163,8 +163,11 @@ sizeToggle.addEventListener("click", () => {
 
 // ---------- dialogs ----------
 
+// The help openers are links to #help-dialog so they work even if this script never runs. Here the
+// modal opens instead, and the address keeps no #help-dialog that would show the fallback copy after close.
 document.querySelectorAll("[data-open]").forEach((button) => {
-  button.addEventListener("click", () => {
+  button.addEventListener("click", (event) => {
+    event.preventDefault();
     const dialog = $(button.dataset.open);
     if (dialog.id === "settings-dialog") fillSettings();
     dialog.showModal();
