@@ -313,13 +313,38 @@ function splitLoose(part) {
   return pieces;
 }
 
-function crisisSpan(part) {
-  let best = null;
-  for (const pattern of CRISIS_PATTERNS) {
-    const m = part.match(pattern);
-    if (m && (!best || m.index < best.start)) best = { start: m.index, end: m.index + m[0].length };
+// Squeezes every run of three or more of one letter down to `keep` letters, the way mentionsCrisis
+// reads "i wanna dieee", and records where each kept character sat in the original text.
+function squeezeLetters(text, keep) {
+  let out = "";
+  const at = [];
+  for (let i = 0; i < text.length; ) {
+    let j = i + 1;
+    if (/[a-z]/i.test(text[i])) while (j < text.length && text[j].toLowerCase() === text[i].toLowerCase()) j++;
+    for (let k = 0; k < (j - i >= 3 ? keep : j - i); k++) {
+      out += text[i + k];
+      at.push(i + k);
+    }
+    i = j;
   }
-  return best;
+  at.push(text.length);
+  return { out, at };
+}
+
+// Without the squeezed readings, a stretched crisis word would find no span, and the whole part,
+// calm clauses included, would go under Inside your head.
+function crisisSpan(part) {
+  for (const keep of [0, 1, 2]) {
+    const { out, at } = keep ? squeezeLetters(part, keep) : { out: part, at: null };
+    let best = null;
+    for (const pattern of CRISIS_PATTERNS) {
+      const m = out.match(pattern);
+      if (m && (!best || m.index < best.start)) best = { start: m.index, end: m.index + m[0].length };
+    }
+    // A span found in a squeezed copy maps back to the raw part, and its end takes in the letters squeezed away.
+    if (best) return at ? { start: at[best.start], end: at[best.end] } : best;
+  }
+  return null;
 }
 
 // "i have a chem quiz tmrw and rent is late and i dont want to be here anymore": only the crisis

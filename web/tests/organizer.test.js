@@ -301,6 +301,14 @@ test("crisis words sit under Inside your head, not the topic they mention", () =
   assert.equal(home.title, "Inside your head");
 });
 
+test("a stretched crisis word leaves the calm clauses beside it their own points", () => {
+  for (const text of ["i have a chem quiz tmrw and rent is late and i wanna die", "i have a chem quiz tmrw and rent is late and i wanna dieee"]) {
+    const points = organize(text).threads.flatMap((t) => t.points);
+    assert.ok(points.some((p) => /quiz/i.test(p) && !mentionsCrisis(p)), `${text}: ${points.join(" | ")}`);
+    assert.ok(points.some((p) => /rent/i.test(p) && !mentionsCrisis(p)), `${text}: ${points.join(" | ")}`);
+  }
+});
+
 test("a comma before a crisis phrase does not split off a calm-looking piece of it", () => {
   const points = organize("i just want to sleep, and never wake up").threads.flatMap((t) => t.points);
   assert.ok(points.filter((p) => /wake up/i.test(p)).every(mentionsCrisis), points.join(" | "));
