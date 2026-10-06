@@ -130,6 +130,29 @@ test("a follow-up that only says them and it stays with the errand it belongs to
   assert.deepEqual(organize("need to call the clinic and book a checkup").to_dos.map((t) => t.task), ["Call the clinic", "Book a checkup"]);
 });
 
+test("a person named before a vague it is never the thing to do", () => {
+  assert.deepEqual(organize("my mom is worried about the bill. need to pay it").to_dos.map((t) => t.task), ["Pay the bill"]);
+  assert.deepEqual(organize("my boss is mad about the report. need to fix it").to_dos.map((t) => t.task), ["Fix the report"]);
+  assert.deepEqual(organize("my mom is upset. need to fix it").to_dos, []);
+  // Only the last word of the subject decides: a kids room or a family trip is a thing.
+  assert.deepEqual(organize("the kids room is a mess. need to clean it").to_dos.map((t) => t.task), ["Clean the kids room"]);
+  assert.deepEqual(organize("our family trip is next month. need to book it").to_dos.map((t) => t.task), ["Book the family trip"]);
+  // A body part is the writer's own, and only for getting it seen to.
+  assert.deepEqual(organize("my back has been hurting all week. need to get it checked").to_dos.map((t) => t.task), ["Get my back checked"]);
+  assert.deepEqual(organize("my head is killing me. need to finish it").to_dos, []);
+});
+
+test("someone else's worry beside the writer's own need to stays a to-do", () => {
+  for (const [text, task] of [
+    ["my mom is sick need to pick up her meds", /^Pick up her meds/],
+    ["my boss is mad at me need to redo the whole deck by monday", /^Redo the whole deck/],
+    ["kids are sick gotta call the pediatrician", /^Call the pediatrician/],
+  ]) {
+    const tasks = organize(text).to_dos.map((t) => t.task);
+    assert.ok(tasks.some((t) => task.test(t)), `${text} -> ${tasks.join(" | ")}`);
+  }
+});
+
 test("him or her in a gift task means the person named before it", () => {
   const tasks = organize("my sisters graduation is friday so i need to buy her a gift").to_dos.map((t) => t.task);
   assert.deepEqual(tasks, ["Buy my sister a gift"]);
@@ -144,6 +167,40 @@ test("needing something to buy is a to-do, but needing a break is not", () => {
 
 test("an errand named in a list line is a to-do without a verb", () => {
   assert.deepEqual(organize("- prescription pickup at cvs\n- call the plumber").to_dos.map((t) => t.task), ["Prescription pickup at cvs", "Call the plumber"]);
+});
+
+test("numbered list lines become to-dos just like bulleted ones", () => {
+  const numbered = organize("1. vendor contract renewal\n2. club fundraiser forms").to_dos.map((t) => t.task);
+  assert.deepEqual(numbered, ["Vendor contract renewal", "Club fundraiser forms"]);
+  assert.deepEqual(organize("- vendor contract renewal\n- club fundraiser forms").to_dos.map((t) => t.task), numbered);
+});
+
+test("a title like Dr. does not end the sentence", () => {
+  const out = organize("need to call Dr. Patel about my meds");
+  assert.deepEqual(out.to_dos.map((t) => t.task), ["Call Dr. Patel about my meds"]);
+  assert.ok(!out.threads.flatMap((t) => t.points).some((p) => /^Patel\b/.test(p)));
+  assert.deepEqual(organize("- call dr. kim\n- pay rent").to_dos.map((t) => t.task), ["Call dr. kim", "Pay rent"]);
+  // "The dr." at the end of a line or before a lowercase word is the person, and the period ends it.
+  assert.equal(organize("- call the dr.\n- pay rent").to_dos.length, 2);
+  const prof = organize("need to email my prof. have to finish the lab tonight").to_dos.map((t) => t.task);
+  assert.equal(prof.length, 2, prof.join(" | "));
+  assert.match(prof[0], /^Email my prof\b/);
+  assert.match(prof[1], /^Finish the lab\b/);
+});
+
+test("an emoji between thoughts ends the thought and stays out of the to-do", () => {
+  assert.deepEqual(organize("need to call mom 😭 rent is late").to_dos.map((t) => t.task), ["Call mom", "Pay rent"]);
+  assert.deepEqual(organize("need to call mom 😭").to_dos.map((t) => t.task), ["Call mom"]);
+  assert.deepEqual(organize("- call mom 👍🏽\n- pay rent").to_dos.map((t) => t.task), ["Call mom", "Pay rent"]);
+  assertSchema(organize("😭😭😭"));
+  assert.deepEqual(organize("- chem lab report 😭 ugh\n- pay rent").to_dos.map((t) => t.task), ["Chem lab report", "Pay rent"]);
+});
+
+test("an emoji used as a word stays inside its sentence", () => {
+  assert.deepEqual(organize("need to buy 🥚 and milk").to_dos.map((t) => t.task), ["Buy 🥚 and milk"]);
+  assert.ok(organize("need to get my 🚗 inspected by friday").to_dos.some((t) => /^Get my 🚗 inspected/.test(t.task)));
+  assert.ok(organize("need to study for the AP® Bio test").to_dos.some((t) => /AP® Bio test/.test(t.task)));
+  assert.ok(organize("i ❤️ my cat").threads.flatMap((t) => t.points).some((p) => /❤️ my cat/.test(p)));
 });
 
 test("list lines become separate to-dos without their bullets", () => {
