@@ -20,9 +20,9 @@ Everything needed to build the TherapistGPT model lives in this folder. None of 
 | `data/seed.jsonl` | | 12 hand-written examples; the teacher model sees two of them per request |
 | `generate_synthetic.py` | anywhere with network | Uses Claude to write realistic brain dumps and their organized versions |
 | `validate_data.py` | anywhere | Checks a JSONL file against the schema and flags crisis mislabels |
-| `split_data.py` | anywhere | Builds train/val/test, keeping crisis rows in every split |
+| `split_data.py` | anywhere | Builds train/val/test, keeping crisis rows in every split and 15% of them in test |
 | `train_lora.py` | GPU | LoRA fine-tune of Qwen2.5-1.5B-Instruct with TRL |
-| `evaluate.py` | GPU | JSON validity, crisis recall, grounding, feeling overlap |
+| `evaluate.py` | GPU | JSON validity, crisis recall, grounding, feeling overlap, and crisis recall on the 141 hand-written dumps |
 | `merge_and_export.py` | GPU | Merges the adapter, pushes to the Hub, notes GGUF conversion |
 | `serve.py` | GPU or CPU | FastAPI endpoint the web app can call |
 | `space/` | Hugging Face | Dockerfile for hosting `serve.py` on a Space |
@@ -47,7 +47,7 @@ python merge_and_export.py --adapter outputs/therapistgpt-lora/final --push your
 
 ## Smoke test in CI
 
-`.github/workflows/smoke.yml` runs every step above except data generation on a GitHub runner's CPU, whenever a pull request touches `compute/`. `train_lora.py --smoke` swaps in `trl-internal-testing/tiny-Qwen2ForCausalLM-2.5`, a random 2-layer model with the Qwen2.5 chat template, and trains it for two steps on the seed data. Its output is noise, so the job only proves that the scripts and pinned libraries still fit together: the adapter saves, `evaluate.py` writes a report, the merge loads without peft, and `serve.py` answers `/health` and returns 502 for unusable output.
+`.github/workflows/smoke.yml` runs every step above except data generation on a GitHub runner's CPU, whenever a pull request touches `compute/`. `train_lora.py --smoke` swaps in `trl-internal-testing/tiny-Qwen2ForCausalLM-2.5`, a random 2-layer model with the Qwen2.5 chat template, and trains it for two steps on the seed data. Its output is noise, so the job only proves that the scripts and pinned libraries still fit together: the adapter saves, `evaluate.py` writes a report with its hand-written block, the merge loads without peft, and `serve.py` answers `/health` and returns 502 for unusable output.
 
 A run takes about two minutes. On the run that merged it, training saw 12 seed rows (2 of them crisis), the evaluation report scored the 2 test rows with a valid-JSON rate of 0.00 (expected from random weights), and the merged model loaded as a 2,435,016-parameter `Qwen2ForCausalLM`.
 
@@ -57,7 +57,7 @@ These are estimates, not measurements, so check the 20-example run first.
 
 - Synthetic data: about 2.5k input and 1k output tokens per example, so 2,000 examples on `claude-opus-5-5` come to roughly $60 before thinking tokens, which are billed as output and can add a lot. The script prints its token totals at the end, so price the full run from the 20-example one. `--model claude-sonnet-5-5` halves the per-token price, and `--effort low` trims thinking.
 - Training: 2,000 examples for 3 epochs on one T4 should take 40 to 70 minutes.
-- Evaluation: about 5 to 15 seconds per example on a T4 with greedy decoding.
+- Evaluation: about 5 to 15 seconds per example on a T4 with greedy decoding. The 141 hand-written dumps run after the test split, which adds roughly 12 to 35 minutes; `--limit N` cuts each set to its first N rows.
 
 ## Deploy the API
 
@@ -74,4 +74,6 @@ The model is small and will make mistakes, so crisis handling never depends on i
 
 ## What to look at in the eval report
 
-`crisis_recall` matters most; anything below 0.95 means the training data needs more crisis examples (raise `--crisis-rate`). `valid_schema` should be above 0.98 after training. A `grounding` score that drops well below the base model's means the fine-tuned model is inventing details.
+`crisis_recall` matters most; anything below 0.95 means the training data needs more crisis examples (raise `--crisis-rate`). Read it with `crisis_recall_95ci`: `split_data.py` puts 15% of the crisis rows in the test split, about 24 at the default mix, and a perfect 24 of 24 still only shows recall above 0.86. `crisis_precision` on that split runs high because it holds more crisis rows than real use does. `valid_schema` should be above 0.98 after training. A `grounding` score that drops well below the base model's means the fine-tuned model is inventing details.
+
+The `handwritten` block is the more honest crisis test. It scores the 141 brain dumps in `web/tests/fixtures` (44 of them crisis), which people wrote by hand and which never go into training, while the test split comes from the same teacher as the training data. It reports three rows: the model alone, the phrase list alone, and the two together, which is what the app ships. The phrase list was tuned on every one of these dumps, so its full marks there are a ceiling; on sets it had not seen it caught 6 of 11 and then 6 of 12. The model is worth shipping for crisis handling only if `model_missed` is short, and every name in it is a wording to add to the training mix. `model_false_alarms` lists calm dumps the model flagged.
