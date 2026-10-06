@@ -3,17 +3,35 @@
 
 export const CRISIS_PATTERNS = [
   /\bkill(ing)? my ?self\b/i,
-  /\bsuicid(e|al)\b/i,
+  /\bsuicid(e|es|al|ality)\b/i,
   // "i want to die my hair blue" means dye. Only a color, "again", "back" or the end of the text
   // after "hair" counts as dye, because a line break collapses to a space and "die\nmy hair's
   // falling out" must still flag; a false alarm is cheap. "die. my hair" flags on the period.
   /\b(want(ed|s)? to|wanna|wish i could) die\b(?! (my|your|his|her|their) hair( (blue|red|pink|purple|green|black|blonde|blond|brown|silver|white|orange|grey|gray|again|back)\b|$))/i,
+  // A filler or two ("i want to just die", "been wanting to fucking die") must not hide the wish. The
+  // pattern above keeps every plain form, so this one can leave idioms like "literally die of embarrassment" calm.
+  /\b(want(ed|s|ing)? to|wanna|wish i could) ((just|really|honestly|literally|fucking|fkn|actually|simply|finally) ){0,2}die\b(?! (my|your|his|her|their) hair( (blue|red|pink|purple|green|black|blonde|blond|brown|silver|white|orange|grey|gray|again|back)\b|$)| on (this|that) hill\b| trying\b| laughing\b| of (embarrassment|boredom|shame|laughter|old age|cringe)\b)/i,
+  // The same wish said as hope, deserving or readiness ("i hope i die in my sleep", "maybe i should
+  // just die", "im ready to die"). "ready to die on this hill" and "i hope i die laughing" are idioms,
+  // and a phone that is ready to die has no "i'm" before it, so those stay calm.
+  /\b(hope i|deserve to|i should|(i'?m|i am|feel(ing)?) ((so|really|just) )?ready to) ((just|really|honestly|literally|fucking|fkn|actually|simply|finally) ){0,2}die\b(?! (my|your|his|her|their) hair( (blue|red|pink|purple|green|black|blonde|blond|brown|silver|white|orange|grey|gray|again|back)\b|$)| on (this|that) hill\b| trying\b| laughing\b| of (embarrassment|boredom|shame|laughter|old age|cringe)\b)/i,
+  // Wanting to be dead. "i'd rather be dead tired" and "don't want to be dead weight" are calm.
+  /\b(want(ed|s|ing)? to|wanna|rather|i should|wish i could|i'?d like to) ((just|really|honestly|literally|fucking|actually|simply) ){0,2}be dead\b(?! (tired|serious|honest|wrong|last|set|sure|certain|asleep|quiet|silent|even|weight|broke|center|centre|ahead|ringer|on (time|arrival))\b)/i,
   /\bwish i (was|were) (dead|gone|never born)\b/i,
   /\bwish i('d| had)? never (been born|existed|woken up)\b/i,
   /\bend(ing)? (it all|my life|my own life)\b/i,
+  // "thinking about ending it" or "i want to end it tonight" without "all". Ending it with someone,
+  // ending a call early or there, or ending a subscription before it renews, stays calm.
+  /\b(want(ed|s|ing)? to|wanna|going to|gonna|think(s|ing)? (about|abt|of)|thought (about|abt|of)|plan(s|ned|ning)? to|ready to|should|could|urges? to|tempted to) ((just|finally|really|honestly) )?end(ing)? it\b(?! (with|between|off|early|there|here|on|at|by|for (the|this|now|today|tonight|a)|before (it|they|the|my) (renews?|charges?|bills?|expires?|starts?))\b)/i,
+  // "off myself" as a verb. "took the pressure off myself" has no wish before it and stays calm.
+  /\b(want(ed|s|ing)? to|wanna|gonna|going to|think(s|ing)? (about|abt|of)|thought (about|abt|of)|should|could|urges? to|tempted to) ((just|finally|really|honestly) )?off(ing)? my ?self\b/i,
   /\btak(e|ing) my own life\b/i,
-  /\btak(e|ing) my life\b(?! (back|seriously|in|into|one|more|a|to|and|for|over)\b)/i,
+  // "take my life and turn it around" is calm, but "take my life and nobody will stop me" is not.
+  /\btak(e|ing) my life\b(?! (back|seriously|in|into|one|more|a|to|for|over|and (turn|make|start|change|get|put|fix|move))\b)/i,
   /\b(don'?t|do not) (want to|wanna) (be here|exist|live|wake up|be alive)\b/i,
+  // The same wish softened by an adverb ("i don't really want to be here") or said as "no longer".
+  // In these new forms, living with someone or waking up early stays calm.
+  /\b((don'?t|do not) ((really|even|honestly|just|actually) ){1,2}|no longer ((really|even|honestly|just|actually) ){0,2})(want to|wanna) (be here|exist|be alive|keep living|live\b(?! (in|with|here|there|at|near|on|off|together)\b)|wake up\b(?! (early|on time|in time|at|for|before)\b))\b/i,
   /\bbetter (off )?(dead|without me)\b/i,
   /\bbetter off if i (was|were) (gone|dead)\b/i,
   /\bbetter off if i (wasn'?t|weren'?t) (here|around|alive)\b/i,
@@ -24,7 +42,7 @@ export const CRISIS_PATTERNS = [
   /\b(hurt|hurting|cut|cutting|burn|burning|harm|harming|hang|hanging|starve|starving) my ?self\b/i,
   /\b(shoot|shooting) my ?self\b(?! in the foot)/i,
   /\b(drown|drowning) my ?self\b(?! in\b)/i,
-  /\bself[- ]?harm\b/i,
+  /\bself[- ]?(harm(s|ed|ing|er|ers)?|injur(y|ies|e|ed|es|ing|ious))\b/i,
   // Relapse is often said without "myself" ("cut again last night"). "my hours got cut again" and
   // "they cut the budget again" are calm, so the cut must open the text or a clause, or follow
   // "i" or "been". The anchor sits in the match because Safari before 16.4 can't parse lookbehind.
@@ -34,9 +52,12 @@ export const CRISIS_PATTERNS = [
   // "but i wont", ":(") or nothing at all means the cut is the person.
   /\b(want(ed|s|ing)? to|wanna|urges? to|tempted to) (cut|burn)\b(?! (my|the|a|an|your|his|her|him|their|them|it|this|that|these|those|some|back|down|off|out|up|in|into|through|loose|ahead|class|school|ties|costs?|corners|carbs|sugar|calories|fat|weight|hair|bridges|everything)\b)/i,
   /\b(burned|burnt) my ?self\b(?! out\b| (on|with) (the|a|my) (stove|stovetop|oven|pan|pot|kettle|iron|curling iron|straightener|grill|toaster|tea|coffee)\b| (while|making|cooking|ironing|baking)\b)/i,
-  /\brelaps(e|ed|es|ing) (on |into |with )?(sh|self[- ]?harm|cutting|burning)\b/i,
+  /\brelaps(e|ed|es|ing) (on |into |with )?(sh|self[- ]?harm(ing)?|cutting|burning)\b/i,
   /\b(sh|cutting) relaps(e|ed|es|ing)\b/i,
   /\b(cut|cutting|slit|slitting) (my |both )?(wrists?|thighs|forearms)\b/i,
+  // The same cut on another part of the body. "cut my leg shaving", "playing soccer" or "on the fence"
+  // is an accident, and "leg day" or "skin care" is not a cut, so a tail that names one stays calm.
+  /\b(cut|cutting|slit|slitting|carve|carving|carved) (my|both my) (wrists?|thighs?|forearms?|arms?|legs?|stomach|hips?|ankles?|skin|shoulders?)\b(?! (shaving|while|when|by accident|accidentally|playing|during|climbing|falling|opening|hiking|running|biking|gardening|cooking|day|days|workout|routine|care|fat|on (a|an|the|some|my)|at (practice|work|school|the gym)|with (a|the) (knife|can|lid|paper))\b)/i,
   /\bscratch(ing)? my (arms|legs|skin)\b/i,
   /\boverdos(e|ed|es|ing)\b/i,
   /\b(saving|saved|stockpiling|stockpiled|hoarding) (up )?(my |the )?(pills|meds)\b/i,
@@ -46,7 +67,11 @@ export const CRISIS_PATTERNS = [
   /\bwon'?t be (around|here) (much |for )?(longer|long|anymore)\b/i,
   /\bkms\b/i,
   /\bunaliv(e|ed|es|ing)\b/i,
+  // "sewer slide" is how people say suicide on apps that hide the word.
+  /\bsewer[- ]?slid(e|ed|es|ing)\b/i,
   /\bcan'?t (go on|do this anymore|take (it|this) anymore)\b/i,
+  // "cannot" and "can not", "do it", and "any more". A trip or a stage after "cannot go on" stays calm.
+  /\b((can'?t|cannot|can not) (do (it|this)|take (it|this)) any ?more|(cannot|can not) go on\b(?! (the|a|an|this|that|my|vacation|holiday|trips?|dates?|stage|leave)\b))\b/i,
   /\bdisappear forever\b/i,
   // "the stain should disappear for good" is calm, so "for good" needs the person to want it.
   /\b(want(ed|s)? to|wanna|wish i could|i could|rather|i'?m going to|i'?m gonna|i need to) (just )?(disappear|vanish) (for good|permanently|and never come back)\b/i,
@@ -144,6 +169,8 @@ export const TYPOS = {
   nede: "need", emial: "email", eamil: "email", apointment: "appointment", appointmnet: "appointment",
   tommorow: "tomorrow", tomorow: "tomorrow", tommorrow: "tomorrow", wierd: "weird", thier: "their",
   freind: "friend", freinds: "friends", wnat: "want", waht: "what", jsut: "just", taht: "that", alot: "a lot",
+  myslef: "myself", mysefl: "myself", mysself: "myself", sucide: "suicide", suicde: "suicide", suicied: "suicide",
+  sucidal: "suicidal", suicdal: "suicidal", kil: "kill",
 };
 const TYPO_WORDS = new RegExp(`\\b(${Object.keys(TYPOS).join("|")})\\b`, "gi");
 
@@ -157,12 +184,22 @@ function normalize(text) {
   return fixTypos(String(text).replace(/[\u2018\u2019\u02BC\u0060\u00B4\uFF07]/g, "'").replace(/\s+/g, " "));
 }
 
-export function mentionsCrisis(text) {
+const ELONGATED = /([a-z])\1{2,}/gi;
+
+function readings(text) {
   const normalized = normalize(text);
   // A line break also often ends a clause ("thinking about stepping off\nthen the train comes"), so
-  // the text is read a second time with each break as a full stop. A hit in either reading counts.
+  // the text is read a second time with each break as a full stop.
   const broken = normalize(String(text).replace(/\s*[\r\n]+\s*/g, ". "));
-  const hits = (pattern) => pattern.test(normalized) || pattern.test(broken);
+  // Texting stretches words ("i wanna dieee", "kmsss"), so each reading is read again with every run
+  // of three or more of one letter squeezed to one and to two, since "killl" squeezed to one is "kil".
+  return [normalized, broken].flatMap((t) => [t, fixTypos(t.replace(ELONGATED, "$1")), fixTypos(t.replace(ELONGATED, "$1$1"))]);
+}
+
+export function mentionsCrisis(text) {
+  // A hit in any reading counts, so an extra reading can only add a flag, never hide one.
+  const texts = readings(text);
+  const hits = (pattern) => texts.some((t) => pattern.test(t));
   if (CRISIS_PATTERNS.some(hits)) return true;
   // Each sign counts once, so the same sign said twice is still one.
   return WARNING_SIGNS.filter(hits).length >= 2;
