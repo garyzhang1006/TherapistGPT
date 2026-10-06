@@ -54,6 +54,8 @@ CRISIS_PATTERNS = [
     r"\bwon'?t be (around|here) (much |for )?(longer|long|anymore)\b",
     r"\bkms\b",
     r"\bunaliv(e|ed|es|ing)\b",
+    # "sewer slide" is how people say suicide on apps that hide the word.
+    r"\bsewer[- ]?slid(e|ed|es|ing)\b",
     r"\bcan'?t (go on|do this anymore|take (it|this) anymore)\b",
     r"\bdisappear forever\b",
     # "the stain should disappear for good" is calm, so "for good" needs the person to want it.
@@ -180,6 +182,15 @@ TYPOS = {
     "jsut": "just",
     "taht": "that",
     "alot": "a lot",
+    "myslef": "myself",
+    "mysefl": "myself",
+    "mysself": "myself",
+    "sucide": "suicide",
+    "suicde": "suicide",
+    "suicied": "suicide",
+    "sucidal": "suicidal",
+    "suicdal": "suicidal",
+    "kil": "kill",
 }
 
 _TYPO_WORDS = re.compile(r"\b(" + "|".join(TYPOS) + r")\b", re.IGNORECASE)
@@ -195,14 +206,28 @@ def _normalize(text: str) -> str:
     return fix_typos(re.sub(r"\s+", " ", re.sub("[\u2018\u2019\u02bc\u0060\u00b4\uff07]", "'", text)))
 
 
-def mentions_crisis(text: str) -> bool:
+_ELONGATED = re.compile(r"([a-z])\1{2,}", re.IGNORECASE)
+
+
+def _readings(text: str) -> list[str]:
     normalized = _normalize(text)
     # A line break also often ends a clause ("thinking about stepping off\nthen the train comes"), so
-    # the text is read a second time with each break as a full stop. A hit in either reading counts.
+    # the text is read a second time with each break as a full stop.
     broken = _normalize(re.sub(r"\s*[\r\n]+\s*", ". ", text))
+    # Texting stretches words ("i wanna dieee", "kmsss"), so each reading is read again with every run
+    # of three or more of one letter squeezed to one and to two, since "killl" squeezed to one is "kil".
+    out = []
+    for t in (normalized, broken):
+        out += [t, fix_typos(_ELONGATED.sub(r"\1", t)), fix_typos(_ELONGATED.sub(r"\1\1", t))]
+    return out
+
+
+def mentions_crisis(text: str) -> bool:
+    # A hit in any reading counts, so an extra reading can only add a flag, never hide one.
+    texts = _readings(text)
 
     def hits(p: re.Pattern[str]) -> bool:
-        return bool(p.search(normalized) or p.search(broken))
+        return any(p.search(t) for t in texts)
 
     if any(hits(p) for p in _COMPILED):
         return True

@@ -46,6 +46,8 @@ export const CRISIS_PATTERNS = [
   /\bwon'?t be (around|here) (much |for )?(longer|long|anymore)\b/i,
   /\bkms\b/i,
   /\bunaliv(e|ed|es|ing)\b/i,
+  // "sewer slide" is how people say suicide on apps that hide the word.
+  /\bsewer[- ]?slid(e|ed|es|ing)\b/i,
   /\bcan'?t (go on|do this anymore|take (it|this) anymore)\b/i,
   /\bdisappear forever\b/i,
   // "the stain should disappear for good" is calm, so "for good" needs the person to want it.
@@ -144,6 +146,8 @@ export const TYPOS = {
   nede: "need", emial: "email", eamil: "email", apointment: "appointment", appointmnet: "appointment",
   tommorow: "tomorrow", tomorow: "tomorrow", tommorrow: "tomorrow", wierd: "weird", thier: "their",
   freind: "friend", freinds: "friends", wnat: "want", waht: "what", jsut: "just", taht: "that", alot: "a lot",
+  myslef: "myself", mysefl: "myself", mysself: "myself", sucide: "suicide", suicde: "suicide", suicied: "suicide",
+  sucidal: "suicidal", suicdal: "suicidal", kil: "kill",
 };
 const TYPO_WORDS = new RegExp(`\\b(${Object.keys(TYPOS).join("|")})\\b`, "gi");
 
@@ -157,12 +161,22 @@ function normalize(text) {
   return fixTypos(String(text).replace(/[\u2018\u2019\u02BC\u0060\u00B4\uFF07]/g, "'").replace(/\s+/g, " "));
 }
 
-export function mentionsCrisis(text) {
+const ELONGATED = /([a-z])\1{2,}/gi;
+
+function readings(text) {
   const normalized = normalize(text);
   // A line break also often ends a clause ("thinking about stepping off\nthen the train comes"), so
-  // the text is read a second time with each break as a full stop. A hit in either reading counts.
+  // the text is read a second time with each break as a full stop.
   const broken = normalize(String(text).replace(/\s*[\r\n]+\s*/g, ". "));
-  const hits = (pattern) => pattern.test(normalized) || pattern.test(broken);
+  // Texting stretches words ("i wanna dieee", "kmsss"), so each reading is read again with every run
+  // of three or more of one letter squeezed to one and to two, since "killl" squeezed to one is "kil".
+  return [normalized, broken].flatMap((t) => [t, fixTypos(t.replace(ELONGATED, "$1")), fixTypos(t.replace(ELONGATED, "$1$1"))]);
+}
+
+export function mentionsCrisis(text) {
+  // A hit in any reading counts, so an extra reading can only add a flag, never hide one.
+  const texts = readings(text);
+  const hits = (pattern) => texts.some((t) => pattern.test(t));
   if (CRISIS_PATTERNS.some(hits)) return true;
   // Each sign counts once, so the same sign said twice is still one.
   return WARNING_SIGNS.filter(hits).length >= 2;
