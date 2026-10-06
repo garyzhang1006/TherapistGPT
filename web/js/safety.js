@@ -3,7 +3,7 @@
 
 export const CRISIS_PATTERNS = [
   /\bkill(ing)? my ?self\b/i,
-  /\bsuicid(e|al)\b/i,
+  /\bsuicid(e|es|al|ality)\b/i,
   // "i want to die my hair blue" means dye. Only a color, "again", "back" or the end of the text
   // after "hair" counts as dye, because a line break collapses to a space and "die\nmy hair's
   // falling out" must still flag; a false alarm is cheap. "die. my hair" flags on the period.
@@ -30,7 +30,7 @@ export const CRISIS_PATTERNS = [
   /\b(hurt|hurting|cut|cutting|burn|burning|harm|harming|hang|hanging|starve|starving) my ?self\b/i,
   /\b(shoot|shooting) my ?self\b(?! in the foot)/i,
   /\b(drown|drowning) my ?self\b(?! in\b)/i,
-  /\bself[- ]?harm\b/i,
+  /\bself[- ]?(harm(s|ed|ing|er|ers)?|injur(y|ies|e|ed|es|ing|ious))\b/i,
   // Relapse is often said without "myself" ("cut again last night"). "my hours got cut again" and
   // "they cut the budget again" are calm, so the cut must open the text or a clause, or follow
   // "i" or "been". The anchor sits in the match because Safari before 16.4 can't parse lookbehind.
@@ -40,9 +40,12 @@ export const CRISIS_PATTERNS = [
   // "but i wont", ":(") or nothing at all means the cut is the person.
   /\b(want(ed|s|ing)? to|wanna|urges? to|tempted to) (cut|burn)\b(?! (my|the|a|an|your|his|her|him|their|them|it|this|that|these|those|some|back|down|off|out|up|in|into|through|loose|ahead|class|school|ties|costs?|corners|carbs|sugar|calories|fat|weight|hair|bridges|everything)\b)/i,
   /\b(burned|burnt) my ?self\b(?! out\b| (on|with) (the|a|my) (stove|stovetop|oven|pan|pot|kettle|iron|curling iron|straightener|grill|toaster|tea|coffee)\b| (while|making|cooking|ironing|baking)\b)/i,
-  /\brelaps(e|ed|es|ing) (on |into |with )?(sh|self[- ]?harm|cutting|burning)\b/i,
+  /\brelaps(e|ed|es|ing) (on |into |with )?(sh|self[- ]?harm(ing)?|cutting|burning)\b/i,
   /\b(sh|cutting) relaps(e|ed|es|ing)\b/i,
   /\b(cut|cutting|slit|slitting) (my |both )?(wrists?|thighs|forearms)\b/i,
+  // The same cut on another part of the body. "cut my leg shaving" or "on the fence" is an accident,
+  // so a tail that names one stays calm.
+  /\b(cut|cutting|slit|slitting|carve|carving|carved) (my|both my) (wrists?|thighs?|forearms?|arms?|legs?|stomach|hips?|ankles?|skin|shoulders?)\b(?! (shaving|while|when|by accident|accidentally|on (a|an|the|some|my)|with (a|the) (knife|can|lid|paper))\b)/i,
   /\bscratch(ing)? my (arms|legs|skin)\b/i,
   /\boverdos(e|ed|es|ing)\b/i,
   /\b(saving|saved|stockpiling|stockpiled|hoarding) (up )?(my |the )?(pills|meds)\b/i,
