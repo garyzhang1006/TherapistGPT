@@ -147,6 +147,9 @@ const PRONOUN_DUE = /^(?:it'?s|its|it is|it was|that'?s|that is|they'?re|they ar
 const SCHEDULE_NEWS = /\b(?:got|was|were|been|is|are)\s+(?:moved|pushed(?: back)?|rescheduled|cancel+ed|changed|postponed|bumped|delayed)\b/i;
 // "My sister has to drive me everywhere" is her task, not the writer's.
 const OTHERS_TASK = /\b(?:he|she|they|my (?:\w+ )?(?:mom|mum|dad|mother|father|sister|brother|partner|boyfriend|girlfriend|husband|wife|bf|gf|roommates?|friends?|son|daughter|kids?|boss|manager|landlord|grandma|grandpa|aunt|uncle|cousin|parents))\s+(?:(?:still|also|really|just|always|now)\s+)?(?:has to|have to|needs to|need to|gotta|must|should|is supposed to|are supposed to|wants to|want to)\b/i;
+// "My mom is worried about the bill" is her worry. The bill may still be the writer's to pay, but the
+// sentence itself is not a to-do.
+const OTHERS_FEELING = /^(?:my |our |the )?(?:\w+ )?(?:mom|mum|dad|mother|father|sister|brother|partner|boyfriend|girlfriend|husband|wife|bf|gf|roommates?|friends?|son|daughter|kids?|boss|manager|landlord|grandma|grandpa|aunt|uncle|cousin|parents|professor|prof|teacher|advisor|coach|he|she|they)(?:'s|\s+(?:is|are|was|were|seems|sounds|gets|got))\s+(?:so |really |super |kinda |pretty |still |very |getting |all )?(?:worried|stressed|mad|upset|angry|annoyed|anxious|scared|sad|sick|disappointed|nervous|frustrated|pissed|furious|freaking out)\b/i;
 // "If I have to sit through one more meeting just shoot me" is a what-if, not a plan.
 const WHAT_IF = /^if\s+(?:I|we)\s+(?:\w+\s+)?(?:have to|need to|gotta|got to|must)\b/i;
 const TASK_LEAD = /^(and |so |but |also |i |im |i'?m |i am |really |still )*(need to|needs to|have to|has to|gotta|got to|should( really)?|am supposed to|supposed to|must|forgot to|want to|also need to)\s+/i;
@@ -575,6 +578,20 @@ const PERSON = /\bmy\s+(advisor|professor|prof|teacher|tutor|boss|manager|superv
 const TO_PERSON = /^(?:(?:tell|email|call|text|ask|remind|message|thank|meet|visit|update|reply to|write to)\s+(?:her|him)\b|(?:get|buy|make)\s+(?:her|him)(?=\s+(?:something|anything|a|an|some|flowers|gifts?|presents?)\b))/i;
 // The second word is optional and never one of the verbs, so "the trash still hasn't" names "trash".
 const THING_SUBJECT = /^(?:the|my|our|this|that)\s+(\w+(?:\s+(?!(?:has|have|is|are|was|were|keeps|still|needs)\b)\w+)??)\s+(?:has|have|is|are|was|were|keeps|still|needs)\b/i;
+// A person or a body part is never the "it": "my mom is worried about the bill. need to pay it" means
+// the bill, so the last thing that sentence named stands in. With no thing named, the task keeps its
+// bare "it" and is dropped as a fragment.
+const BODY_PART = /^(?:head|back|stomach|chest|arms?|legs?|body|brain|heart|hands?|feet|foot|neck|shoulders?|eyes?|skin)$/i;
+const NAMED_LAST = /\b(?:the|my|our|this|that)\s+((?:\w+\s+)?(?:bills?|rent|trash|dishes|laundry|car|phone|deck|contracts?|renewal|report|essay|paper|forms?|application|presentation|slides|homework|assignment|midterm|final|exam|test|quiz|project|proposal|invoice|taxes|draft|resume|reading|paperwork|lab|appts?|appointments?|class|course|certs?|certification|meeting))\b/gi;
+
+function itThing(clause) {
+  const subject = clause.match(THING_SUBJECT);
+  if (!subject) return null;
+  const who = subject[1];
+  if (!TOPICS.find((t) => t.title === "People").words.test(who) && !PERSON.test(`my ${who}`) && !BODY_PART.test(who)) return who;
+  const named = [...clause.matchAll(NAMED_LAST)].pop();
+  return named ? named[1] : null;
+}
 
 // "Email her" never means "my brother", so a role that names the other gender is passed over.
 const MALE_ROLE = /^(?:dad|father|brother|boyfriend|husband|bf|grandpa|uncle)$/i;
@@ -609,8 +626,8 @@ function resolveTask(task, earlier, lead = "") {
       if (people.length) return task.replace(/\b(?:her|him)\b/i, `my ${people[0].toLowerCase()}`);
     }
   }
-  const thing = (earlier[earlier.length - 1] || "").match(THING_SUBJECT);
-  if (thing && /^\w+ it\b/i.test(task)) return task.replace(/\bit\b/i, `the ${thing[1].toLowerCase()}`);
+  const thing = itThing(earlier[earlier.length - 1] || "");
+  if (thing && /^\w+ it\b/i.test(task)) return task.replace(/\bit\b/i, `the ${thing.toLowerCase()}`);
   return resolveVague(task, lead, earlier);
 }
 
@@ -726,7 +743,7 @@ export function organize(text) {
       !(PAST.test(clause) && !INTENT.test(clause) && !unmet && !promised) &&
       // A promise is a plan made in the past, so "but I bailed" rules it out just as it does "was supposed to".
       !((PAST_PLAN.test(clause) || promised) && !STILL_OWED.test(clause) && (FELL_THROUGH.test(clause) || FELL_THROUGH_LEAD.test(clauses[i + 1] || ""))) &&
-      !((SOMEONE_ELSES.test(clause) || OTHERS_TASK.test(clause)) && !MY_INTENT.test(clause)) &&
+      !((SOMEONE_ELSES.test(clause) || OTHERS_TASK.test(clause) || OTHERS_FEELING.test(clause)) && !MY_INTENT.test(clause)) &&
       !(NO_NEED.test(clause) && !INTENT.test(clause.replace(new RegExp(NO_NEED.source, "gi"), " "))) &&
       !(SCHEDULE_NEWS.test(clause) && !INTENT.test(clause)) &&
       !(PRONOUN_DUE.test(clause) && !INTENT.test(clause)) &&

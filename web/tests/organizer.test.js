@@ -130,6 +130,12 @@ test("a follow-up that only says them and it stays with the errand it belongs to
   assert.deepEqual(organize("need to call the clinic and book a checkup").to_dos.map((t) => t.task), ["Call the clinic", "Book a checkup"]);
 });
 
+test("a person named before a vague it is never the thing to do", () => {
+  assert.deepEqual(organize("my mom is worried about the bill. need to pay it").to_dos.map((t) => t.task), ["Pay the bill"]);
+  assert.deepEqual(organize("my boss is mad about the report. need to fix it").to_dos.map((t) => t.task), ["Fix the report"]);
+  assert.deepEqual(organize("my mom is upset. need to fix it").to_dos, []);
+});
+
 test("him or her in a gift task means the person named before it", () => {
   const tasks = organize("my sisters graduation is friday so i need to buy her a gift").to_dos.map((t) => t.task);
   assert.deepEqual(tasks, ["Buy my sister a gift"]);
