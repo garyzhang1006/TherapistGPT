@@ -15,7 +15,13 @@ CRISIS_PATTERNS = [
     # "i want to die my hair blue" means dye. Only a color, "again", "back" or the end of the text
     # after "hair" counts as dye, because a line break collapses to a space and "die\nmy hair's
     # falling out" must still flag; a false alarm is cheap. "die. my hair" flags on the period.
-    r"\b(want(ed|s)? to|wanna|wish i could) die\b(?! (my|your|his|her|their) hair( (blue|red|pink|purple|green|black|blonde|blond|brown|silver|white|orange|grey|gray|again|back)\b|$))",
+    # A filler or two ("i want to just die", "been wanting to fucking die") must not hide the wish.
+    r"\b(want(ed|s|ing)? to|wanna|wish i could) ((just|really|honestly|literally|fucking|fkn|actually|simply|finally) ){0,2}die\b(?! (my|your|his|her|their) hair( (blue|red|pink|purple|green|black|blonde|blond|brown|silver|white|orange|grey|gray|again|back)\b|$))",
+    # The same wish said as hope, deserving or readiness ("i hope i die in my sleep", "maybe i should
+    # just die"). "ready to die on this hill" and "i hope i die laughing" are idioms, so those tails stay calm.
+    r"\b(hope i|deserve to|i should|ready to) ((just|really|honestly|literally|fucking|fkn|actually|simply|finally) ){0,2}die\b(?! (my|your|his|her|their) hair( (blue|red|pink|purple|green|black|blonde|blond|brown|silver|white|orange|grey|gray|again|back)\b|$)| on (this|that) hill\b| trying\b| laughing\b| of (embarrassment|boredom|shame|laughter|old age)\b)",
+    # Wanting to be dead. "i'd rather be dead tired" and "want to be dead sure" are calm.
+    r"\b(want(ed|s|ing)? to|wanna|rather|i should|wish i could|i'?d like to) ((just|really|honestly|literally|fucking|actually|simply) ){0,2}be dead\b(?! (tired|serious|honest|wrong|last|set|sure|certain|asleep|quiet|silent|even|on (time|arrival))\b)",
     r"\bwish i (was|were) (dead|gone|never born)\b",
     r"\bwish i('d| had)? never (been born|existed|woken up)\b",
     r"\bend(ing)? (it all|my life|my own life)\b",
