@@ -148,8 +148,10 @@ const SCHEDULE_NEWS = /\b(?:got|was|were|been|is|are)\s+(?:moved|pushed(?: back)
 // "My sister has to drive me everywhere" is her task, not the writer's.
 const OTHERS_TASK = /\b(?:he|she|they|my (?:\w+ )?(?:mom|mum|dad|mother|father|sister|brother|partner|boyfriend|girlfriend|husband|wife|bf|gf|roommates?|friends?|son|daughter|kids?|boss|manager|landlord|grandma|grandpa|aunt|uncle|cousin|parents))\s+(?:(?:still|also|really|just|always|now)\s+)?(?:has to|have to|needs to|need to|gotta|must|should|is supposed to|are supposed to|wants to|want to)\b/i;
 // "My mom is worried about the bill" is her worry. The bill may still be the writer's to pay, but the
-// sentence itself is not a to-do.
-const OTHERS_FEELING = /^(?:my |our |the )?(?:\w+ )?(?:mom|mum|dad|mother|father|sister|brother|partner|boyfriend|girlfriend|husband|wife|bf|gf|roommates?|friends?|son|daughter|kids?|boss|manager|landlord|grandma|grandpa|aunt|uncle|cousin|parents|professor|prof|teacher|advisor|coach|he|she|they)(?:'s|\s+(?:is|are|was|were|seems|sounds|gets|got))\s+(?:so |really |super |kinda |pretty |still |very |getting |all )?(?:worried|stressed|mad|upset|angry|annoyed|anxious|scared|sad|sick|disappointed|nervous|frustrated|pissed|furious|freaking out)\b/i;
+// sentence itself is not a to-do. A bare "need to" after it ("my boss is mad at me need to redo the
+// deck") is the writer's own, so that still counts.
+const OTHERS_FEELING = /^(?:my |our |the )?(?:\w+ )?(?:mom|mum|dad|mother|father|sister|brother|partner|boyfriend|girlfriend|husband|wife|bf|gf|roommates?|friends?|son|daughter|kids?|boss|manager|landlord|grandma|grandpa|aunt|uncle|cousin|parents|professor|prof|teacher|advisor|coach|he|she|they)(?:'s|\s+(?:is|are|was|were|seems|sounds|gets|got))\s+(?:so |really |super |kinda |pretty |still |very |getting |all )?(?:worried|stressed|mad|upset|angry|annoyed|anxious|scared|sad|sick|disappointed|nervous|frustrated|pissed|furious|freaking out)\s+(?:about|over|with|at|that)\b/i;
+const BARE_INTENT = /\b(?:need to|have to|gotta|got to)\b/i;
 // "If I have to sit through one more meeting just shoot me" is a what-if, not a plan.
 const WHAT_IF = /^if\s+(?:I|we)\s+(?:\w+\s+)?(?:have to|need to|gotta|got to|must)\b/i;
 const TASK_LEAD = /^(and |so |but |also |i |im |i'?m |i am |really |still )*(need to|needs to|have to|has to|gotta|got to|should( really)?|am supposed to|supposed to|must|forgot to|want to|also need to)\s+/i;
@@ -417,24 +419,42 @@ function splitPart(part, listed) {
 const TITLE_DOT = "\u0001";
 const TITLE_DOTS = /\u0001/g;
 // A run of emoji, with skin tones, joiners and the spaces around it. No emoji is a letter or digit,
-// so a run never takes part of a word.
-const EMOJI = /\s*\p{Extended_Pictographic}[\p{Extended_Pictographic}\p{Emoji_Modifier}‍️\s]*/gu;
+// so a run never takes part of a word. ©, ® and ™ belong to the word before them ("AP® Bio").
+const EMOJI = /\s*(?![©®™])\p{Extended_Pictographic}[\p{Extended_Pictographic}\p{Emoji_Modifier}‍️\s]*/gu;
+
+// An emoji between thoughts ends one, the way a period does: "need to call mom 😭 rent is late". One
+// used as a word stays where it is: "need to buy 🥚 and milk", "get my 🚗 inspected", "i ❤️ my cat".
+const WORD_BEFORE_EMOJI = /(?:^|\s)(?:i|my|your|our|his|her|their|the|a|an|this|that|some|to|for|of|with|and|or|in|on|at|buy|get|grab|need|want|love|hate|miss|feed|walk)\s*$/i;
+const WORD_AFTER_EMOJI = /^(?:and|or|n|for|to|with|of|in|on|at|about|from|by|is|are|was|were|has|have|had|needs?)\b/i;
+
+function emojiBreak(run, at, text) {
+  const start = text.lastIndexOf("\n", at - 1) + 1;
+  const end = text.indexOf("\n", at + run.length);
+  const before = text.slice(start, at);
+  const after = text.slice(at + run.length, end < 0 ? text.length : end).replace(/^[\s.!?;,]+/, "");
+  const word = before.trim() && after && !run.includes("\n") && (WORD_BEFORE_EMOJI.test(before) || WORD_AFTER_EMOJI.test(after));
+  return word ? run : "\n";
+}
 
 // Each clause, and whether it was a list item: a line of its own in a dump of several lines, or a
 // piece of a comma list. A sentence cut off by a period is not one.
 function clauseItems(text) {
   // "1. chem lab report" would split at its period, so list markers come off each line first.
   const normalized = normalize(text).replace(/^[ \t]*(?:[-*•·–—>]+|\d+[.)])[ \t]+/gm, "");
-  const lines = normalized.split(/\n+/).map((line) => line.replace(EMOJI, " ").trim()).filter(Boolean);
-  const listed = new Set(lines.length > 1 ? lines : []);
+  const lines = normalized.split(/\n+/).filter((line) => line.trim());
+  // A line is cut at its emoji the same way the parts below are, so "chem lab report 😭 ugh" still
+  // finds its report among the list items.
+  const listed = new Set(lines.length > 1 ? lines.flatMap((line) => line.replace(EMOJI, emojiBreak).split("\n")).map((piece) => piece.trim()) : []);
   const parts = normalized
-    // "Dr. Patel" is one name, so a title's period is hidden from the sentence split below.
-    .replace(/\b(dr|mr|mrs|ms|mx|prof)\.\s+(?=\w)/gi, `$1${TITLE_DOT} `)
+    // "Dr. Patel" is one name, so a title's period is hidden from the sentence split below. "The dr."
+    // or "my prof." before a lowercase word is the person, and that period can end a sentence.
+    .replace(/(\b(?:the|my|your|our|his|her|their|a)\s+)?\b(dr|mr|mrs|ms|mx|prof)\.[ \t]+(?=(\w))/gi, (all, det, title, next) =>
+      det && !/[A-Z]/.test(next) ? all : `${det || ""}${title}${TITLE_DOT} `,
+    )
     // Sentence ends become line breaks first. A lookbehind would do it in one regex, but Safari
     // before 16.4 can't parse lookbehinds, and one bad regex stops the whole page from loading.
     .replace(/([.!?;])\s+/g, "$1\n")
-    // An emoji between thoughts ends one, the way a period does: "need to call mom 😭 rent is late".
-    .replace(EMOJI, "\n")
+    .replace(EMOJI, emojiBreak)
     // Texting ends sentences with "lol" or "tbh" instead of a period, and "idk where to even
     // start" is a thought of its own before whatever follows it.
     .replace(/\s+(lol|lmao|lmfao|haha\w*|tbh|ngl)\s+(?=(?:i|i'm|im|i've|ive|my)\b)/gi, " $1\n")
@@ -590,19 +610,27 @@ const PERSON = /\bmy\s+(advisor|professor|prof|teacher|tutor|boss|manager|superv
 const TO_PERSON = /^(?:(?:tell|email|call|text|ask|remind|message|thank|meet|visit|update|reply to|write to)\s+(?:her|him)\b|(?:get|buy|make)\s+(?:her|him)(?=\s+(?:something|anything|a|an|some|flowers|gifts?|presents?)\b))/i;
 // The second word is optional and never one of the verbs, so "the trash still hasn't" names "trash".
 const THING_SUBJECT = /^(?:the|my|our|this|that)\s+(\w+(?:\s+(?!(?:has|have|is|are|was|were|keeps|still|needs)\b)\w+)??)\s+(?:has|have|is|are|was|were|keeps|still|needs)\b/i;
-// A person or a body part is never the "it": "my mom is worried about the bill. need to pay it" means
-// the bill, so the last thing that sentence named stands in. With no thing named, the task keeps its
-// bare "it" and is dropped as a fragment.
-const BODY_PART = /^(?:head|back|stomach|chest|arms?|legs?|body|brain|heart|hands?|feet|foot|neck|shoulders?|eyes?|skin)$/i;
-const NAMED_LAST = /\b(?:the|my|our|this|that)\s+((?:\w+\s+)?(?:bills?|rent|trash|dishes|laundry|car|phone|deck|contracts?|renewal|report|essay|paper|forms?|application|presentation|slides|homework|assignment|midterm|final|exam|test|quiz|project|proposal|invoice|taxes|draft|resume|reading|paperwork|lab|appts?|appointments?|class|course|certs?|certification|meeting))\b/gi;
+// A person is never the "it": "my mom is worried about the bill. need to pay it" means the bill, so
+// the first thing that sentence named stands in. With no thing named, the task keeps its bare "it"
+// and is dropped as a fragment. Only the last word decides, since "the kids room" is a room. A body
+// part stays the writer's own: "my back hurts. need to get it checked" is "Get my back checked".
+const BODY_PART = /^(?:head|back|stomach|chest|arms?|legs?|body|brain|heart|hands?|feet|foot|neck|shoulders?|eyes?|skin|knees?|ankles?|wrists?|teeth|tooth)$/i;
+const THING_IN = /\b(?:the|my|our|this|that)\s+((?:(?!(?:the|my|our|this|that|a|an)\b)\w+\s+)?(?:bills?|rent|trash|dishes|laundry|car|phone|deck|contracts?|renewal|report|essay|paper|forms?|application|presentation|slides|homework|assignment|midterm|final|exam|test|quiz|project|proposal|invoice|taxes|draft|resume|reading|paperwork|lab|appts?|appointments?|class|course|certs?|certification|meeting))\b/i;
 
-function itThing(clause) {
+const BODY_CARE = /^(?:get|have|ice|stretch|rest|check)\b/i;
+
+function itThing(clause, task) {
   const subject = clause.match(THING_SUBJECT);
   if (!subject) return null;
-  const who = subject[1];
-  if (!TOPICS.find((t) => t.title === "People").words.test(who) && !PERSON.test(`my ${who}`) && !BODY_PART.test(who)) return who;
-  const named = [...clause.matchAll(NAMED_LAST)].pop();
-  return named ? named[1] : null;
+  const words = subject[1].toLowerCase();
+  const head = words.split(/\s+/).pop();
+  if (BODY_PART.test(head)) {
+    if (BODY_CARE.test(task)) return `my ${words}`;
+  } else if (!TOPICS.find((t) => t.title === "People").words.test(head) && !PERSON.test(`my ${head}`)) {
+    return `the ${words}`;
+  }
+  const named = clause.match(THING_IN);
+  return named ? `the ${named[1].toLowerCase()}` : null;
 }
 
 // "Email her" never means "my brother", so a role that names the other gender is passed over.
@@ -638,8 +666,8 @@ function resolveTask(task, earlier, lead = "") {
       if (people.length) return task.replace(/\b(?:her|him)\b/i, `my ${people[0].toLowerCase()}`);
     }
   }
-  const thing = itThing(earlier[earlier.length - 1] || "");
-  if (thing && /^\w+ it\b/i.test(task)) return task.replace(/\bit\b/i, `the ${thing.toLowerCase()}`);
+  const thing = itThing(earlier[earlier.length - 1] || "", task);
+  if (thing && /^\w+ it\b/i.test(task)) return task.replace(/\bit\b/i, thing);
   return resolveVague(task, lead, earlier);
 }
 
@@ -755,7 +783,8 @@ export function organize(text) {
       !(PAST.test(clause) && !INTENT.test(clause) && !unmet && !promised) &&
       // A promise is a plan made in the past, so "but I bailed" rules it out just as it does "was supposed to".
       !((PAST_PLAN.test(clause) || promised) && !STILL_OWED.test(clause) && (FELL_THROUGH.test(clause) || FELL_THROUGH_LEAD.test(clauses[i + 1] || ""))) &&
-      !((SOMEONE_ELSES.test(clause) || OTHERS_TASK.test(clause) || OTHERS_FEELING.test(clause)) && !MY_INTENT.test(clause)) &&
+      !((SOMEONE_ELSES.test(clause) || OTHERS_TASK.test(clause)) && !MY_INTENT.test(clause)) &&
+      !(OTHERS_FEELING.test(clause) && !MY_INTENT.test(clause) && !BARE_INTENT.test(clause)) &&
       !(NO_NEED.test(clause) && !INTENT.test(clause.replace(new RegExp(NO_NEED.source, "gi"), " "))) &&
       !(SCHEDULE_NEWS.test(clause) && !INTENT.test(clause)) &&
       !(PRONOUN_DUE.test(clause) && !INTENT.test(clause)) &&
