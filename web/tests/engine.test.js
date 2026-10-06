@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { organizeText, looksValid, normalizeEndpoint, loadSettings, saveSettings } from "../js/engine.js";
-import { mentionsCrisis } from "../js/safety.js";
+import { mentionsCrisis, applySafetyFloor } from "../js/safety.js";
 
 test("device engine returns valid output with no network", async () => {
   const { result, engine, notice } = await organizeText("I need to do the dishes and I'm so tired", { engine: "device", endpoint: "" });
@@ -54,13 +54,30 @@ test("an address that can't be parsed gets a plain explanation", () => {
 
 test("the keyword safety floor still applies to a model that missed a crisis", async () => {
   const modelOut = {
-    summary: "You're tired.", feelings: [], threads: [{ title: "Now", points: ["Tired"] }],
-    to_dos: [], kinder_view: [], one_small_step: "Rest.", needs_support: false,
+    summary: "You're tired.", feelings: [], threads: [{ title: "Now", points: ["Tired", "i want to die"] }],
+    to_dos: [{ task: "i want to kill myself", first_step: "Rest." }], kinder_view: [], one_small_step: "Rest.", needs_support: false,
   };
+  assert.equal(applySafetyFloor("i want to die", modelOut).needs_support, true);
+  // A model reply to calm words still loses any crisis line it invents.
   globalThis.fetch = async () => ({ ok: true, status: 200, json: async () => modelOut });
-  const { result, engine } = await organizeText("i want to die", { engine: "model", endpoint: "https://example.invalid" });
+  const { result, engine } = await organizeText("so tired today", { engine: "model", endpoint: "https://example.invalid" });
   assert.equal(engine, "model");
+  assert.deepEqual(result.to_dos, []);
+  assert.deepEqual(result.threads[0].points, ["Tired"]);
+});
+
+test("crisis words get the help card at once and are never sent to the model", async () => {
+  let calls = 0;
+  globalThis.fetch = async () => {
+    calls++;
+    return new Promise(() => {});
+  };
+  const { result, engine, notice } = await organizeText("i want to die", { engine: "model", endpoint: "https://example.invalid" });
+  assert.equal(calls, 0);
+  assert.equal(engine, "device");
   assert.equal(result.needs_support, true);
+  assert.ok(looksValid(result));
+  assert.match(notice, /not sent to your model/);
 });
 
 test("device results never print a crisis sentence back and stay renderable", async () => {

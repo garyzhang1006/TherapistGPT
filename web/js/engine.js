@@ -2,8 +2,8 @@
 // trained model behind compute/serve.py. Any remote failure falls back to on-device, so the
 // person always gets an answer.
 
-import { organize as organizeOnDevice } from "./organizer.js?v=10";
-import { applySafetyFloor } from "./safety.js?v=10";
+import { organize as organizeOnDevice } from "./organizer.js?v=11";
+import { applySafetyFloor, mentionsCrisis } from "./safety.js?v=11";
 
 const SETTINGS_KEY = "therapistgpt.settings";
 const REMOTE_TIMEOUT_MS = 60000;
@@ -101,6 +101,15 @@ async function organizeRemote(text, endpoint, apiKey) {
 }
 
 export async function organizeText(text, settings = loadSettings()) {
+  // A model can take up to a minute to answer, and someone who just wrote crisis words should see the
+  // help card at once, not a spinner. Those words are sorted here and never sent.
+  if (settings.engine === "model" && settings.endpoint && mentionsCrisis(text)) {
+    return {
+      result: applySafetyFloor(text, organizeOnDevice(text)),
+      engine: "device",
+      notice: "Sorted on this device so support could show right away. These words were not sent to your model.",
+    };
+  }
   if (settings.engine === "model" && settings.endpoint) {
     try {
       const out = await organizeRemote(text, settings.endpoint, settings.apiKey);
