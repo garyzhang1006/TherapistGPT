@@ -52,7 +52,7 @@ The app will not talk with you, contact anyone, or judge how much danger someone
 
 ## Privacy
 
-With the built-in organizer, nothing you type leaves the browser. The fonts and icons come from this site, and the page sends no requests anywhere once it has loaded. Your draft sits in the browser's local storage while you write and is deleted the moment you sort it. Ticked to-dos live in session storage, which the browser clears when the tab closes, and the theme and text-size choices stay in local storage. There are no accounts, analytics or cookies. If you add a model address in **Settings**, your text goes to that server and nowhere else.
+With the built-in organizer, nothing you type leaves the browser. The fonts and icons come from this site, and the page sends no requests anywhere once it has loaded. Your draft sits in the browser's local storage while you write and is deleted the moment you sort it. Ticked to-dos are kept only in the open page and are never saved, and the theme and text-size choices stay in local storage. There are no accounts, analytics or cookies. If you add a model address in **Settings**, your text goes to that server and nowhere else, except a brain dump that trips the crisis check: that one is sorted on the device and never sent, so the help card shows at once instead of after the model's answer.
 
 ## Run it locally
 
