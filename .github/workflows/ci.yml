@@ -18,6 +18,30 @@ jobs:
           node-version: 22
       - run: npm test
 
+  browser:
+    # Clicks through the app in Chromium with JavaScript off and on, against a copy of web/ served on
+    # the runner, so the help links and the form are checked the way a phone sees them.
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      # Installed at the repo root and not saved anywhere, so the script under .github/scripts resolves it.
+      - name: Install Playwright and Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.63.0
+          npx playwright install --with-deps chromium
+
+      - name: Serve web/ and run the browser checks
+        env:
+          SITE_URL: http://localhost:8000/
+        run: |
+          python3 -m http.server 8000 --directory web &
+          node .github/scripts/browser-check.mjs
+
   compute:
     # Cheap checks only, with no model download or training. smoke.yml runs the real pipeline on a
     # tiny CPU model when compute/ changes.
