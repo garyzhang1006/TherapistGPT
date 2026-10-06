@@ -166,7 +166,17 @@
     "thinking about self-injury",
     "i cut my arms again last night",
     "cutting my legs so nobody sees",
-    "my suicidality is worse this week"
+    "my suicidality is worse this week",
+    "i cannot go on anymore",
+    "i can not take this anymore",
+    "i cant do it anymore",
+    "i don't really want to be here",
+    "i dont even want to exist",
+    "i no longer want to live",
+    "thinking about ending it",
+    "i want to end it tonight",
+    "i want to off myself",
+    "i'm going to take my life and nobody will stop me"
   ],
   "should_not_flag": [
     "this exam will kill me lol",
@@ -279,6 +289,10 @@
     "i should die my hair purple",
     "i want to be dead sure before i sign",
     "i cut my leg shaving",
-    "cut my arm on the fence at work"
+    "cut my arm on the fence at work",
+    "took the pressure off myself",
+    "i want to end it with him before the holidays",
+    "we should end it early today",
+    "i want to take my life and turn it around"
   ]
 }

@@ -17,9 +17,15 @@ export const CRISIS_PATTERNS = [
   /\bwish i (was|were) (dead|gone|never born)\b/i,
   /\bwish i('d| had)? never (been born|existed|woken up)\b/i,
   /\bend(ing)? (it all|my life|my own life)\b/i,
+  // "thinking about ending it" or "i want to end it tonight" without "all". Ending it with someone,
+  // or ending a call early or there, stays calm.
+  /\b(want(ed|s|ing)? to|wanna|going to|gonna|think(s|ing)? (about|abt|of)|thought (about|abt|of)|plan(s|ned|ning)? to|ready to|should|could|urges? to|tempted to) ((just|finally|really|honestly) )?end(ing)? it\b(?! (with|between|off|early|there|here|on|at|by|for (the|this|now|today|tonight|a))\b)/i,
+  // "off myself" as a verb. "took the pressure off myself" has no wish before it and stays calm.
+  /\b(want(ed|s|ing)? to|wanna|gonna|going to|think(s|ing)? (about|abt|of)|thought (about|abt|of)|should|could|urges? to|tempted to) ((just|finally|really|honestly) )?off(ing)? my ?self\b/i,
   /\btak(e|ing) my own life\b/i,
-  /\btak(e|ing) my life\b(?! (back|seriously|in|into|one|more|a|to|and|for|over)\b)/i,
-  /\b(don'?t|do not) (want to|wanna) (be here|exist|live|wake up|be alive)\b/i,
+  // "take my life and turn it around" is calm, but "take my life and nobody will stop me" is not.
+  /\btak(e|ing) my life\b(?! (back|seriously|in|into|one|more|a|to|for|over|and (turn|make|start|change|get|put|fix|move))\b)/i,
+  /\b(don'?t|do not|no longer) ((really|even|honestly|just|actually) ){0,2}(want to|wanna) (be here|exist|live|wake up|be alive|keep living)\b/i,
   /\bbetter (off )?(dead|without me)\b/i,
   /\bbetter off if i (was|were) (gone|dead)\b/i,
   /\bbetter off if i (wasn'?t|weren'?t) (here|around|alive)\b/i,
@@ -57,7 +63,7 @@ export const CRISIS_PATTERNS = [
   /\bunaliv(e|ed|es|ing)\b/i,
   // "sewer slide" is how people say suicide on apps that hide the word.
   /\bsewer[- ]?slid(e|ed|es|ing)\b/i,
-  /\bcan'?t (go on|do this anymore|take (it|this) anymore)\b/i,
+  /\b(can'?t|cannot|can not) (go on|do (it|this) any ?more|take (it|this) any ?more)\b/i,
   /\bdisappear forever\b/i,
   // "the stain should disappear for good" is calm, so "for good" needs the person to want it.
   /\b(want(ed|s)? to|wanna|wish i could|i could|rather|i'?m going to|i'?m gonna|i need to) (just )?(disappear|vanish) (for good|permanently|and never come back)\b/i,
