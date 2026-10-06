@@ -73,6 +73,36 @@ try {
     await page.locator("#organize-btn").click();
     check(await settles(page.locator("#result-cards .card"), "visible"), "with JavaScript on, Sort shows the results");
     check(!leaked(page), `with JavaScript on, Sort keeps the words out of the address (${page.url()})`);
+
+    // Ticks live in page memory only. The old results stay in the DOM while hidden, so the check
+    // waits for a visible ticked box, which only the second sort can draw.
+    await page.locator("#result-cards .todo label").first().click();
+    await page.getByRole("button", { name: "Back to my words" }).click();
+    await page.locator("#organize-btn").click();
+    check(await settles(page.locator("#result-cards .todo input:checked"), "visible"), "with JavaScript on, a ticked to-do stays ticked after Back and a second sort");
+    const stored = await page.evaluate(() => JSON.stringify({ ...localStorage }) + JSON.stringify({ ...sessionStorage }));
+    check(!stored.includes(SECRET), "with JavaScript on, nothing in local or session storage holds the sorted words");
+
+    // With a model address saved, crisis words get the help card at once and never reach the model.
+    // The calm dump after it proves the route does catch requests, so zero means none were made.
+    const sent = [];
+    await page.route("https://example.invalid/**", (route) => {
+      sent.push(route.request().url());
+      return route.abort();
+    });
+    await page.evaluate(() =>
+      localStorage.setItem("therapistgpt.settings", JSON.stringify({ engine: "model", endpoint: "https://example.invalid", apiKey: "" })),
+    );
+    await page.getByRole("button", { name: "Back to my words" }).click();
+    await page.locator("#dump").fill(`i want to die ${SECRET}`);
+    await page.locator("#organize-btn").click();
+    const shown = await page.locator("#result-cards .crisis").first().waitFor({ state: "visible", timeout: 3000 }).then(() => true, () => false);
+    check(shown && sent.length === 0, `with a model saved, crisis words show the help card within 3 seconds and are never sent (${sent.length} sent)`);
+    await page.getByRole("button", { name: "Back to my words" }).click();
+    await page.locator("#dump").fill(DUMP);
+    await page.locator("#organize-btn").click();
+    await settles(page.locator("#engine-note", { hasText: "organized on your device instead" }), "visible");
+    check(sent.length > 0, "with a model saved, calm words are still sent to the model");
   });
 } finally {
   await browser.close();
