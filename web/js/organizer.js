@@ -414,21 +414,33 @@ function splitPart(part, listed) {
   return splitRunOn(part).flatMap(splitSelfTalk).flatMap((piece) => splitList(piece, listed)).flatMap(splitChores);
 }
 
+const TITLE_DOT = "\u0001";
+const TITLE_DOTS = /\u0001/g;
+// A run of emoji, with skin tones, joiners and the spaces around it. No emoji is a letter or digit,
+// so a run never takes part of a word.
+const EMOJI = /\s*\p{Extended_Pictographic}[\p{Extended_Pictographic}\p{Emoji_Modifier}‍️\s]*/gu;
+
 // Each clause, and whether it was a list item: a line of its own in a dump of several lines, or a
 // piece of a comma list. A sentence cut off by a period is not one.
 function clauseItems(text) {
-  const normalized = normalize(text);
-  const lines = normalized.split(/\n+/).map((line) => line.trim()).filter(Boolean);
+  // "1. chem lab report" would split at its period, so list markers come off each line first.
+  const normalized = normalize(text).replace(/^[ \t]*(?:[-*•·–—>]+|\d+[.)])[ \t]+/gm, "");
+  const lines = normalized.split(/\n+/).map((line) => line.replace(EMOJI, " ").trim()).filter(Boolean);
   const listed = new Set(lines.length > 1 ? lines : []);
   const parts = normalized
+    // "Dr. Patel" is one name, so a title's period is hidden from the sentence split below.
+    .replace(/\b(dr|mr|mrs|ms|mx|prof)\.\s+(?=\w)/gi, `$1${TITLE_DOT} `)
     // Sentence ends become line breaks first. A lookbehind would do it in one regex, but Safari
     // before 16.4 can't parse lookbehinds, and one bad regex stops the whole page from loading.
     .replace(/([.!?;])\s+/g, "$1\n")
+    // An emoji between thoughts ends one, the way a period does: "need to call mom 😭 rent is late".
+    .replace(EMOJI, "\n")
     // Texting ends sentences with "lol" or "tbh" instead of a period, and "idk where to even
     // start" is a thought of its own before whatever follows it.
     .replace(/\s+(lol|lmao|lmfao|haha\w*|tbh|ngl)\s+(?=(?:i|i'm|im|i've|ive|my)\b)/gi, " $1\n")
     .replace(/\b((?:idk|i don'?t know|i dont know) where (?:to|do i) (?:even )?(?:start|begin))\s+(?=(?:i|i'm|im|i've|ive|my)\b)/gi, "$1\n")
     .split(/\n+|\s+(?:and then|but also|and also|oh and|plus|anyway|anyways)\s+/i)
+    .map((part) => part.replace(TITLE_DOTS, "."))
     .flatMap((part) => splitPart(part, listed));
   const items = [];
   const seen = new Set();

@@ -152,6 +152,26 @@ test("an errand named in a list line is a to-do without a verb", () => {
   assert.deepEqual(organize("- prescription pickup at cvs\n- call the plumber").to_dos.map((t) => t.task), ["Prescription pickup at cvs", "Call the plumber"]);
 });
 
+test("numbered list lines become to-dos just like bulleted ones", () => {
+  const numbered = organize("1. vendor contract renewal\n2. club fundraiser forms").to_dos.map((t) => t.task);
+  assert.deepEqual(numbered, ["Vendor contract renewal", "Club fundraiser forms"]);
+  assert.deepEqual(organize("- vendor contract renewal\n- club fundraiser forms").to_dos.map((t) => t.task), numbered);
+});
+
+test("a title like Dr. does not end the sentence", () => {
+  const out = organize("need to call Dr. Patel about my meds");
+  assert.deepEqual(out.to_dos.map((t) => t.task), ["Call Dr. Patel about my meds"]);
+  assert.ok(!out.threads.flatMap((t) => t.points).some((p) => /^Patel\b/.test(p)));
+  assert.deepEqual(organize("- call dr. kim\n- pay rent").to_dos.map((t) => t.task), ["Call dr. kim", "Pay rent"]);
+});
+
+test("an emoji between thoughts ends the thought and stays out of the to-do", () => {
+  assert.deepEqual(organize("need to call mom 😭 rent is late").to_dos.map((t) => t.task), ["Call mom", "Pay rent"]);
+  assert.deepEqual(organize("need to call mom 😭").to_dos.map((t) => t.task), ["Call mom"]);
+  assert.deepEqual(organize("- call mom 👍🏽\n- pay rent").to_dos.map((t) => t.task), ["Call mom", "Pay rent"]);
+  assertSchema(organize("😭😭😭"));
+});
+
 test("list lines become separate to-dos without their bullets", () => {
   assert.deepEqual(organize("- call mom\n- pay rent\n- groceries").to_dos.map((t) => t.task), ["Call mom", "Pay rent", "Groceries"]);
   assert.deepEqual(
