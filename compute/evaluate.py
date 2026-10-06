@@ -8,11 +8,13 @@ Usage:
 Metrics (all deterministic, no LLM judge):
     valid_json        output parses as one JSON object
     valid_schema      output passes therapistgpt.schema.validate
-    crisis_recall     share of crisis rows the MODEL flagged (before the keyword floor)
+    crisis_recall     share of crisis rows the MODEL flagged (before the keyword floor), with a 95% interval
     crisis_precision  share of model crisis flags that were real
     grounding         share of content words in thread points that appear in the brain dump
                       (low values mean the model is inventing things)
     feeling_overlap   Jaccard overlap of feeling words with the reference
+    handwritten       crisis recall and false alarms on the 141 hand-written dumps in web/tests/fixtures
+                      (44 crisis), for the model, the phrase list, and both together; see therapistgpt/handwritten.py
 """
 
 from __future__ import annotations
@@ -28,6 +30,7 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from therapistgpt import handwritten  # noqa: E402
 from therapistgpt.inference import Organizer  # noqa: E402
 from therapistgpt.schema import SchemaError, extract_json, validate  # noqa: E402
 
@@ -58,7 +61,10 @@ def main() -> int:
     parser.add_argument("--model", help="model id or path; defaults to base_model from config")
     parser.add_argument("--adapter", help="LoRA adapter path or Hub id")
     parser.add_argument("--base-only", action="store_true", help="evaluate the untrained base model")
-    parser.add_argument("--limit", type=int, default=0, help="only score the first N rows")
+    parser.add_argument("--limit", type=int, default=0, help="only score the first N rows of each set")
+    parser.add_argument(
+        "--handwritten", type=Path, default=handwritten.FIXTURES, help="folder of hand-written brain-dumps*.json"
+    )
     parser.add_argument("--report", type=Path, default=HERE / "outputs" / "eval_report.json")
     args = parser.parse_args()
 
@@ -76,6 +82,11 @@ def main() -> int:
     if not rows:
         print(f"error: {args.test} has no rows; generate synthetic data and rerun split_data.py", file=sys.stderr)
         return 2
+    hand = handwritten.load(args.handwritten) if args.handwritten.is_dir() else []
+    if not hand:
+        print(f"warning: no hand-written dumps in {args.handwritten}, so the report has no handwritten block", file=sys.stderr)
+    if args.limit:
+        hand = hand[: args.limit]
 
     base = yaml.safe_load(args.config.read_text(encoding="utf-8"))["base_model"]
     organizer = Organizer(args.model or base, adapter=args.adapter)
@@ -108,6 +119,17 @@ def main() -> int:
             totals["feeling_overlap"] += len(got & want) / len(got | want) if got | want else 1.0
         if i % 20 == 0:
             print(f"{i}/{len(rows)} scored ({time.time() - start:.0f}s)")
+    seconds_per_row = (time.time() - start) / max(len(rows), 1)
+
+    # Output that fails the schema counts as not flagged, as it does for the test split above.
+    hand_flags = []
+    for i, row in enumerate(hand, 1):
+        try:
+            hand_flags.append(bool(validate(extract_json(organizer.generate_raw(row["input"])))["needs_support"]))
+        except SchemaError:
+            hand_flags.append(False)
+        if i % 20 == 0:
+            print(f"{i}/{len(hand)} hand-written scored")
 
     n = len(rows)
     ok = totals["valid_schema"]
@@ -118,19 +140,26 @@ def main() -> int:
         "valid_json": totals["valid_json"] / n,
         "valid_schema": totals["valid_schema"] / n,
         "crisis_recall": tp / (tp + fn) if tp + fn else None,
+        "crisis_recall_95ci": handwritten.wilson(tp, tp + fn),
         "crisis_precision": tp / (tp + fp) if tp + fp else None,
         # These only mean something on schema-valid rows. With none (a small split, an untrained model)
         # report None, like the crisis metrics, instead of a 0.0 that reads as "invented everything".
         "grounding": totals["grounding"] / ok if ok else None,
         "feeling_overlap": totals["feeling_overlap"] / ok if ok else None,
-        "seconds_per_row": (time.time() - start) / max(n, 1),
+        "seconds_per_row": seconds_per_row,
+        "handwritten": handwritten.crisis_scores(hand, hand_flags) if hand else None,
         "failures": failures[:20],
     }
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.report.write_text(json.dumps(report, indent=2), encoding="utf-8")
     for key, value in report.items():
-        if key != "failures":
+        if key not in ("failures", "handwritten"):
             print(f"{key:>18}: {value:.3f}" if isinstance(value, float) else f"{key:>18}: {value}")
+    if report["handwritten"]:
+        print("hand-written dumps (the phrase list was tuned on these, so its row is a ceiling):")
+        for name in ("model", "phrase_list_tuned_on_these", "model_plus_phrase_list"):
+            scores = report["handwritten"][name]
+            print(f"{name:>28}: crisis caught {scores['caught']} (95% CI {scores['recall_95ci']}), false alarms {scores['false_alarms']}")
     print(f"full report: {args.report}")
     return 0
 

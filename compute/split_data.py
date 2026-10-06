@@ -2,6 +2,9 @@
 
 Seed rows always go to train (they are the few-shot anchors of the teacher, so testing on them would leak).
 Crisis rows are stratified so every split has some, because recall on those rows is the metric that matters most.
+They also get a larger test share (15% against 5%): at the default 8% crisis rate, 2,000 rows hold about 160 crisis
+rows, and 5% of those is 8, too few to tell 0.95 recall from 0.75. The test split then holds more crisis rows than
+real use does, so crisis_precision on it runs high.
 
 Usage:
     python split_data.py --inputs data/seed.jsonl data/synthetic.jsonl
@@ -48,6 +51,7 @@ def main() -> int:
     parser.add_argument("--out-dir", type=Path, default=HERE / "data")
     parser.add_argument("--val-frac", type=float, default=0.05)
     parser.add_argument("--test-frac", type=float, default=0.05)
+    parser.add_argument("--crisis-test-frac", type=float, default=0.15, help="test share of the crisis rows")
     parser.add_argument("--seed", type=int, default=13)
     args = parser.parse_args()
 
@@ -82,7 +86,7 @@ def main() -> int:
         group = [r for r in pool if r["output"]["needs_support"] is is_crisis]
         rng.shuffle(group)
         n_val = round(len(group) * args.val_frac)
-        n_test = round(len(group) * args.test_frac)
+        n_test = round(len(group) * (args.crisis_test_frac if is_crisis else args.test_frac))
         splits["val"] += group[:n_val]
         splits["test"] += group[n_val : n_val + n_test]
         splits["train"] += group[n_val + n_test :]
