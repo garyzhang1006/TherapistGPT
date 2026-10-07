@@ -140,6 +140,12 @@
     "i want to stop my life",
     "i honestly dont even see the point of living",
     "been skipping my meds on purpose this week",
+    "i stopped taking my meds since josé left on purpose",
+    "does the life insurance pay out to renée even if its suicide",
+    "I WANT TO DİE",
+    "kıll myself",
+    "i want to\u0085die",
+    "i want to\ufeffdie",
     "everyone would honestly be fine without me",
     "my family'd be happier without me",
     "would the policy still pay if it was intentional",
@@ -179,6 +185,8 @@
     "i'm going to take my life and nobody will stop me"
   ],
   "should_not_flag": [
+    "MY FREİND STOPPED TALKING TO ME",
+    "ſo tired after the double shift",
     "this exam will kill me lol",
     "I'm dying to see that movie",
     "my phone died",

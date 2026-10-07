@@ -118,19 +118,19 @@ export const CRISIS_PATTERNS = [
   // to an alarm is a calm worry, so those stay quiet.
   /\b(hope|hoping|wish|wishing|pray|praying) (that )?i ((just|simply|honestly|really|maybe|finally|somehow) ){0,2}(don'?t|do not|never|won'?t|will not|wouldn'?t|would not|didn'?t|did not) (ever )?wake up\b(?! (on time|early|late|before|in time|until|till|at|with|to|sick|hungover|sore|groggy|tired|cranky)\b)/i,
   // Weighing how easy a way out would be ("how easy it would be to pull over and climb the railing").
-  /\bhow easy (it( would|'?d| could| might) be|it is|it'?s) to ((\w+ ){1,4}(and|then) )?((climb|step|jump|lean) ((over|off|up on|onto|past|out over) )?(the|a|that) (railing|rail|ledge|parapet|guardrail|edge|barrier)|(just )?(end it all|die|disappear forever|not wake up|take them all|swallow them all|take all of them|step in front of))\b/i,
+  /\bhow easy (it( would|'?d| could| might) be|it is|it'?s) to (([^ .!?,;]+ ){1,4}(and|then) )?((climb|step|jump|lean) ((over|off|up on|onto|past|out over) )?(the|a|that) (railing|rail|ledge|parapet|guardrail|edge|barrier)|(just )?(end it all|die|disappear forever|not wake up|take them all|swallow them all|take all of them|step in front of))\b/i,
   // The same pull toward a railing said as a thought or urge. Reaching over one for something stays calm.
   /\b(think(s|ing)? (about|abt|of)|thought (about|abt|of)|urges? to|tempted to|want(s|ed|ing)? to|wanna|gonna|going to) (just )?(climb(ing)?|lean(ing)?) (over|past|onto|up on) (the|a|that) (railing|parapet|guardrail|ledge)\b(?! (to (get|grab|reach|take|see|fix)|for)\b)/i,
   // Non-native and plain phrasings of ending one's life ("i think to finish my life"). A life story,
   // a life coach or stopping my life from falling apart stay calm.
   /\b(finish|finishing|finished|stop|stopping|quit|quitting) my (own )?life\b(?! (story|stories|insurance|admin|plan|planning|coach|coaching|goals?|lessons?|skills?|drawings?|class|classes|course|sketch|sketches|painting|model|book|essay|update|chapter|from|falling|getting|being|going)\b)/i,
   // Stopping medication on purpose. Without "on purpose" it is usually a side effect or a doctor's call.
-  /\b(stopped|stopping|stop|quit|quitting|skipping|skipped|skip|not taking|haven'?t been taking|been skipping) (taking )?my (\w+ ){0,2}(pills|meds|medication|medications|medicine|insulin|tablets)\b( \w+){0,4} on purpose\b/i,
+  /\b(stopped|stopping|stop|quit|quitting|skipping|skipped|skip|not taking|haven'?t been taking|been skipping) (taking )?my ([^ .!?,;]+ ){0,2}(pills|meds|medication|medications|medicine|insulin|tablets)\b( [^ .!?,;]+){0,4} on purpose\b/i,
   // The people closest would be fine without me. "the team will be fine without me for a week" names
   // a stretch of time or a place, so those stay calm.
   /\b(everyone|everybody|they|the kids|my kids|my children|my family|my (wife|husband|partner|boyfriend|girlfriend|parents|mom|dad|mum|son|daughter)|the world|people)('?d|'?ll| would| will| are| were)( (honestly|probably|really|all|just|actually|totally))?( (honestly|probably|really|all|just|actually|totally))?( be)? (fine|okay|ok|alright|all right|better|better off|happier|good) without me\b(?! (there|at|for|on|in|this|today|tonight|tomorrow|while|until|till|when|during|next|once)\b)/i,
   // Asking whether insurance pays when a death is not an accident.
-  /\b(life insurance|insurance|the policy|my policy) (\w+ ){0,5}(if|when|even if) (it'?s|its|it is|it was|the death is|the death was|death is) (not an accident|not accidental|not natural|suicide|self[- ]inflicted|on purpose|intentional|deliberate)\b/i,
+  /\b(life insurance|insurance|the policy|my policy) ([^ .!?,;]+ ){0,5}(if|when|even if) (it'?s|its|it is|it was|the death is|the death was|death is) (not an accident|not accidental|not natural|suicide|self[- ]inflicted|on purpose|intentional|deliberate)\b/i,
 ];
 
 // Someone who has decided often says nothing direct: they give things away, write letters, feel a
@@ -138,13 +138,13 @@ export const CRISIS_PATTERNS = [
 // "wrote letters to colleges"), so only two different ones together flag. One pattern per sign.
 export const WARNING_SIGNS = [
   // Giving away belongings. "gave my keys to the landlord" hands something over, so "to" needs a belonging.
-  /\b(gave|give|giving|given|gifted|gifting) (away (my|all my|most of my)\b|(my|all my|most of my|some of my)( \w+){0,2} away\b|(my|all my|most of my|some of my) (\w+ )?(guitar|piano|books?|clothes|stuff|things|belongings|possessions|cat|dog|pets?|plants?|games|console|records|vinyl|jewelry|necklace|ring|watch|car|bike|laptop|camera|art|paintings?|journals?|collection) to\b)/i,
+  /\b(gave|give|giving|given|gifted|gifting) (away (my|all my|most of my)\b|(my|all my|most of my|some of my)( [^ .!?,;]+){0,2} away\b|(my|all my|most of my|some of my) ([^ .!?,;]+ )?(guitar|piano|books?|clothes|stuff|things|belongings|possessions|cat|dog|pets?|plants?|games|console|records|vinyl|jewelry|necklace|ring|watch|car|bike|laptop|camera|art|paintings?|journals?|collection) to\b)/i,
   // Goodbye letters or notes. Plain "notes" are class notes, so a note needs a goodbye word.
   /\b(wrote|write|writing|written|left|leaving) (a |some |the |my )?((goodbye|farewell|final|last) (letters?|notes?)|letters (to|for))\b/i,
   // A sudden calm, often after a decision.
   /\b((feel|feels|feeling|felt) (so |really |weirdly |strangely |oddly |kind of )?(calm|peaceful|at peace) (finally|now)|finally (feel |feels |feeling )?(calm|at peace)|(calm|peace|peaceful|relieved) now that i('ve| have)? (decided|made))\b/i,
   // No longer needing things or plans that only matter for a future.
-  /\b((won'?t|will not|not gonna|not going to) (need|be needing) (it|this|that|them|these|those|any of (it|this|that|them|these|those)|my (\w+ )?\w+) (anymore|any more|much longer)|(don'?t|do not|no) (really |even )?(need|point|reason) (to|in) (renew|extend|book|plan|refill|register|enroll|sign up))/i,
+  /\b((won'?t|will not|not gonna|not going to) (need|be needing) (it|this|that|them|these|those|any of (it|this|that|them|these|those)|my ([^ .!?,;]+ )?[^ .!?,;]+) (anymore|any more|much longer)|(don'?t|do not|no) (really |even )?(need|point|reason) (to|in) (renew|extend|book|plan|refill|register|enroll|sign up))/i,
   // Saying goodbye to people.
   /\b(said|saying|say) (my )?goodbyes?( to\b|[.!?,;]|$)/i,
   // Hopelessness about everything. "what's the point of this meeting" names one thing and stays calm.
@@ -181,7 +181,16 @@ export function fixTypos(text) {
 function normalize(text) {
   // Phones and keyboards type apostrophes many ways: ‘ ’ ʼ ` ´ and fullwidth ＇. Line breaks and
   // double spaces are collapsed too, so "I want to\ndie" reads the same as "I want to die".
-  return fixTypos(String(text).replace(/[\u2018\u2019\u02BC\u0060\u00B4\uFF07]/g, "'").replace(/\s+/g, " "));
+  // Python's re.IGNORECASE reads Turkish İ and ı, long ſ and the Kelvin sign as i, s and k, and /i does not,
+  // so both detectors swap them first. The space class is the union of \s in JS and in Python.
+  return fixTypos(
+    String(text)
+      .replace(/[\u2018\u2019\u02BC\u0060\u00B4\uFF07]/g, "'")
+      .replace(/[\u0130\u0131]/g, "i")
+      .replace(/\u017F/g, "s")
+      .replace(/\u212A/g, "k")
+      .replace(/[\s\u0085\u001C-\u001F]+/g, " "),
+  );
 }
 
 const ELONGATED = /([a-z])\1{2,}/gi;

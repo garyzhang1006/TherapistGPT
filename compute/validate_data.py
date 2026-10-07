@@ -32,7 +32,8 @@ def check_row(row: dict) -> list[str]:
         problems.append(str(exc))
         return problems
     # A crisis phrase with needs_support false is the most dangerous label error, so flag it loudly.
-    if mentions_crisis(row["input"]) and not row["output"]["needs_support"]:
+    # The isinstance check keeps a null or numeric input a reported problem instead of a TypeError that ends the run.
+    if isinstance(row["input"], str) and mentions_crisis(row["input"]) and not row["output"]["needs_support"]:
         problems.append("input contains a crisis phrase but needs_support is false")
     return problems
 

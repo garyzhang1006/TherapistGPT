@@ -21,18 +21,32 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from therapistgpt.prompt import build_messages  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
-REQUIRED = {"base_model", "data", "lora", "train", "hub"}
+# Exactly the keys main() reads, so a misspelled or unsupported setting fails loudly instead of being ignored.
+SECTIONS = {
+    "data": {"train", "val"},
+    "lora": {"r", "alpha", "dropout", "target_modules"},
+    "train": {
+        "output_dir", "epochs", "batch_size", "grad_accum", "learning_rate", "warmup", "max_length",
+        "eval_steps", "save_steps", "logging_steps", "seed",
+    },
+    "hub": {"push", "model_id"},
+}
+REQUIRED = {"base_model", *SECTIONS}
 # A 2-layer, randomly initialized Qwen2 that TRL's own test suite trains on. Its tokenizer ships the exact
 # Qwen2.5 chat template, so assistant_only_loss takes the same patched-template path as the real run.
 SMOKE_MODEL = "trl-internal-testing/tiny-Qwen2ForCausalLM-2.5"
 
 
 def load_config(path: Path) -> dict:
-    cfg = yaml.safe_load(path.read_text(encoding="utf-8"))
+    cfg = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
     missing = REQUIRED - set(cfg)
     unknown = set(cfg) - REQUIRED
     if missing or unknown:
         raise SystemExit(f"config error in {path}: missing {sorted(missing)}, unknown {sorted(unknown)}")
+    for name, keys in SECTIONS.items():
+        got = set(cfg[name]) if isinstance(cfg[name], dict) else set()
+        if got != keys:
+            raise SystemExit(f"config error in {path} [{name}]: missing {sorted(keys - got)}, unknown {sorted(got - keys)}")
     return cfg
 
 

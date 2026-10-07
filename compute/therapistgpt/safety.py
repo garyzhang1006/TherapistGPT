@@ -126,19 +126,19 @@ CRISIS_PATTERNS = [
     # to an alarm is a calm worry, so those stay quiet.
     r"\b(hope|hoping|wish|wishing|pray|praying) (that )?i ((just|simply|honestly|really|maybe|finally|somehow) ){0,2}(don'?t|do not|never|won'?t|will not|wouldn'?t|would not|didn'?t|did not) (ever )?wake up\b(?! (on time|early|late|before|in time|until|till|at|with|to|sick|hungover|sore|groggy|tired|cranky)\b)",
     # Weighing how easy a way out would be ("how easy it would be to pull over and climb the railing").
-    r"\bhow easy (it( would|'?d| could| might) be|it is|it'?s) to ((\w+ ){1,4}(and|then) )?((climb|step|jump|lean) ((over|off|up on|onto|past|out over) )?(the|a|that) (railing|rail|ledge|parapet|guardrail|edge|barrier)|(just )?(end it all|die|disappear forever|not wake up|take them all|swallow them all|take all of them|step in front of))\b",
+    r"\bhow easy (it( would|'?d| could| might) be|it is|it'?s) to (([^ .!?,;]+ ){1,4}(and|then) )?((climb|step|jump|lean) ((over|off|up on|onto|past|out over) )?(the|a|that) (railing|rail|ledge|parapet|guardrail|edge|barrier)|(just )?(end it all|die|disappear forever|not wake up|take them all|swallow them all|take all of them|step in front of))\b",
     # The same pull toward a railing said as a thought or urge. Reaching over one for something stays calm.
     r"\b(think(s|ing)? (about|abt|of)|thought (about|abt|of)|urges? to|tempted to|want(s|ed|ing)? to|wanna|gonna|going to) (just )?(climb(ing)?|lean(ing)?) (over|past|onto|up on) (the|a|that) (railing|parapet|guardrail|ledge)\b(?! (to (get|grab|reach|take|see|fix)|for)\b)",
     # Non-native and plain phrasings of ending one's life ("i think to finish my life"). A life story,
     # a life coach or stopping my life from falling apart stay calm.
     r"\b(finish|finishing|finished|stop|stopping|quit|quitting) my (own )?life\b(?! (story|stories|insurance|admin|plan|planning|coach|coaching|goals?|lessons?|skills?|drawings?|class|classes|course|sketch|sketches|painting|model|book|essay|update|chapter|from|falling|getting|being|going)\b)",
     # Stopping medication on purpose. Without "on purpose" it is usually a side effect or a doctor's call.
-    r"\b(stopped|stopping|stop|quit|quitting|skipping|skipped|skip|not taking|haven'?t been taking|been skipping) (taking )?my (\w+ ){0,2}(pills|meds|medication|medications|medicine|insulin|tablets)\b( \w+){0,4} on purpose\b",
+    r"\b(stopped|stopping|stop|quit|quitting|skipping|skipped|skip|not taking|haven'?t been taking|been skipping) (taking )?my ([^ .!?,;]+ ){0,2}(pills|meds|medication|medications|medicine|insulin|tablets)\b( [^ .!?,;]+){0,4} on purpose\b",
     # The people closest would be fine without me. "the team will be fine without me for a week" names
     # a stretch of time or a place, so those stay calm.
     r"\b(everyone|everybody|they|the kids|my kids|my children|my family|my (wife|husband|partner|boyfriend|girlfriend|parents|mom|dad|mum|son|daughter)|the world|people)('?d|'?ll| would| will| are| were)( (honestly|probably|really|all|just|actually|totally))?( (honestly|probably|really|all|just|actually|totally))?( be)? (fine|okay|ok|alright|all right|better|better off|happier|good) without me\b(?! (there|at|for|on|in|this|today|tonight|tomorrow|while|until|till|when|during|next|once)\b)",
     # Asking whether insurance pays when a death is not an accident.
-    r"\b(life insurance|insurance|the policy|my policy) (\w+ ){0,5}(if|when|even if) (it'?s|its|it is|it was|the death is|the death was|death is) (not an accident|not accidental|not natural|suicide|self[- ]inflicted|on purpose|intentional|deliberate)\b",
+    r"\b(life insurance|insurance|the policy|my policy) ([^ .!?,;]+ ){0,5}(if|when|even if) (it'?s|its|it is|it was|the death is|the death was|death is) (not an accident|not accidental|not natural|suicide|self[- ]inflicted|on purpose|intentional|deliberate)\b",
 ]
 
 # Someone who has decided often says nothing direct: they give things away, write letters, feel a
@@ -146,13 +146,13 @@ CRISIS_PATTERNS = [
 # "wrote letters to colleges"), so only two different ones together flag. One pattern per sign.
 WARNING_SIGNS = [
     # Giving away belongings. "gave my keys to the landlord" hands something over, so "to" needs a belonging.
-    r"\b(gave|give|giving|given|gifted|gifting) (away (my|all my|most of my)\b|(my|all my|most of my|some of my)( \w+){0,2} away\b|(my|all my|most of my|some of my) (\w+ )?(guitar|piano|books?|clothes|stuff|things|belongings|possessions|cat|dog|pets?|plants?|games|console|records|vinyl|jewelry|necklace|ring|watch|car|bike|laptop|camera|art|paintings?|journals?|collection) to\b)",
+    r"\b(gave|give|giving|given|gifted|gifting) (away (my|all my|most of my)\b|(my|all my|most of my|some of my)( [^ .!?,;]+){0,2} away\b|(my|all my|most of my|some of my) ([^ .!?,;]+ )?(guitar|piano|books?|clothes|stuff|things|belongings|possessions|cat|dog|pets?|plants?|games|console|records|vinyl|jewelry|necklace|ring|watch|car|bike|laptop|camera|art|paintings?|journals?|collection) to\b)",
     # Goodbye letters or notes. Plain "notes" are class notes, so a note needs a goodbye word.
     r"\b(wrote|write|writing|written|left|leaving) (a |some |the |my )?((goodbye|farewell|final|last) (letters?|notes?)|letters (to|for))\b",
     # A sudden calm, often after a decision.
     r"\b((feel|feels|feeling|felt) (so |really |weirdly |strangely |oddly |kind of )?(calm|peaceful|at peace) (finally|now)|finally (feel |feels |feeling )?(calm|at peace)|(calm|peace|peaceful|relieved) now that i('ve| have)? (decided|made))\b",
     # No longer needing things or plans that only matter for a future.
-    r"\b((won'?t|will not|not gonna|not going to) (need|be needing) (it|this|that|them|these|those|any of (it|this|that|them|these|those)|my (\w+ )?\w+) (anymore|any more|much longer)|(don'?t|do not|no) (really |even )?(need|point|reason) (to|in) (renew|extend|book|plan|refill|register|enroll|sign up))",
+    r"\b((won'?t|will not|not gonna|not going to) (need|be needing) (it|this|that|them|these|those|any of (it|this|that|them|these|those)|my ([^ .!?,;]+ )?[^ .!?,;]+) (anymore|any more|much longer)|(don'?t|do not|no) (really |even )?(need|point|reason) (to|in) (renew|extend|book|plan|refill|register|enroll|sign up))",
     # Saying goodbye to people.
     r"\b(said|saying|say) (my )?goodbyes?( to\b|[.!?,;]|$)",
     # Hopelessness about everything. "what's the point of this meeting" names one thing and stays calm.
@@ -220,13 +220,21 @@ _TYPO_WORDS = re.compile(r"\b(" + "|".join(TYPOS) + r")\b", re.IGNORECASE)
 
 
 def fix_typos(text: str) -> str:
-    return _TYPO_WORDS.sub(lambda m: TYPOS[m.group(1).lower()], text)
+    # IGNORECASE lets "FREİND" match "freind", and "İ".lower() is two characters, so a plain lookup would
+    # raise KeyError inside the safety floor. _normalize maps those letters first; .get covers other callers.
+    return _TYPO_WORDS.sub(lambda m: TYPOS.get(m.group(1).lower(), m.group(1)), text)
+
+
+# re.IGNORECASE reads these as i, s and k, and JS /i does not, so both detectors swap them first.
+_ASCII_TWINS = str.maketrans({"\u0130": "i", "\u0131": "i", "\u017f": "s", "\u212a": "k"})
 
 
 def _normalize(text: str) -> str:
     # Phones and keyboards type apostrophes many ways: ‘ ’ ʼ ` ´ and fullwidth ＇. Same set as safety.js.
-    # Whitespace runs collapse too, so "I want to\ndie" reads the same as "I want to die".
-    return fix_typos(re.sub(r"\s+", " ", re.sub("[\u2018\u2019\u02bc\u0060\u00b4\uff07]", "'", text)))
+    # Whitespace runs collapse too, so "I want to\ndie" reads the same as "I want to die". The space class is
+    # the union of \s in Python and in JS, which also counts U+FEFF.
+    text = re.sub("[\u2018\u2019\u02bc\u0060\u00b4\uff07]", "'", text).translate(_ASCII_TWINS)
+    return fix_typos(re.sub(r"[\s\ufeff]+", " ", text))
 
 
 _ELONGATED = re.compile(r"([a-z])\1{2,}", re.IGNORECASE)

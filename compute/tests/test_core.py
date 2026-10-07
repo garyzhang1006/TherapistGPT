@@ -2,6 +2,7 @@
 
 import copy
 import json
+import re
 import sys
 import unittest
 from pathlib import Path
@@ -12,7 +13,7 @@ sys.path.insert(0, str(HERE))
 from therapistgpt import handwritten  # noqa: E402
 from therapistgpt.inference import apply_safety_floor  # noqa: E402
 from therapistgpt.prompt import SYSTEM_PROMPT, build_messages  # noqa: E402
-from therapistgpt.safety import mentions_crisis  # noqa: E402
+from therapistgpt.safety import fix_typos, mentions_crisis  # noqa: E402
 from therapistgpt.schema import EXAMPLE_OUTPUT, KEYS, SchemaError, extract_json, to_canonical_json, validate  # noqa: E402
 
 
@@ -61,6 +62,10 @@ class SafetyTests(unittest.TestCase):
             self.assertTrue(mentions_crisis(text), text)
         for text in cases["should_not_flag"]:
             self.assertFalse(mentions_crisis(text), text)
+
+    def test_typo_fix_never_raises_on_letters_that_fold_to_ascii(self):
+        # IGNORECASE matches "FREİND" to "freind", but "İ".lower() is not "i", so a plain dict lookup raised KeyError.
+        self.assertEqual(fix_typos("MY FREİND"), "MY FREİND")
 
     def test_ignores_figures_of_speech(self):
         for text in ["this exam will kill me", "I want to end things with him", "my phone died"]:
@@ -160,6 +165,17 @@ class HandwrittenTests(unittest.TestCase):
         self.assertEqual(scores["model_missed"], ["s/a"])
         self.assertEqual(scores["model_false_alarms"], ["s/c"])
         self.assertEqual(scores["model_plus_phrase_list"]["caught"], "2/2")
+
+    def test_no_seed_row_repeats_a_hand_written_dump(self):
+        # Seed rows always train, so a dump or a whole sentence shared with them would be scored from memory.
+        lines = (HERE / "data" / "seed.jsonl").read_text(encoding="utf-8").splitlines()
+        seeds = [json.loads(line)["input"].lower() for line in lines if line.strip()]
+        dumps = [row["input"].lower() for row in handwritten.load()]
+        for seed in seeds:
+            self.assertNotIn(seed.strip(), {d.strip() for d in dumps})
+            for sentence in re.split(r"[.!?\n]+", seed):
+                if len(sentence.split()) >= 5:
+                    self.assertFalse(any(sentence.strip() in d for d in dumps), sentence)
 
     def test_wilson_interval(self):
         self.assertIsNone(handwritten.wilson(0, 0))
