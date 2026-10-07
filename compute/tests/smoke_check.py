@@ -58,6 +58,7 @@ def check_merged(path: Path) -> None:
 
 def check_serve(path: Path) -> None:
     os.environ["MODEL_ID"] = str(path)
+    os.environ["ALLOWED_ORIGINS"] = "http://localhost:8000"
     for name in ("ADAPTER_ID", "API_KEY"):
         os.environ.pop(name, None)
     from fastapi.testclient import TestClient
@@ -82,7 +83,20 @@ def check_serve(path: Path) -> None:
             res.status_code == 502 and detail.startswith("model output was unusable"),
             f"/organize said {res.status_code} {res.text[:300]}",
         )
-    print("serve ok: /health true, /organize answered 502 for unusable output")
+
+        # An oversized body is refused from its Content-Length, and the CORS layer still wraps the
+        # refusal so a browser can read the status instead of seeing a network error.
+        origin = "http://localhost:8000"
+        big = client.post(
+            "/organize",
+            content=b"x" * (serve.MAX_BODY + 1),
+            headers={"content-type": "application/json", "origin": origin},
+        )
+        expect(
+            big.status_code == 413 and big.headers.get("access-control-allow-origin") == origin,
+            f"oversized /organize said {big.status_code} with CORS {big.headers.get('access-control-allow-origin')!r}",
+        )
+    print("serve ok: /health true, /organize answered 502 for unusable output and 413 for an oversized body")
 
 
 def main() -> int:

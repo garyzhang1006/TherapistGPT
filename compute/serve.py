@@ -5,7 +5,8 @@ Deploy on a GPU host (Hugging Face Space, a cloud VM, or Kaggle behind a tunnel 
 Environment:
     MODEL_ID         merged model (Hub id or path), or the base model when ADAPTER_ID is set
     ADAPTER_ID       optional LoRA adapter to apply on top of MODEL_ID
-    ALLOWED_ORIGINS  comma-separated origins allowed to call the API (your GitHub Pages URL)
+    ALLOWED_ORIGINS  comma-separated origins allowed to call the API: scheme and host only, with no path
+                     or trailing slash (https://garyzhang1006.github.io, not .../TherapistGPT/)
     API_KEY          optional shared secret; when set, requests need an X-API-Key header with it.
                      CORS only limits browsers, so set this on any public host.
 
@@ -26,8 +27,9 @@ import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -38,6 +40,8 @@ from therapistgpt.schema import SchemaError  # noqa: E402
 # Training dumps run up to roughly 400 words. Much longer input is out of distribution and tends
 # to get cut off mid-JSON, so the web app caps the text box at the same length.
 MAX_CHARS = 3000
+# Room for MAX_CHARS even when every character arrives JSON-escaped as a surrogate pair (12 bytes).
+MAX_BODY = 64 * 1024
 state: dict = {}
 
 
@@ -58,7 +62,23 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(title="TherapistGPT", lifespan=lifespan)
+
+
+@app.middleware("http")
+async def limit_body(request: Request, call_next):
+    # FastAPI buffers the whole body before max_length or the key check runs, so an anonymous
+    # multi-GB POST would sit in memory. Refuse it from the declared length before reading anything.
+    if request.method == "POST" and request.url.path == "/organize":
+        size = request.headers.get("content-length", "")
+        if not size.isdigit():
+            return JSONResponse({"detail": "send a Content-Length header"}, status_code=411)
+        if int(size) > MAX_BODY:
+            return JSONResponse({"detail": f"body over {MAX_BODY} bytes"}, status_code=413)
+    return await call_next(request)
+
+
 origins = [o.strip() for o in os.environ.get("ALLOWED_ORIGINS", "http://localhost:8000").split(",") if o.strip()]
+# Added after limit_body, so it wraps it and a 411 or 413 still reaches the browser with CORS headers.
 app.add_middleware(
     CORSMiddleware, allow_origins=origins, allow_methods=["POST", "GET"], allow_headers=["Content-Type", "X-API-Key"]
 )
