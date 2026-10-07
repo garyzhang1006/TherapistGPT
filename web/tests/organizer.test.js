@@ -366,6 +366,17 @@ test("a stretched crisis word leaves the calm clauses beside it their own points
   }
 });
 
+test("rejoining a crisis thought leaves calm chores and causes beside it alone", () => {
+  const tasks = (text) => organize(text).to_dos.map((t) => t.task);
+  // "so tired" is an intensifier, not a reason, and a late rent is a cause, not a means.
+  assert.ok(tasks("need to email my boss about monday. so tired of existing").some((t) => /email my boss/i.test(t)));
+  assert.ok(tasks("pay rent\ncall mom back\nso tired of being alive").some((t) => /call mom/i.test(t)));
+  assert.ok(tasks("i have a chem quiz tmrw and rent is late so i dont want to be here anymore").some((t) => /rent/i.test(t)));
+  // A joining word at the end of a line moves to the next line without unlisting it.
+  const listed = tasks("so much going on anyway\nvendor contract renewal\nclub fundraiser forms");
+  assert.ok(listed.some((t) => /vendor contract renewal/i.test(t)) && listed.some((t) => /club fundraiser forms/i.test(t)), listed.join(" | "));
+});
+
 test("a comma before a crisis phrase does not split off a calm-looking piece of it", () => {
   const points = organize("i just want to sleep, and never wake up").threads.flatMap((t) => t.points);
   assert.ok(points.filter((p) => /wake up/i.test(p)).every(mentionsCrisis), points.join(" | "));

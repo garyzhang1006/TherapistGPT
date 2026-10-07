@@ -104,6 +104,36 @@ try {
     await settles(page.locator("#engine-note", { hasText: "organized on your device instead" }), "visible");
     check(sent.length > 0, "with a model saved, calm words are still sent to the model");
   });
+
+  await withPage(browser, {}, async (page) => {
+    // Words typed while the model is still answering were never sorted, so they stay saved as a draft.
+    await page.route("https://slow.invalid/**", async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      return route.abort();
+    });
+    await page.evaluate(() =>
+      localStorage.setItem("therapistgpt.settings", JSON.stringify({ engine: "model", endpoint: "https://slow.invalid", apiKey: "" })),
+    );
+    await page.locator("#dump").fill(DUMP);
+    await page.locator("#organize-btn").click();
+    await page.locator("#dump").press("End");
+    await page.locator("#dump").pressSequentially(" and call grandma");
+    await settles(page.locator("#result-cards .card"), "visible");
+    const draft = await page.evaluate(() => localStorage.getItem("therapistgpt.draft") || "");
+    check(draft.includes("grandma"), "with JavaScript on, words typed while the model answers stay saved as a draft");
+
+    // The box takes 3000 characters, and a paste cut to fit says so.
+    await page.getByRole("button", { name: "Back to my words" }).click();
+    await page.locator("#dump").fill("a".repeat(2990));
+    await page.locator("#dump").evaluate((box) => {
+      const data = new DataTransfer();
+      data.setData("text/plain", "b".repeat(50));
+      box.focus();
+      box.setSelectionRange(box.value.length, box.value.length);
+      box.dispatchEvent(new ClipboardEvent("paste", { clipboardData: data, bubbles: true, cancelable: true }));
+    });
+    check(await settles(page.locator("#write-status", { hasText: "Only the first" }), "visible"), "with JavaScript on, a paste the box cuts short says so");
+  });
 } finally {
   await browser.close();
 }

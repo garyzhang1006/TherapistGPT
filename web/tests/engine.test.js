@@ -85,14 +85,54 @@ test("device results never print a crisis sentence back and stay renderable", as
     "i want to kill myself",
     "i have a chem quiz tmrw and rent is late and honestly i dont want to be here anymore",
     "i just want to sleep, and never wake up",
+    // A period, a line break or "and then" between the halves of one crisis thought, and a reason word
+    // that ties a means to it. Neither half may come back as a to-do or a calm-looking point.
+    "I need to take all my pills\nand never wake up",
+    "I need to take all my pills. And never wake up.",
+    "i need to go to sleep and then never wake up",
+    "i want to go to sleep. and never wake up",
+    "need to buy a rope so i can hang myself",
+    "need to pick up more pills because i want to die",
+    "need to buy a rope. so i can hang myself",
+    "i want to die and never wake up",
+    "i wanna die and not wake up",
+    "i want to die so i need to take all my pills",
+    "i want to die, i have a bottle of pills in my drawer",
+    "need to buy a rope and hang myself",
+    "need to buy a rope. i want to hang myself",
+    "need to buy pills and then i can kill myself",
+    "i need to take all my pills anyway i want to die",
+    "i need to go to sleep and then\nnever wake up",
   ]) {
     const { result } = await organizeText(text, { engine: "device", endpoint: "" });
     assert.ok(looksValid(result), text);
     assert.equal(result.needs_support, true, text);
     assert.ok(result.threads.every((t) => t.points.length && t.points.every((p) => !mentionsCrisis(p))), text);
     // A clause split off from its crisis phrase can look calm to mentionsCrisis, so check the words too.
-    assert.ok(result.threads.every((t) => t.points.every((p) => !/wake up/i.test(p))), text);
+    assert.ok(result.threads.every((t) => t.points.every((p) => !/wake up|pills|rope/i.test(p))), text);
+    assert.ok(result.to_dos.every((t) => !/pills|rope|sleep/i.test(t.task)), `${text}: ${result.to_dos.map((t) => t.task).join(" | ")}`);
   }
+});
+
+test("a reply whose body stalls still times out and falls back", { timeout: 5000 }, async (t) => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  globalThis.fetch = async (_url, { signal }) => ({
+    ok: true,
+    status: 200,
+    // Headers arrived, but the body never ends until the request is aborted.
+    json: () =>
+      new Promise((_resolve, reject) => {
+        const fail = () => reject(new DOMException("The operation was aborted.", "AbortError"));
+        if (signal.aborted) fail();
+        else signal.addEventListener("abort", fail);
+      }),
+  });
+  const pending = organizeText("so tired today", { engine: "model", endpoint: "https://example.invalid" });
+  await new Promise((resolve) => setImmediate(resolve));
+  t.mock.timers.tick(60000);
+  const { engine, notice } = await pending;
+  assert.equal(engine, "device");
+  assert.match(notice, /took too long/);
 });
 
 test("settings survive the visit when storage is blocked", () => {
