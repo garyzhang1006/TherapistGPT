@@ -29,7 +29,7 @@ from pydantic import BaseModel, ValidationError
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from therapistgpt.prompt import SYSTEM_PROMPT  # noqa: E402
-from therapistgpt.schema import validate  # noqa: E402
+from therapistgpt.schema import SchemaError, validate  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 
@@ -149,7 +149,12 @@ def generate_one(
     if response.stop_reason == "refusal" or example is None:
         return None, *used
     row = {"input": example.brain_dump.strip(), "output": example.organized.model_dump()}
-    validate(row["output"])
+    # Organized has no list limits, so a reply can parse and still break the schema. It was paid for,
+    # so return its tokens instead of raising, or the printed total would undercount the cost.
+    try:
+        validate(row["output"])
+    except SchemaError:
+        return None, *used
     # Indirect crisis dumps often contain no keyword, so validate_data can't catch a wrong label.
     # Trust the label we asked for and drop the row if the teacher disagreed.
     if row["output"]["needs_support"] != crisis:
@@ -197,33 +202,46 @@ def main() -> int:
         with args.out.open("a", encoding="utf-8") as fh:
             fh.write("\n")
     lock = threading.Lock()
-    written = failed = tokens_in = tokens_out = 0
+    written = failed = unpriced = tokens_in = tokens_out = 0
     with args.out.open("a", encoding="utf-8") as fh, ThreadPoolExecutor(max_workers=args.workers) as pool:
         futures = [
             pool.submit(generate_one, client, args.model, args.effort, prompt, crisis) for prompt, crisis in requests
         ]
-        for future in as_completed(futures):
-            try:
-                row, used_in, used_out = future.result()
-            # Catch everything per row: one bad reply must not abort a run whose other calls are already paid for.
-            except Exception as exc:
-                failed += 1
-                print(f"skipped one example: {type(exc).__name__}: {exc}", file=sys.stderr)
-                continue
-            tokens_in += used_in
-            tokens_out += used_out
-            if row is None:
-                failed += 1
-                continue
-            with lock:
-                fh.write(json.dumps(row, ensure_ascii=False) + "\n")
-                fh.flush()
-                written += 1
-                if written % 25 == 0:
-                    print(f"{written}/{todo} written, {failed} skipped")
+        try:
+            for future in as_completed(futures):
+                try:
+                    row, used_in, used_out = future.result()
+                # Catch everything per row: one bad reply must not abort a run whose other calls are already paid for.
+                except Exception as exc:
+                    failed += 1
+                    print(f"skipped one example: {type(exc).__name__}: {exc}", file=sys.stderr)
+                    continue
+                tokens_in += used_in
+                tokens_out += used_out
+                # Only a reply that failed parsing comes back with no usage (see generate_one).
+                if not used_in:
+                    unpriced += 1
+                if row is None:
+                    failed += 1
+                    continue
+                with lock:
+                    fh.write(json.dumps(row, ensure_ascii=False) + "\n")
+                    fh.flush()
+                    written += 1
+                    if written % 25 == 0:
+                        print(f"{written}/{todo} written, {failed} skipped")
+        except KeyboardInterrupt:
+            # Leaving the with block waits for every queued call, which would keep paying for rows nobody
+            # writes. Drop the queue first; the few calls already running finish, and a rerun resumes.
+            pool.shutdown(wait=False, cancel_futures=True)
+            print(f"stopped: {written} written this run -> {args.out}", file=sys.stderr)
+            raise
 
     print(f"done: {written} written, {failed} skipped -> {args.out}")
     print(f"tokens used: {tokens_in:,} input, {tokens_out:,} output (thinking included)")
+    if unpriced:
+        # parse() raises before returning usage, so these were billed but can't be counted here.
+        print(f"plus {unpriced} replies that failed to parse, billed but not in the totals above")
     print("next: python validate_data.py", args.out)
     return 0
 
