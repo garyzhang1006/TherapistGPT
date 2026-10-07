@@ -9,6 +9,16 @@ Everything needed to build the TherapistGPT model lives in this folder. None of 
 3. Under **Add-ons > Secrets**, add `ANTHROPIC_API_KEY`, and `HF_TOKEN` (write scope) if you want to publish the model.
 4. Run the cells top to bottom. Check the 20-example sample before generating the full 2,000.
 
+## Without an API key
+
+`generate_open.py` writes the training data on the GPU itself, so no key or paid API is involved. It builds the same requests as `generate_synthetic.py` and sends them to Qwen2.5-7B-Instruct in float16, spread over both T4s of a Kaggle "GPU T4 x2" session. The open model writes weaker examples than Claude and breaks the schema or the crisis label more often, so it drops more rows and keeps sampling until it has `--n` rows (default 1,200). It is also slow, a few rows a minute, so `--max-hours` (default 5) stops it starting new batches before a 12-hour Kaggle session runs out, leaving time to train in the same session. It stops early with an error if it keeps nothing in its first 64 replies. Reruns resume from the rows already in `--out`.
+
+```bash
+python generate_open.py --n 1200 --max-hours 5 --out data/synthetic.jsonl
+```
+
+Then validate, split and train as below. Judge the result by the `handwritten` block of the eval report, since the synthetic test split comes from the same open teacher.
+
 ## What each file does
 
 | File | Runs on | Purpose |
@@ -19,6 +29,7 @@ Everything needed to build the TherapistGPT model lives in this folder. None of 
 | `therapistgpt/inference.py` | GPU | Loads a model and organizes one brain dump |
 | `data/seed.jsonl` | | 12 hand-written examples; the teacher model sees two of them per request |
 | `generate_synthetic.py` | anywhere with network | Uses Claude to write realistic brain dumps and their organized versions |
+| `generate_open.py` | GPU | Same job with a free open model (Qwen2.5-7B-Instruct) instead of an API key |
 | `validate_data.py` | anywhere | Checks a JSONL file against the schema and flags crisis mislabels |
 | `split_data.py` | anywhere | Builds train/val/test, keeping crisis rows in every split and 15% of them in test |
 | `train_lora.py` | GPU | LoRA fine-tune of Qwen2.5-1.5B-Instruct with TRL |
