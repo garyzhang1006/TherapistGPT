@@ -94,6 +94,15 @@ test("device results never print a crisis sentence back and stay renderable", as
     "need to buy a rope so i can hang myself",
     "need to pick up more pills because i want to die",
     "need to buy a rope. so i can hang myself",
+    "i want to die and never wake up",
+    "i wanna die and not wake up",
+    "i want to die so i need to take all my pills",
+    "i want to die, i have a bottle of pills in my drawer",
+    "need to buy a rope and hang myself",
+    "need to buy a rope. i want to hang myself",
+    "need to buy pills and then i can kill myself",
+    "i need to take all my pills anyway i want to die",
+    "i need to go to sleep and then\nnever wake up",
   ]) {
     const { result } = await organizeText(text, { engine: "device", endpoint: "" });
     assert.ok(looksValid(result), text);

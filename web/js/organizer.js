@@ -2,7 +2,7 @@
 // the model is trained to produce (compute/therapistgpt/schema.py), so the UI renders either.
 // No network, no storage. Pure functions only, so it runs under `node --test` as well.
 
-import { mentionsCrisis, fixTypos, CRISIS_PATTERNS, CRISIS_SUMMARY, CRISIS_STEP } from "./safety.js?v=13";
+import { mentionsCrisis, fixTypos, CRISIS_PATTERNS, CRISIS_SUMMARY, CRISIS_STEP, CRISIS_THREAD } from "./safety.js?v=13";
 
 const LIMITS = { threads: 5, points: 6, todos: 6, reframes: 3, feelings: 6 };
 
@@ -112,6 +112,10 @@ function isWorkItem(clause) {
 
 // Crisis words never become chores: "I should just kill myself" is not a to-do.
 const NOT_A_TASK = /\b(disappear|exist|existing|die|dead|kill|hurt|end it|stop being)\b/i;
+// Beside crisis words, a way to act on them ("need to buy a rope", "i have a bottle of pills in my
+// drawer") is neither a to-do nor a point to read back, whichever clause the splits left it in. An
+// ordinary errand like "pick up my meds" names no amount and stays.
+const MEANS = /\b(?:rope|noose|guns?|pistol|rifle|bullets?|razors?|razor ?blades?)\b|\b(?:all|bottles? of|enough|a bunch of|stockpil\w*|sav(?:e|ed|ing) up|count(?:s|ed|ing)?)\s+(?:of\s+)?(?:my\s+|the\s+|these\s+|those\s+|her\s+|his\s+)?(?:pills|meds|medication|medicine|tablets|tylenol|advil|sleeping pills)\b|\b(?:buy|buying|get|getting|grab|order|ordering|pick up|picking up|stock up on)\s+(?:some\s+|more\s+|extra\s+)?(?:pills|sleeping pills|tylenol|advil|painkillers)\b/i;
 // "My boss is gonna murder me if I miss the deadline" is a joke about what will happen, so the
 // deadline in it is not a task of its own.
 const THREAT = /\b(?:gonna|going to|will|would|'ll)\s+(?:literally\s+|actually\s+|absolutely\s+|straight up\s+)?(?:murder|strangle|destroy|skin)\s+me\b|\bhave my head\b/i;
@@ -302,9 +306,27 @@ function splitRunOn(part) {
 }
 
 const BREAK = /,\s*|\s+(?:and|but|so|because|bc|cuz)\s+/gi;
-// "so" and "because" give the reason for what came before, so before a crisis phrase they join one
-// thought: in "need to buy a rope so i can hang myself" the rope is part of the crisis, not a to-do.
+// "so" and "because" tie a plan to a crisis phrase as its means: in "need to buy a rope so i can hang
+// myself" and "i want to die so i need to take all my pills" the plan is part of the crisis thought,
+// not a to-do. A state on the other side is a cause instead ("rent is late so i want to die"), and
+// it keeps its own point and to-do.
 const REASON_BREAK = /^\s+(?:so|because|bc|cuz)\s+$/i;
+const REASON_LEAD = /^(?:so\s+(?:that\s+)?(?:i|i'm|im|i'll|ill|i'd|id|i've|ive|my|nobody|no one|they|it)\b|because\b|bc\b|cuz\b|cause\b|coz\b)/i;
+const JOIN_LEAD = /^(?:and|then|or|but)\s+/i;
+
+function planned(piece) {
+  return INTENT.test(piece) || MY_PLAN.test(piece) || /\b(?:gonna|going to)\b/i.test(piece);
+}
+
+// How a crisis part carries on from the one before it: "join" when its crisis phrase needs its
+// opening "and" ("and never wake up"), "reason" when it opens with a reason ("so i can hang myself").
+function crisisLead(part) {
+  const text = part.trim();
+  if (!mentionsCrisis(text)) return null;
+  if (REASON_LEAD.test(text)) return "reason";
+  const lead = text.match(JOIN_LEAD);
+  return lead !== null && !mentionsCrisis(text.slice(lead[0].length)) ? "join" : null;
+}
 
 // Breaks at every comma or conjunction whose next piece names something on its own.
 function splitLoose(part) {
@@ -364,14 +386,24 @@ function splitAroundCrisis(part, listed) {
   const span = crisisSpan(part);
   if (!span) return [part];
   const breaks = [...part.matchAll(BREAK)];
+  const pieceBefore = (k) => part.slice(k ? breaks[k - 1].index + breaks[k - 1][0].length : 0, breaks[k].index);
+  const pieceAfter = (k) => part.slice(breaks[k].index + breaks[k][0].length, k + 1 < breaks.length ? breaks[k + 1].index : part.length);
   const before = breaks
-    .filter((m) => m.index + m[0].length <= span.start && !REASON_BREAK.test(m[0]) && mentionsCrisis(cleanClause(part.slice(m.index + m[0].length, span.end))))
+    .filter(
+      (m, k) =>
+        m.index + m[0].length <= span.start &&
+        !(REASON_BREAK.test(m[0]) && planned(pieceBefore(k))) &&
+        mentionsCrisis(cleanClause(part.slice(m.index + m[0].length, span.end))),
+    )
     .pop();
-  const after = breaks.find((m) => m.index >= span.end);
+  const after = breaks.find((m, k) => m.index >= span.end && !(REASON_BREAK.test(m[0]) && planned(pieceAfter(k))));
+  // In "i want to die and never wake up" the second phrase needs its "and", so the "and" stays with it
+  // and clauseItems joins the two back together.
+  const rest = after ? part.slice(after.index + (crisisLead(part.slice(after.index)) === "join" ? 0 : after[0].length)) : "";
   return [
     ...(before ? splitLoose(part.slice(0, before.index)) : []),
     part.slice(before ? before.index + before[0].length : 0, after ? after.index : part.length),
-    ...(after ? splitPart(part.slice(after.index + after[0].length), listed) : []),
+    ...(after ? splitPart(rest, listed) : []),
   ];
 }
 
@@ -439,19 +471,21 @@ function emojiBreak(run, at, text) {
   return word ? run : "\n";
 }
 
-// A crisis part that opens with a reason ("so i can hang myself", "because i want to die") explains
-// the part before it, and one whose crisis phrase needs its opening "and" ("and never wake up")
-// finishes it. Either way the two are one thought, even across a period or a line break, and the
-// part before must not become a to-do ("Take all my pills").
-const REASON_LEAD = /^(?:so|because|bc|cuz|cause|coz)\b/i;
-const JOIN_LEAD = /^(?:and|then|or|but)\s+/i;
+const JOINER_LEAD = /^(?:and then|but also|and also|oh and|plus|anyway|anyways)\s+/i;
 
-function finishesCrisis(part) {
-  const text = part.trim();
-  if (!mentionsCrisis(text)) return false;
-  if (REASON_LEAD.test(text)) return true;
-  const lead = text.match(JOIN_LEAD);
-  return lead !== null && !mentionsCrisis(text.slice(lead[0].length));
+// Rejoins the halves of one crisis thought that the splits above cut apart, even across a period or
+// a line break, so neither half becomes a to-do or a calm-looking point: a phrase that needs its
+// opening "and" ("Take all my pills" + "and never wake up"), a reason tied to a plan ("need to buy a
+// rope" + "so i can hang myself"), and a phrase cut in the middle ("sleep and then" + "never wake up").
+function rejoinCrisis(parts) {
+  return parts.reduce((joined, part) => {
+    const prev = joined[joined.length - 1];
+    const lead = prev === undefined ? null : crisisLead(part);
+    const cut = prev !== undefined && !lead && !mentionsCrisis(prev) && !mentionsCrisis(part) && mentionsCrisis(`${prev} ${part}`);
+    if (lead === "join" || (lead === "reason" && planned(prev)) || cut) joined[joined.length - 1] = `${prev} ${part.trim()}`;
+    else joined.push(part);
+    return joined;
+  }, []);
 }
 
 // Each clause, and whether it was a list item: a line of its own in a dump of several lines, or a
@@ -463,7 +497,7 @@ function clauseItems(text) {
   // A line is cut at its emoji the same way the parts below are, so "chem lab report 😭 ugh" still
   // finds its report among the list items.
   const listed = new Set(lines.length > 1 ? lines.flatMap((line) => line.replace(EMOJI, emojiBreak).split("\n")).map((piece) => piece.trim()) : []);
-  const parts = normalized
+  const split = normalized
     // "Dr. Patel" is one name, so a title's period is hidden from the sentence split below. "The dr."
     // or "my prof." before a lowercase word is the person, and that period can end a sentence.
     .replace(/(\b(?:the|my|your|our|his|her|their|a)\s+)?\b(dr|mr|mrs|ms|mx|prof)\.[ \t]+(?=(\w))/gi, (all, det, title, next) =>
@@ -482,12 +516,9 @@ function clauseItems(text) {
     .replace(/\s+(and then|but also|and also|oh and|plus|anyway|anyways)\s+/gi, "\n$1 ")
     .split(/\n+/)
     .map((part) => part.replace(TITLE_DOTS, "."))
-    .flatMap((part) => splitPart(part, listed))
-    .reduce((joined, part) => {
-      if (joined.length && finishesCrisis(part)) joined[joined.length - 1] += ` ${part.trim()}`;
-      else joined.push(part);
-      return joined;
-    }, []);
+    .flatMap((part) => splitPart(part, listed));
+  // Calm text skips the rejoin, so only a dump that needs support can be sorted differently by it.
+  const parts = mentionsCrisis(text) ? rejoinCrisis(split) : split;
   const items = [];
   const seen = new Set();
   for (const part of parts) {
@@ -499,7 +530,9 @@ function clauseItems(text) {
     const oneWordOk = TASK_CUE.test(clause) || TOPICS.some((t) => t.words.test(clause));
     if (!clause || (clause.split(/\s+/).length < 2 && !oneWordOk) || seen.has(key)) continue;
     seen.add(key);
-    items.push({ clause, listed: listed.has(part.trim()) });
+    // A joining word moved here from the end of the line before ("anyway\nvendor contract renewal")
+    // does not make the line any less a list item.
+    items.push({ clause, listed: listed.has(part.trim()) || listed.has(part.trim().replace(JOINER_LEAD, "")) });
   }
   // A one-word dump ("tired") still deserves a response, and punctuation or blank space gets a
   // gentle placeholder instead of an empty thread.
@@ -793,6 +826,7 @@ export function organize(text) {
   const reframes = [];
   const groups = new Map();
   for (const [i, clause] of clauses.entries()) {
+    if (needsSupport && MEANS.test(clause)) continue;
     // Crisis words ("sleep and never wake up") are about the person, not the topic they happen to
     // name. Self-talk keeps a topic it names outright ("I'm such a failure at work"), but "I feel
     // like a burden to everyone" is about the person.
@@ -838,6 +872,8 @@ export function organize(text) {
     }
   }
 
+  // The schema needs one thread, and every clause may have named a means.
+  if (!groups.size) groups.set(CRISIS_THREAD.title, [...CRISIS_THREAD.points]);
   // Biggest groups first. Past the limit, the smallest groups share one "Everything else" thread
   // instead of being tucked under an unrelated title, and each keeps at least one point.
   const ordered = [...groups.entries()].sort((a, b) => b[1].length - a[1].length);
