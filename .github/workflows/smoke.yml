@@ -43,6 +43,16 @@ jobs:
       - name: Dry run
         run: python train_lora.py --dry-run
 
+      # The random model writes noise, so no row survives; this proves the teacher loads, batches sample,
+      # bad replies are dropped without a crash, and the run ends with its done line.
+      - name: Generate with an open teacher
+        run: |
+          set -o pipefail
+          mkdir -p outputs/smoke
+          python generate_open.py --model "$TINY_MODEL" --n 2 --batch-size 2 --max-new-tokens 32 \
+            --out outputs/smoke/open.jsonl | tee outputs/smoke/open.log
+          grep -q '^done: ' outputs/smoke/open.log
+
       - name: Train two steps on CPU
         run: python train_lora.py --smoke
 
