@@ -1,0 +1,103 @@
+name: Generate training data
+
+# Writes the synthetic training set with Claude as the teacher on a GitHub runner, so nothing runs on a laptop
+# and the API key stays a repo secret. Every row is billed, so try n=20 first and price the full run from the
+# token line it prints. The upload runs even when a step fails, so rows already paid for are never lost.
+on:
+  workflow_dispatch:
+    inputs:
+      n:
+        description: "Total rows wanted in data/synthetic.jsonl"
+        default: "2000"
+      model:
+        description: "Teacher model"
+        default: "claude-opus-5-5"
+      effort:
+        description: "Thinking effort"
+        type: choice
+        options: [low, medium, high]
+        default: medium
+      workers:
+        description: "Parallel API calls"
+        default: "8"
+      resume_run:
+        description: "Run id of an earlier run whose rows to keep and add to (optional)"
+        default: ""
+
+permissions:
+  contents: read
+  actions: read  # lets the resume step read artifacts of earlier runs
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    # Hosted jobs stop at 360 minutes; ending first leaves time for the upload step.
+    timeout-minutes: 330
+    defaults:
+      run:
+        working-directory: compute
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      # Progress lines show up live instead of all at the end.
+      PYTHONUNBUFFERED: "1"
+    steps:
+      # Before checkout, so it runs from the workspace root rather than a compute/ that does not exist yet.
+      - name: Check the API key secret
+        working-directory: .
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "::error::ANTHROPIC_API_KEY is not set. Add it under Settings > Secrets and variables > Actions, then rerun."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      # A run that hit the time limit or a rate limit still uploaded its rows; start from them instead of paying twice.
+      - name: Fetch rows from an earlier run
+        if: inputs.resume_run != ''
+        uses: actions/download-artifact@v8
+        with:
+          name: therapistgpt-data
+          path: compute/data
+          run-id: ${{ inputs.resume_run }}
+          github-token: ${{ github.token }}
+
+      # generate_synthetic.py, validate_data.py and split_data.py import only these two beyond the stdlib,
+      # so the torch-sized requirements stay out of this job. Same pins as compute/requirements.txt.
+      - name: Install the teacher client
+        run: pip install anthropic==1.9.0 "pydantic>=2.13,<3"
+
+      # Inputs reach the shell through env, not ${{ }} in the script, so a typed value can't inject commands.
+      - name: Generate rows
+        # Stops before the job limit, so the upload below still runs; rerun with resume_run to continue.
+        timeout-minutes: 300
+        env:
+          N: ${{ inputs.n }}
+          MODEL: ${{ inputs.model }}
+          EFFORT: ${{ inputs.effort }}
+          WORKERS: ${{ inputs.workers }}
+        run: python generate_synthetic.py --n "$N" --model "$MODEL" --effort "$EFFORT" --workers "$WORKERS" --out data/synthetic.jsonl
+
+      # With --drop-invalid it exits 0 and keeps only valid rows, so bad rows are dropped without failing the job.
+      - name: Validate and drop invalid rows
+        run: python validate_data.py data/synthetic.jsonl --drop-invalid data/synthetic.clean.jsonl
+
+      - name: Split into train, val and test
+        run: python split_data.py --inputs data/seed.jsonl data/synthetic.clean.jsonl
+
+      - name: Upload the data
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: therapistgpt-data
+          path: |
+            compute/data/synthetic.jsonl
+            compute/data/synthetic.clean.jsonl
+            compute/data/train.jsonl
+            compute/data/val.jsonl
+            compute/data/test.jsonl
+          retention-days: 7
+          if-no-files-found: warn
