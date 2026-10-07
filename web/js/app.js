@@ -1,10 +1,10 @@
 // Every local import carries the same ?v= as index.html. Bump them all together on each release, with
 // VERSION in sw.js, or a returning visitor can get a new app.js paired with a stale cached module that
 // lacks an export.
-import { organizeText, loadSettings, saveSettings, testConnection, normalizeEndpoint } from "./engine.js?v=12";
-import { renderResult, resultToText } from "./render.js?v=12";
-import { splitClauses, isSelfCritical } from "./organizer.js?v=12";
-import { mentionsCrisis } from "./safety.js?v=12";
+import { organizeText, loadSettings, saveSettings, testConnection, normalizeEndpoint } from "./engine.js?v=13";
+import { renderResult, resultToText } from "./render.js?v=13";
+import { splitClauses, isSelfCritical } from "./organizer.js?v=13";
+import { mentionsCrisis } from "./safety.js?v=13";
 
 const $ = (id) => document.getElementById(id);
 const DRAFT_KEY = "therapistgpt.draft";
@@ -91,6 +91,18 @@ function clearWithUndo() {
   writeStatus.append(undo);
   undoTimer = setTimeout(() => (writeStatus.textContent = ""), 12000);
 }
+
+// The box holds as much as the model takes (serve.py's MAX_CHARS), and a browser cuts a longer
+// paste to fit without a word, so say when that happened.
+dump.addEventListener("paste", (event) => {
+  const limit = dump.maxLength;
+  const pasted = (event.clipboardData?.getData("text") || "").replace(/\r\n/g, "\n");
+  const room = limit - dump.value.length + (dump.selectionEnd - dump.selectionStart);
+  if (limit > 0 && pasted.length > room) {
+    clearTimeout(undoTimer);
+    writeStatus.textContent = `Only the first ${limit.toLocaleString()} characters fit here, so the end of what you pasted was left out.`;
+  }
+});
 
 // Once the person starts writing again, Undo would overwrite the new words, so it goes away.
 dump.addEventListener("input", () => {
@@ -321,9 +333,12 @@ async function run() {
     renderResult($("result-cards"), outcome.result);
     restoreTicks();
     // Once sorted, the words should not wait in storage to greet the next reload. They stay in the
-    // textarea for "Back to my words", and typing there saves a new draft.
-    clearTimeout(saveTimer);
-    write(DRAFT_KEY, null);
+    // textarea for "Back to my words", and typing there saves a new draft. Words typed while the sort
+    // ran were never sorted, so then the draft stays.
+    if (dump.value.trim() === text) {
+      clearTimeout(saveTimer);
+      write(DRAFT_KEY, null);
+    }
     // After crisis words, "a little quieter" and a privacy footnote read as cheerful and beside the point.
     // A fallback notice still shows, so nobody thinks their own model wrote this when it was skipped.
     const crisis = outcome.result.needs_support;

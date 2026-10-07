@@ -199,7 +199,8 @@ function readings(text) {
   const normalized = normalize(text);
   // A line break also often ends a clause ("thinking about stepping off\nthen the train comes"), so
   // the text is read a second time with each break as a full stop.
-  const broken = normalize(String(text).replace(/\s*[\r\n]+\s*/g, ". "));
+  // The same whitespace as normalize, so the Python copy, whose \s differs, reads every break alike.
+  const broken = normalize(String(text).replace(/[\s\u0085\u001C-\u001F]*[\r\n]+[\s\u0085\u001C-\u001F]*/g, ". "));
   // Texting stretches words ("i wanna dieee", "kmsss"), so each reading is read again with every run
   // of three or more of one letter squeezed to one and to two, since "killl" squeezed to one is "kil".
   return [normalized, broken].flatMap((t) => [t, fixTypos(t.replace(ELONGATED, "$1")), fixTypos(t.replace(ELONGATED, "$1$1"))]);

@@ -244,7 +244,8 @@ def _readings(text: str) -> list[str]:
     normalized = _normalize(text)
     # A line break also often ends a clause ("thinking about stepping off\nthen the train comes"), so
     # the text is read a second time with each break as a full stop.
-    broken = _normalize(re.sub(r"\s*[\r\n]+\s*", ". ", text))
+    # The same whitespace as _normalize, so the JS copy, whose \s differs, reads every break alike.
+    broken = _normalize(re.sub(r"[\s\ufeff]*[\r\n]+[\s\ufeff]*", ". ", text))
     # Texting stretches words ("i wanna dieee", "kmsss"), so each reading is read again with every run
     # of three or more of one letter squeezed to one and to two, since "killl" squeezed to one is "kil".
     out = []

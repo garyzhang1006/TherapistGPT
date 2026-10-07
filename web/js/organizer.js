@@ -2,7 +2,7 @@
 // the model is trained to produce (compute/therapistgpt/schema.py), so the UI renders either.
 // No network, no storage. Pure functions only, so it runs under `node --test` as well.
 
-import { mentionsCrisis, fixTypos, CRISIS_PATTERNS, CRISIS_SUMMARY, CRISIS_STEP } from "./safety.js?v=12";
+import { mentionsCrisis, fixTypos, CRISIS_PATTERNS, CRISIS_SUMMARY, CRISIS_STEP } from "./safety.js?v=13";
 
 const LIMITS = { threads: 5, points: 6, todos: 6, reframes: 3, feelings: 6 };
 
@@ -248,7 +248,7 @@ function normalize(text) {
 // "idk" is filler, except in "idk why im like this" or "idk where to start", where it is the point.
 const FILLER_LEAD = /^(and|so|but|also|like|ok so|okay so|ok|okay|idk(?![,\s]+(?:where|why|how|what|if|whether)\b)|anyway|anyways|plus|then|oh and|um|uh)[,\s]+/i;
 
-function cleanClause(raw) {
+function cleanClause(raw, keepLead = false) {
   let s = raw
     .trim()
     .replace(/\s+/g, " ")
@@ -257,7 +257,7 @@ function cleanClause(raw) {
   let prev;
   do {
     prev = s;
-    s = s.replace(FILLER_LEAD, "");
+    if (!keepLead) s = s.replace(FILLER_LEAD, "");
   } while (s !== prev);
   s = s.replace(/^[,;:\-\s]+|[,;:\-\s.!?]+$/g, "");
   // Lowercase " i " reads as a typo in a tidied list; fix the common forms only.
@@ -302,6 +302,9 @@ function splitRunOn(part) {
 }
 
 const BREAK = /,\s*|\s+(?:and|but|so|because|bc|cuz)\s+/gi;
+// "so" and "because" give the reason for what came before, so before a crisis phrase they join one
+// thought: in "need to buy a rope so i can hang myself" the rope is part of the crisis, not a to-do.
+const REASON_BREAK = /^\s+(?:so|because|bc|cuz)\s+$/i;
 
 // Breaks at every comma or conjunction whose next piece names something on its own.
 function splitLoose(part) {
@@ -362,7 +365,7 @@ function splitAroundCrisis(part, listed) {
   if (!span) return [part];
   const breaks = [...part.matchAll(BREAK)];
   const before = breaks
-    .filter((m) => m.index + m[0].length <= span.start && mentionsCrisis(cleanClause(part.slice(m.index + m[0].length, span.end))))
+    .filter((m) => m.index + m[0].length <= span.start && !REASON_BREAK.test(m[0]) && mentionsCrisis(cleanClause(part.slice(m.index + m[0].length, span.end))))
     .pop();
   const after = breaks.find((m) => m.index >= span.end);
   return [
@@ -436,6 +439,21 @@ function emojiBreak(run, at, text) {
   return word ? run : "\n";
 }
 
+// A crisis part that opens with a reason ("so i can hang myself", "because i want to die") explains
+// the part before it, and one whose crisis phrase needs its opening "and" ("and never wake up")
+// finishes it. Either way the two are one thought, even across a period or a line break, and the
+// part before must not become a to-do ("Take all my pills").
+const REASON_LEAD = /^(?:so|because|bc|cuz|cause|coz)\b/i;
+const JOIN_LEAD = /^(?:and|then|or|but)\s+/i;
+
+function finishesCrisis(part) {
+  const text = part.trim();
+  if (!mentionsCrisis(text)) return false;
+  if (REASON_LEAD.test(text)) return true;
+  const lead = text.match(JOIN_LEAD);
+  return lead !== null && !mentionsCrisis(text.slice(lead[0].length));
+}
+
 // Each clause, and whether it was a list item: a line of its own in a dump of several lines, or a
 // piece of a comma list. A sentence cut off by a period is not one.
 function clauseItems(text) {
@@ -459,13 +477,24 @@ function clauseItems(text) {
     // start" is a thought of its own before whatever follows it.
     .replace(/\s+(lol|lmao|lmfao|haha\w*|tbh|ngl)\s+(?=(?:i|i'm|im|i've|ive|my)\b)/gi, " $1\n")
     .replace(/\b((?:idk|i don'?t know|i dont know) where (?:to|do i) (?:even )?(?:start|begin))\s+(?=(?:i|i'm|im|i've|ive|my)\b)/gi, "$1\n")
-    .split(/\n+|\s+(?:and then|but also|and also|oh and|plus|anyway|anyways)\s+/i)
+    // The joining words open the next part instead of vanishing: cleanClause drops them as filler, and
+    // a crisis phrase that needs them ("sleep and then never wake up") can still be read whole.
+    .replace(/\s+(and then|but also|and also|oh and|plus|anyway|anyways)\s+/gi, "\n$1 ")
+    .split(/\n+/)
     .map((part) => part.replace(TITLE_DOTS, "."))
-    .flatMap((part) => splitPart(part, listed));
+    .flatMap((part) => splitPart(part, listed))
+    .reduce((joined, part) => {
+      if (joined.length && finishesCrisis(part)) joined[joined.length - 1] += ` ${part.trim()}`;
+      else joined.push(part);
+      return joined;
+    }, []);
   const items = [];
   const seen = new Set();
   for (const part of parts) {
-    const clause = cleanClause(part);
+    let clause = cleanClause(part);
+    // "and never wake up" is only a crisis phrase with its "and", so the filler stays on when dropping
+    // it would leave a calm-looking "Never wake up".
+    if (mentionsCrisis(part) && !mentionsCrisis(clause)) clause = cleanClause(part, true);
     const key = clause.toLowerCase();
     const oneWordOk = TASK_CUE.test(clause) || TOPICS.some((t) => t.words.test(clause));
     if (!clause || (clause.split(/\s+/).length < 2 && !oneWordOk) || seen.has(key)) continue;

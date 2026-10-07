@@ -2,8 +2,8 @@
 // trained model behind compute/serve.py. Any remote failure falls back to on-device, so the
 // person always gets an answer.
 
-import { organize as organizeOnDevice } from "./organizer.js?v=12";
-import { applySafetyFloor, mentionsCrisis } from "./safety.js?v=12";
+import { organize as organizeOnDevice } from "./organizer.js?v=13";
+import { applySafetyFloor, mentionsCrisis } from "./safety.js?v=13";
 
 const SETTINGS_KEY = "therapistgpt.settings";
 const REMOTE_TIMEOUT_MS = 60000;
@@ -71,11 +71,14 @@ export function normalizeEndpoint(endpoint) {
   return url.toString().replace(/\/+$/, "");
 }
 
-async function fetchWithTimeout(url, options, timeoutMs) {
+// The deadline covers reading the body too: a server or tunnel can send its headers and then stall,
+// and response.json() has no deadline of its own. The body is read only from a 2xx answer.
+async function fetchJsonWithTimeout(url, options, timeoutMs) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    return await fetch(url, { ...options, signal: controller.signal });
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    return { response, body: response.ok ? await response.json() : null };
   } finally {
     clearTimeout(timer);
   }
@@ -89,15 +92,14 @@ const STATUS_REASONS = {
 async function organizeRemote(text, endpoint, apiKey) {
   const headers = { "Content-Type": "application/json" };
   if (apiKey) headers["X-API-Key"] = apiKey;
-  const response = await fetchWithTimeout(
+  const { response, body } = await fetchJsonWithTimeout(
     `${normalizeEndpoint(endpoint)}/organize`,
     { method: "POST", headers, body: JSON.stringify({ text }) },
     REMOTE_TIMEOUT_MS
   );
   if (!response.ok) throw new Error(STATUS_REASONS[response.status] || `Your model answered with status ${response.status}.`);
-  const out = await response.json();
-  if (!looksValid(out)) throw new Error("Your model sent back something this page couldn't read.");
-  return out;
+  if (!looksValid(body)) throw new Error("Your model sent back something this page couldn't read.");
+  return body;
 }
 
 export async function organizeText(text, settings = loadSettings()) {
@@ -133,9 +135,8 @@ export async function organizeText(text, settings = loadSettings()) {
 }
 
 export async function testConnection(endpoint) {
-  const response = await fetchWithTimeout(`${normalizeEndpoint(endpoint)}/health`, {}, 15000);
+  const { response, body } = await fetchJsonWithTimeout(`${normalizeEndpoint(endpoint)}/health`, {}, 15000);
   if (!response.ok) throw new Error(`The server answered with status ${response.status}.`);
-  const body = await response.json();
   if (!body.ok) throw new Error("The server is up but the model hasn't finished loading.");
   return true;
 }
