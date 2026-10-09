@@ -1,17 +1,22 @@
 // Captures the README screenshots from a deployed copy of the site. Run by .github/workflows/screenshots.yml:
 //   SITE_URL=https://garyzhang1006.github.io/TherapistGPT/ OUT_DIR=screenshots node .github/scripts/screenshots.mjs
+// The browser job in ci.yml sets ALL_STATES=1 against its own copy of web/, which adds the light theme on
+// both sizes, both dialogs and the crisis card, so a pull request's look can be checked from the run page.
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { chromium } from "playwright";
 
 const SITE_URL = process.env.SITE_URL || "https://garyzhang1006.github.io/TherapistGPT/";
 const OUT_DIR = process.env.OUT_DIR || "screenshots";
+const ALL_STATES = process.env.ALL_STATES === "1";
 
 // A plain, everyday dump. It must never contain crisis words: the screenshots are public, and a crisis
 // card would replace the calm layout they are meant to show. run() below fails if one appears anyway.
 const DUMP =
   "idk where to even start. bio exam tmrw and i havent studied, my boss wants me to pick up another shift, " +
   "mom keeps calling and i feel guilty for not picking up. i need to pay the phone bill. im so tired";
+// Only for the ALL_STATES crisis shot, which never goes in the README. The same phrase the browser check uses.
+const CRISIS_DUMP = "i want to die and i cant tell anyone";
 
 const VIEWPORTS = {
   phone: { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true },
@@ -45,35 +50,57 @@ async function capture(page, name) {
   console.log(`saved ${file}`);
 }
 
-async function shoot(browser, size) {
-  // Dark is the app's default when the system asks for it; reduced motion skips the drifting fragments.
-  const context = await browser.newContext({ ...VIEWPORTS[size], colorScheme: "dark", reducedMotion: "reduce" });
+async function sort(page, text) {
+  await (await need(page, "#dump", "the brain dump textarea")).fill(text);
+  await page.getByRole("button", { name: "Sort my thoughts" }).click();
+  await need(page, "#result-view", "the results view");
+  await need(page, "#result-cards .card", "at least one result card");
+}
+
+async function shoot(browser, size, scheme) {
+  // Reduced motion skips the drifting fragments and the cards' fade-in, so every shot shows the settled page.
+  const context = await browser.newContext({ ...VIEWPORTS[size], colorScheme: scheme, reducedMotion: "reduce" });
   const page = await context.newPage();
+  const suffix = scheme === "dark" ? "" : "-light";
   try {
     const response = await page.goto(SITE_URL, { waitUntil: "load" });
     if (!response || !response.ok()) throw new Error(`Loading ${SITE_URL} returned HTTP ${response ? response.status() : "no response"}.`);
 
-    const dump = await need(page, "#dump", "the brain dump textarea");
+    await need(page, "#dump", "the brain dump textarea");
     await need(page, "#organize-btn", 'the "Sort my thoughts" button');
-    await dump.fill("");
-    await capture(page, `write-${size}.png`);
+    await capture(page, `write-${size}${suffix}.png`);
 
-    await dump.fill(DUMP);
-    await page.getByRole("button", { name: "Sort my thoughts" }).click();
-    await need(page, "#result-view", "the results view");
-    await need(page, "#result-cards .card", "at least one result card");
+    await sort(page, DUMP);
     if ((await page.locator("#result-cards .crisis").count()) > 0) {
       throw new Error("The sample dump produced a crisis card. Change DUMP in .github/scripts/screenshots.mjs to everyday text.");
     }
-    await capture(page, `results-${size}.png`);
+    await capture(page, `results-${size}${suffix}.png`);
 
-    if (size === "phone") {
-      const toggle = await need(page, "#theme-toggle", "the theme toggle");
-      await toggle.click();
-      const theme = await page.evaluate(() => document.documentElement.dataset.theme);
-      if (theme !== "light") throw new Error(`Clicking #theme-toggle left data-theme as "${theme}", expected "light".`);
-      await capture(page, "results-phone-light.png");
+    if (!ALL_STATES) {
+      if (size === "phone") {
+        const toggle = await need(page, "#theme-toggle", "the theme toggle");
+        await toggle.click();
+        const theme = await page.evaluate(() => document.documentElement.dataset.theme);
+        if (theme !== "light") throw new Error(`Clicking #theme-toggle left data-theme as "${theme}", expected "light".`);
+        await capture(page, "results-phone-light.png");
+      }
+      return;
     }
+
+    await page.getByRole("link", { name: "Need help now?" }).click();
+    await need(page, "#help-dialog[open]", "the help dialog");
+    await capture(page, `help-${size}${suffix}.png`);
+    await page.keyboard.press("Escape");
+
+    await page.getByRole("button", { name: "Settings" }).click();
+    await need(page, "#settings-dialog[open]", "the settings dialog");
+    await capture(page, `settings-${size}${suffix}.png`);
+    await page.keyboard.press("Escape");
+
+    await page.getByRole("button", { name: "Back to my words" }).click();
+    await sort(page, CRISIS_DUMP);
+    await need(page, "#result-cards .crisis", "the crisis card");
+    await capture(page, `crisis-${size}${suffix}.png`);
   } finally {
     await context.close();
   }
@@ -82,7 +109,9 @@ async function shoot(browser, size) {
 await mkdir(OUT_DIR, { recursive: true });
 const browser = await chromium.launch();
 try {
-  for (const size of Object.keys(VIEWPORTS)) await shoot(browser, size);
+  for (const size of Object.keys(VIEWPORTS)) {
+    for (const scheme of ALL_STATES ? ["dark", "light"] : ["dark"]) await shoot(browser, size, scheme);
+  }
 } finally {
   await browser.close();
 }
