@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-  <!-- The mark: three lines of text, sorted shortest last. Same drawing as the one in the top bar. -->
+  <!-- The mark: a T on the accent green. Same drawing as the one in the top bar. -->
   <rect width="24" height="24" rx="6" fill="#2b6a4a"/>
-  <path d="M7 8h10M7 12h7M7 16h4" fill="none" stroke="#fcfcfb" stroke-width="2" stroke-linecap="round"/>
+  <path d="M7.5 7.5h9M12 7.5v9" fill="none" stroke="#fcfcfb" stroke-width="2.4" stroke-linecap="round"/>
 </svg>

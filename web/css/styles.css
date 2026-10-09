@@ -40,9 +40,8 @@
   --accent-ink: #0d1a13;
   --accent-soft: #18261e;
   --accent-line: #2b4436;
-  --care: #eba9a3;
-  --care-soft: #261b1a;
-  --care-line: #4b302d;
+  /* Dialogs sit a step lighter than the page in the dark theme, the way raised things catch light. */
+  --raised: #1f2420;
   --ring: rgba(132, 195, 160, 0.3);
   --backdrop: rgba(4, 6, 5, 0.62);
   --font: "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", system-ui, sans-serif;
@@ -70,9 +69,7 @@
     --accent-ink: #fcfcfb;
     --accent-soft: #eaf3ed;
     --accent-line: #c5dccd;
-    --care: #9a3832;
-    --care-soft: #fbf1ef;
-    --care-line: #ecd1cc;
+    --raised: #fcfcfb;
     --ring: rgba(43, 106, 74, 0.22);
     --backdrop: rgba(20, 24, 22, 0.38);
     color-scheme: light;
@@ -94,9 +91,7 @@
   --accent-ink: #fcfcfb;
   --accent-soft: #eaf3ed;
   --accent-line: #c5dccd;
-  --care: #9a3832;
-  --care-soft: #fbf1ef;
-  --care-line: #ecd1cc;
+  --raised: #fcfcfb;
   --ring: rgba(43, 106, 74, 0.22);
   --backdrop: rgba(20, 24, 22, 0.38);
   color-scheme: light;
@@ -206,6 +201,8 @@ body {
   display: flex;
   align-items: center;
   gap: 0.25rem;
+  /* The last icon's glyph, not its 40px hit area, lines up with the column's right edge. */
+  margin-right: -0.6875rem;
 }
 
 button {
@@ -544,12 +541,12 @@ main:focus,
 }
 
 .card-label {
-  margin: 0 0 0.6rem;
-  font-size: 0.9375rem;
-  font-weight: 600;
+  margin: 0 0 0.75rem;
+  font-size: 1.0625rem;
+  font-weight: 700;
   line-height: 1.3;
   letter-spacing: -0.01em;
-  color: var(--ink-2);
+  color: var(--ink);
   text-wrap: balance;
 }
 
@@ -584,17 +581,16 @@ main:focus,
   font-size: 0.875rem;
 }
 
+/* One column, read top to bottom like the rest of the page; two columns left ragged rows and orphans. */
 .thread-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
-  gap: 1.25rem 2rem;
+  gap: 1rem;
 }
 
 .thread-title {
-  margin: 0 0 0.3rem;
+  margin: 0 0 0.25rem;
   font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-weight: 600;
   color: var(--ink);
 }
 
@@ -606,6 +602,7 @@ main:focus,
 .thread-points li {
   margin: 0.2rem 0;
   padding-left: 0.15rem;
+  text-wrap: pretty;
 }
 
 .thread-points li::marker {
@@ -707,15 +704,29 @@ main:focus,
   line-height: 1.45;
 }
 
+/* Neutral on purpose: a red or pink box reads as an error message, and what should stand out is the
+   Call 988 button, styled like every other main action. */
 .crisis {
-  background: var(--care-soft);
-  border: 1px solid var(--care-line);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
 }
 
 .crisis .card-label {
-  color: var(--care);
   font-size: 1.25rem;
-  font-weight: 700;
+}
+
+/* Beside the help card, a second tinted box would compete with it, so the step joins the plain flow. */
+.crisis ~ .small-step {
+  margin: 0;
+  padding: 1.5rem 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+  border-radius: 0;
+  background: none;
+}
+
+.crisis ~ .small-step .card-label {
+  color: var(--ink);
 }
 
 .crisis-lead {
@@ -735,15 +746,14 @@ main:focus,
   border-top: 1px solid var(--border);
 }
 
-.crisis .crisis-link + .crisis-link {
-  border-top-color: var(--care-line);
-}
-
 .crisis-link,
 .help-list a {
   display: grid;
+  grid-template-columns: 1fr auto;
   align-content: center;
-  gap: 0.05rem;
+  align-items: center;
+  column-gap: 1rem;
+  row-gap: 0.05rem;
   min-height: 44px;
   padding: 0.6rem 0;
   color: var(--ink);
@@ -754,6 +764,56 @@ main:focus,
 .help-list a strong {
   font-weight: 700;
   letter-spacing: -0.01em;
+}
+
+.crisis-link > *,
+.help-list a > * {
+  grid-column: 1;
+}
+
+/* A chevron marks each row as something to tap. */
+.crisis-link::after,
+.help-list a::after {
+  content: "";
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  width: 0.45rem;
+  height: 0.45rem;
+  margin-right: 0.3rem;
+  border: solid var(--ink-3);
+  border-width: 2px 2px 0 0;
+  transform: rotate(45deg);
+}
+
+/* The first line, Call 988, is the one to reach for, so it gets the main-action fill. */
+.crisis-link:first-child,
+.help-list li:first-child a {
+  margin-bottom: 0.4rem;
+  padding: 0.7rem 1rem;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: var(--accent-ink);
+  transition: background-color 150ms ease;
+}
+
+.crisis-link:first-child:hover,
+.help-list li:first-child a:hover {
+  background: var(--accent-hover);
+}
+
+.crisis-link:first-child span,
+.help-list li:first-child a span {
+  color: var(--accent-ink);
+}
+
+.crisis-link:first-child::after,
+.help-list li:first-child a::after {
+  border-color: var(--accent-ink);
+}
+
+.crisis-link:first-child + .crisis-link,
+.help-list li:first-child + li {
+  border-top: 0;
 }
 
 .crisis-link:hover strong,
@@ -832,7 +892,7 @@ dialog {
   padding: 0;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-lg);
-  background: var(--surface);
+  background: var(--raised);
   color: var(--ink);
 }
 
@@ -875,6 +935,7 @@ dialog[open] {
 
 .dialog-body > p {
   margin: 0 0 0.75rem;
+  text-wrap: pretty;
 }
 
 .dialog-actions {
@@ -919,6 +980,7 @@ fieldset {
 
 legend {
   margin-bottom: 0.5rem;
+  padding: 0;
   font-size: 0.9375rem;
   font-weight: 600;
   color: var(--ink-2);
@@ -944,9 +1006,24 @@ legend {
   background: var(--accent-soft);
 }
 
+/* Drawn to match the to-do checkboxes, so every control on the page shares one look. */
 .option input {
-  margin-top: 0.3rem;
-  accent-color: var(--accent);
+  appearance: none;
+  flex: none;
+  width: 1.15rem;
+  height: 1.15rem;
+  margin: 0.2rem 0 0;
+  border-radius: 50%;
+  border: 1.5px solid var(--control-line);
+  background: var(--surface);
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+.option input:checked {
+  border-color: var(--accent);
+  background: var(--accent);
+  box-shadow: inset 0 0 0 3px var(--surface);
 }
 
 .option span {
@@ -1031,6 +1108,17 @@ legend {
 
   .link.subtle {
     margin-left: 0;
+  }
+
+  /* Test takes its own row, and Cancel and Save split the row under it. */
+  #test-endpoint {
+    flex: 1 0 100%;
+    margin-right: 0;
+  }
+
+  #cancel-settings,
+  #save-settings {
+    flex: 1;
   }
 
   .small-step,

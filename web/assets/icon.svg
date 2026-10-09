@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <!-- App icon: the mark from assets/mark.svg at 20x. The background fills every pixel so Android can
-       cut it to any mask shape, and the lines stay inside the central circle (radius 40% of the icon)
+       cut it to any mask shape, and the T stays inside the central circle (radius 40% of the icon)
        that masks never crop. The Pages workflow renders the PNG sizes from this file. -->
   <rect width="512" height="512" fill="#2b6a4a"/>
-  <path d="M156 176h200M156 256h140M156 336h80" fill="none" stroke="#fcfcfb" stroke-width="40" stroke-linecap="round"/>
+  <path d="M166 166h180M256 166v180" fill="none" stroke="#fcfcfb" stroke-width="48" stroke-linecap="round"/>
 </svg>
