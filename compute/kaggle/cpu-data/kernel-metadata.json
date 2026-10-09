@@ -1,0 +1,14 @@
+{
+  "id": "OWNER/therapistgpt-cpu-data-a",
+  "title": "therapistgpt-cpu-data-a",
+  "code_file": "data_cpu.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_internet": true,
+  "dataset_sources": ["OWNER/therapistgpt-cpu-rows"],
+  "kernel_sources": [],
+  "competition_sources": [],
+  "model_sources": []
+}
