@@ -1,7 +1,8 @@
 // Captures the README screenshots from a deployed copy of the site. Run by .github/workflows/screenshots.yml:
 //   SITE_URL=https://garyzhang1006.github.io/TherapistGPT/ OUT_DIR=screenshots node .github/scripts/screenshots.mjs
 // The browser job in ci.yml sets ALL_STATES=1 against its own copy of web/, which adds the light theme on
-// both sizes, both dialogs and the crisis card, so a pull request's look can be checked from the run page.
+// both sizes, both dialogs, the crisis card and a 320px screen with larger text, so a pull request's look can
+// be checked from the run page.
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { chromium } from "playwright";
@@ -106,12 +107,28 @@ async function shoot(browser, size, scheme) {
   }
 }
 
+// The tightest case for the top bar and the editor buttons: a 320px window with larger text on and a
+// mouse, so the shortcut hint would show if the narrow-screen rule did not hide it.
+async function shootSmallest(browser) {
+  const context = await browser.newContext({ viewport: { width: 320, height: 640 }, deviceScaleFactor: 2, colorScheme: "light", reducedMotion: "reduce" });
+  await context.addInitScript(() => localStorage.setItem("therapistgpt.prefs", JSON.stringify({ large: true })));
+  const page = await context.newPage();
+  try {
+    await page.goto(SITE_URL, { waitUntil: "load" });
+    await need(page, "#organize-btn", 'the "Sort my thoughts" button');
+    await capture(page, "write-320-large-light.png");
+  } finally {
+    await context.close();
+  }
+}
+
 await mkdir(OUT_DIR, { recursive: true });
 const browser = await chromium.launch();
 try {
   for (const size of Object.keys(VIEWPORTS)) {
     for (const scheme of ALL_STATES ? ["dark", "light"] : ["dark"]) await shoot(browser, size, scheme);
   }
+  if (ALL_STATES) await shootSmallest(browser);
 } finally {
   await browser.close();
 }

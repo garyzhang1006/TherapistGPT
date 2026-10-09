@@ -45,8 +45,9 @@ self.addEventListener("install", (event) => {
       const rest = PRECACHE.filter((url) => url !== "index.html");
       await cache.addAll(rest.map((url) => new Request(url, { cache: "reload" })));
       await cache.put("index.html", index);
-      // Safe to take over at once: an open page of the old release already has all its modules,
-      // and anything it still asks for (a font subset) has the same unversioned URL here.
+      // Safe to take over at once: an open page of the old release already has all its modules. A font
+      // subset it has not loaded yet is here under the same unversioned URL, or, if this release
+      // dropped that font, the page falls back to the next font in its stack.
       await self.skipWaiting();
     })()
   );

@@ -370,7 +370,9 @@ form.addEventListener("submit", (event) => {
   run();
 });
 
-dump.addEventListener("keydown", (event) => {
+// On the whole form, so the shortcut the Sort button announces through aria-keyshortcuts works from
+// any of its controls, not only the textarea.
+form.addEventListener("keydown", (event) => {
   if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
     event.preventDefault();
     run();

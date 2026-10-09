@@ -30,7 +30,7 @@
   --surface-2: #212622;
   --border: #2a302c;
   --border-strong: #3b433e;
-  /* Checkbox and radio edges carry the whole control, so they keep 3:1 against the surface. */
+  /* Checkbox and radio edges carry the whole control, so they keep 3:1 against both the page and the surface. */
   --control-line: #6c756f;
   --ink: #e6eae7;
   --ink-2: #b9c1bc;
@@ -60,7 +60,7 @@
     --surface-2: #eff1ee;
     --border: #e1e4e0;
     --border-strong: #c8cdc8;
-    --control-line: #8b948e;
+    --control-line: #7c857f;
     --ink: #1d221f;
     --ink-2: #434b46;
     --ink-3: #5c655f;
@@ -82,7 +82,7 @@
   --surface-2: #eff1ee;
   --border: #e1e4e0;
   --border-strong: #c8cdc8;
-  --control-line: #8b948e;
+  --control-line: #7c857f;
   --ink: #1d221f;
   --ink-2: #434b46;
   --ink-3: #5c655f;
@@ -163,6 +163,8 @@ body {
 
 .topbar {
   display: flex;
+  flex-wrap: wrap;
+  row-gap: 0.5rem;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
@@ -202,7 +204,9 @@ body {
   align-items: center;
   gap: 0.25rem;
   /* The last icon's glyph, not its 40px hit area, lines up with the column's right edge. */
-  margin-right: -0.6875rem;
+  margin-right: -11px;
+  /* If the bar ever wraps, the tools stay on the right. */
+  margin-left: auto;
 }
 
 button {
@@ -214,8 +218,9 @@ button {
 .icon {
   display: grid;
   place-items: center;
-  width: 2.5rem;
-  height: 2.5rem;
+  /* Fixed pixels: the hit area need not grow with the larger-text setting, and the bar must fit at 320px. */
+  width: 40px;
+  height: 40px;
   border-radius: var(--radius);
   border: 0;
   background: transparent;
@@ -436,7 +441,8 @@ textarea::placeholder {
   gap: 0.15rem;
   padding: 0.1rem 0.35rem;
   border-radius: 5px;
-  background: color-mix(in srgb, var(--accent-ink) 16%, transparent);
+  /* A ring, not a fill: a light fill under light text dropped below 4.5:1 in the light theme. */
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-ink) 45%, transparent);
   font-family: inherit;
   font-size: 0.75rem;
   font-weight: 600;
@@ -512,6 +518,8 @@ main:focus,
    help sit in boxes, because those are the parts to act on. */
 .card {
   padding: 1.5rem 0;
+  /* A pasted link or a long run of letters wraps instead of pushing past the column. */
+  overflow-wrap: anywhere;
   animation: rise 260ms var(--ease) both;
   animation-delay: calc(var(--i, 0) * 50ms);
 }
@@ -657,6 +665,7 @@ main:focus,
 
 .todo label {
   display: grid;
+  min-width: 0;
   gap: 0.1rem;
   cursor: pointer;
 }
@@ -1095,10 +1104,17 @@ legend {
 
   .dump-actions {
     width: 100%;
+    flex-wrap: wrap;
+  }
+
+  /* Tighter padding keeps Clear and Sort on one line down to a 320px screen. */
+  .dump-actions .ghost {
+    padding-inline: 0.9rem;
   }
 
   .dump-actions .primary {
     flex: 1;
+    padding-inline: 1rem;
   }
 
   /* The two buttons share the row, and Start fresh drops below them on the left. */
@@ -1127,11 +1143,32 @@ legend {
   }
 }
 
-/* The mark alone carries the name here, so the help link and the three tools fit at 320px even
-   with larger text on. */
+/* Narrow screens: the mark alone carries the name, and the shortcut hint gives its room to the buttons. */
 @media (max-width: 480px) {
   .wordmark {
     display: none;
+  }
+
+  .shortcut {
+    display: none;
+  }
+}
+
+/* The smallest phones: smaller hit areas and a tighter help link keep the bar on one line at 320px.
+   With larger text on as well it can wrap, and then the tools sit on their own row at the right. */
+@media (max-width: 400px) {
+  .icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .tools {
+    margin-right: -9px;
+  }
+
+  .help-now {
+    padding: 0 0.6rem;
+    font-size: 0.8125rem;
   }
 }
 
