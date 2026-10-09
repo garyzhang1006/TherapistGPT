@@ -1164,11 +1164,19 @@ legend {
 
   .tools {
     margin-right: -9px;
+    gap: 0;
   }
 
   .help-now {
     padding: 0 0.6rem;
     font-size: 0.8125rem;
+  }
+}
+
+/* Larger text on a 320px screen pushes Sort onto its own row; Clear then fills the row above it. */
+@media (max-width: 360px) {
+  .dump-actions .ghost {
+    flex: 1 0 auto;
   }
 }
 
