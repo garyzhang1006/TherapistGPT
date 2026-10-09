@@ -4,7 +4,7 @@
 // On every release, set VERSION to the new ?v= number from index.html and the imports. That is the
 // only change needed here: the cache name and the precache URLs below follow it, and
 // tests/pwa.test.js fails until the numbers match.
-const VERSION = "13";
+const VERSION = "14";
 const CACHE = `therapistgpt-v${VERSION}`;
 
 // Why this can never pair a new module with an old one: a page only asks for the ?v= URLs that its
@@ -23,11 +23,7 @@ const PRECACHE = [
   `js/safety.js?v=${VERSION}`,
   "fonts/atkinson-hyperlegible-next-latin.woff2",
   "fonts/atkinson-hyperlegible-next-latin-ext.woff2",
-  "fonts/fraunces-latin.woff2",
-  "fonts/fraunces-latin-ext.woff2",
-  "fonts/fraunces-italic-latin.woff2",
-  "fonts/fraunces-italic-latin-ext.woff2",
-  "assets/moon.svg",
+  "assets/mark.svg",
   "assets/icon.svg",
   "assets/icon-192.png",
   "assets/icon-512.png",

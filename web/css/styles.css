@@ -1,8 +1,10 @@
-/* TherapistGPT: "dusk" palette. Low arousal on purpose: no pure white, no alarm red,
-   soft contrast that still passes WCAG AA, slow motion that stops for reduced-motion users. */
+/* TherapistGPT. One typeface, neutral surfaces and a single green accent, so nothing on the page
+   competes with the person's own words. Every text color passes WCAG AA in both themes, and motion
+   stops for reduced-motion users. */
 
-/* Fonts are served from this site, so no third party learns who opens the page. Both are SIL OFL
-   (licenses in web/fonts/); latin and latin-ext subsets from the Google Fonts builds. */
+/* The font is served from this site, so no third party learns who opens the page. SIL OFL (license in
+   web/fonts/); latin and latin-ext subsets from the Google Fonts build. Atkinson Hyperlegible was drawn
+   for low-vision readers, and its distinct letterforms stay readable on a tired evening too. */
 
 @font-face {
   font-family: "Atkinson Hyperlegible Next";
@@ -22,112 +24,81 @@
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
-@font-face {
-  font-family: "Fraunces";
-  font-style: italic;
-  font-weight: 300 600;
-  font-display: swap;
-  src: url("../fonts/fraunces-italic-latin-ext.woff2") format("woff2");
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
-}
-
-@font-face {
-  font-family: "Fraunces";
-  font-style: italic;
-  font-weight: 300 600;
-  font-display: swap;
-  src: url("../fonts/fraunces-italic-latin.woff2") format("woff2");
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-
-@font-face {
-  font-family: "Fraunces";
-  font-style: normal;
-  font-weight: 300 600;
-  font-display: swap;
-  src: url("../fonts/fraunces-latin-ext.woff2") format("woff2");
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
-}
-
-@font-face {
-  font-family: "Fraunces";
-  font-style: normal;
-  font-weight: 300 600;
-  font-display: swap;
-  src: url("../fonts/fraunces-latin.woff2") format("woff2");
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-
 :root {
-  --bg: #16151d;
-  --bg-glow-a: rgba(163, 146, 214, 0.16);
-  --bg-glow-b: rgba(143, 174, 152, 0.12);
-  --surface: rgba(36, 34, 47, 0.78);
-  --surface-solid: #221f2c;
-  --surface-2: rgba(255, 255, 255, 0.035);
-  --line: rgba(233, 228, 218, 0.1);
-  --text: #ebe5da;
-  --muted: #a9a2b6;
-  --sage: #a9c6ad;
-  --sage-ink: #16211a;
-  --lavender: #c3b6e3;
-  --lavender-soft: rgba(195, 182, 227, 0.14);
-  --apricot: #e8bc97;
-  --apricot-soft: rgba(232, 188, 151, 0.12);
-  --rose: #e7a9a6;
-  --rose-soft: rgba(231, 169, 166, 0.12);
-  --focus: #cfe3d2;
-  --radius: 16px;
-  --font-display: "Fraunces", Georgia, serif;
-  --font-body: "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", Verdana, sans-serif;
+  --bg: #121513;
+  --surface: #191d1a;
+  --surface-2: #212622;
+  --border: #2a302c;
+  --border-strong: #3b433e;
+  /* Checkbox and radio edges carry the whole control, so they keep 3:1 against the surface. */
+  --control-line: #6c756f;
+  --ink: #e6eae7;
+  --ink-2: #b9c1bc;
+  --ink-3: #909994;
+  --accent: #84c3a0;
+  --accent-hover: #97cfaf;
+  --accent-ink: #0d1a13;
+  --accent-soft: #18261e;
+  --accent-line: #2b4436;
+  --care: #eba9a3;
+  --care-soft: #261b1a;
+  --care-line: #4b302d;
+  --ring: rgba(132, 195, 160, 0.3);
+  --backdrop: rgba(4, 6, 5, 0.62);
+  --font: "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", system-ui, sans-serif;
   --text-size: 1.0625rem;
-  --breath: 10s; /* six breaths a minute: the pace of slow, calming breathing */
+  --col: 680px;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --ease: cubic-bezier(0.25, 1, 0.5, 1);
   color-scheme: dark;
 }
 
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]) {
-    --bg: #f3eee6;
-    --bg-glow-a: rgba(140, 120, 200, 0.14);
-    --bg-glow-b: rgba(100, 150, 115, 0.12);
-    --surface: rgba(252, 249, 244, 0.82);
-    --surface-solid: #fbf8f3;
-    --surface-2: rgba(60, 50, 80, 0.035);
-    --line: rgba(46, 42, 54, 0.1);
-    --text: #2c2834;
-    --muted: #675f73;
-    --sage: #456b4f;
-    --sage-ink: #ffffff;
-    --lavender: #5f5096;
-    --lavender-soft: rgba(95, 80, 150, 0.1);
-    --apricot: #8a5024;
-    --apricot-soft: rgba(214, 150, 100, 0.14);
-    --rose: #a2474a;
-    --rose-soft: rgba(200, 110, 110, 0.12);
-    --focus: #456b4f;
-      color-scheme: light;
+    --bg: #f4f5f3;
+    --surface: #fcfcfb;
+    --surface-2: #eff1ee;
+    --border: #e1e4e0;
+    --border-strong: #c8cdc8;
+    --control-line: #8b948e;
+    --ink: #1d221f;
+    --ink-2: #434b46;
+    --ink-3: #5c655f;
+    --accent: #2b6a4a;
+    --accent-hover: #235a3e;
+    --accent-ink: #fcfcfb;
+    --accent-soft: #eaf3ed;
+    --accent-line: #c5dccd;
+    --care: #9a3832;
+    --care-soft: #fbf1ef;
+    --care-line: #ecd1cc;
+    --ring: rgba(43, 106, 74, 0.22);
+    --backdrop: rgba(20, 24, 22, 0.38);
+    color-scheme: light;
   }
 }
 
 :root[data-theme="light"] {
-  --bg: #f3eee6;
-  --bg-glow-a: rgba(140, 120, 200, 0.14);
-  --bg-glow-b: rgba(100, 150, 115, 0.12);
-  --surface: rgba(252, 249, 244, 0.82);
-  --surface-solid: #fbf8f3;
-  --surface-2: rgba(60, 50, 80, 0.035);
-  --line: rgba(46, 42, 54, 0.1);
-  --text: #2c2834;
-  --muted: #675f73;
-  --sage: #456b4f;
-  --sage-ink: #ffffff;
-  --lavender: #5f5096;
-  --lavender-soft: rgba(95, 80, 150, 0.1);
-  --apricot: #8a5024;
-  --apricot-soft: rgba(214, 150, 100, 0.14);
-  --rose: #a2474a;
-  --rose-soft: rgba(200, 110, 110, 0.12);
-  --focus: #456b4f;
+  --bg: #f4f5f3;
+  --surface: #fcfcfb;
+  --surface-2: #eff1ee;
+  --border: #e1e4e0;
+  --border-strong: #c8cdc8;
+  --control-line: #8b948e;
+  --ink: #1d221f;
+  --ink-2: #434b46;
+  --ink-3: #5c655f;
+  --accent: #2b6a4a;
+  --accent-hover: #235a3e;
+  --accent-ink: #fcfcfb;
+  --accent-soft: #eaf3ed;
+  --accent-line: #c5dccd;
+  --care: #9a3832;
+  --care-soft: #fbf1ef;
+  --care-line: #ecd1cc;
+  --ring: rgba(43, 106, 74, 0.22);
+  --backdrop: rgba(20, 24, 22, 0.38);
   color-scheme: light;
 }
 
@@ -151,28 +122,17 @@ body {
   margin: 0;
   min-height: 100vh;
   background: var(--bg);
-  color: var(--text);
-  font-family: var(--font-body);
+  color: var(--ink);
+  font-family: var(--font);
   font-size: var(--text-size);
-  line-height: 1.65;
+  line-height: 1.6;
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
   /* No background transition: text colors switch at once, so any fade left text at about 1.3:1
      mid-switch. One clean cut is calmer. */
 }
-
-/* Two slow glows: depth without anything that demands attention. */
-.sky {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(60vmax 45vmax at 12% -8%, var(--bg-glow-a), transparent 70%),
-    radial-gradient(55vmax 45vmax at 105% 105%, var(--bg-glow-b), transparent 70%);
-}
-
 
 .sr {
   position: absolute;
@@ -187,10 +147,11 @@ body {
   position: absolute;
   left: 1rem;
   top: -3rem;
-  padding: 0.5rem 1rem;
-  border-radius: 999px;
-  background: var(--sage);
-  color: var(--sage-ink);
+  padding: 0.5rem 0.9rem;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
   z-index: 10;
 }
 
@@ -199,9 +160,8 @@ body {
 }
 
 :focus-visible {
-  outline: 2px solid var(--focus);
-  outline-offset: 3px;
-  border-radius: 10px;
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 /* ---------- top bar ---------- */
@@ -211,44 +171,41 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  width: min(100% - 32px, 760px);
+  width: min(100% - 32px, var(--col));
   margin: 0 auto;
-  padding: 1.25rem 0 0.5rem;
+  padding: 1rem 0;
 }
 
 .brand {
   display: flex;
   align-items: center;
-  gap: 0.7rem;
+  gap: 0.6rem;
+  min-width: 0;
 }
 
-.orb {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 38% 34%, #f4e9dc, #cdbfe6 55%, #8fae98);
-  box-shadow: 0 0 22px 2px var(--bg-glow-a);
-  animation: breathe var(--breath) ease-in-out infinite;
+.mark {
+  flex: none;
+  display: block;
 }
 
-@keyframes breathe {
-  0%, 100% { transform: scale(0.92); box-shadow: 0 0 12px 0 var(--bg-glow-a); }
-  50% { transform: scale(1.06); box-shadow: 0 0 34px 6px var(--bg-glow-a); }
+.mark rect {
+  fill: var(--accent);
+}
+
+.mark path {
+  stroke: var(--accent-ink);
 }
 
 .wordmark {
-  font-family: var(--font-display);
-  font-style: italic;
-  font-weight: 400;
-  font-variation-settings: "SOFT" 100, "opsz" 36;
-  font-size: 1.3rem;
-  letter-spacing: 0.01em;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.005em;
 }
 
 .tools {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.25rem;
 }
 
 button {
@@ -260,14 +217,15 @@ button {
 .icon {
   display: grid;
   place-items: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  border: 1px solid transparent;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius);
+  border: 0;
   background: transparent;
-  color: var(--muted);
-  font-size: 0.95rem;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  color: var(--ink-2);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  transition: background-color 150ms ease, color 150ms ease;
 }
 
 /* The theme button shows the theme you're in now. */
@@ -296,102 +254,117 @@ button {
 .icon:hover,
 .icon[aria-pressed="true"] {
   background: var(--surface-2);
-  color: var(--text);
+  color: var(--ink);
+}
+
+/* One button vocabulary everywhere: the same height, radius and weight, filled for the main action
+   and outlined for the rest. */
+.primary,
+.ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  min-height: 2.75rem;
+  padding: 0 1.1rem;
+  border-radius: var(--radius);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
 }
 
 .ghost {
-  padding: 0.6rem 1.1rem;
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  background: transparent;
-  color: var(--text);
-  white-space: nowrap;
-  transition: background-color 0.3s ease, border-color 0.3s ease;
-}
-
-a.ghost {
-  text-decoration: none;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--ink);
 }
 
 .ghost:hover {
   background: var(--surface-2);
-  border-color: color-mix(in srgb, var(--text) 25%, transparent);
-}
-
-.help-now {
-  color: var(--apricot);
-  border-color: color-mix(in srgb, var(--apricot) 35%, transparent);
-  font-size: 0.92rem;
 }
 
 .primary {
-  padding: 0.8rem 1.6rem;
-  border-radius: 999px;
-  border: 0;
-  background: var(--sage);
-  color: var(--sage-ink);
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  white-space: nowrap;
-  box-shadow: 0 10px 30px -14px color-mix(in srgb, var(--sage) 80%, transparent);
-  transition: transform 0.3s ease, filter 0.3s ease;
+  border: 1px solid transparent;
+  background: var(--accent);
+  color: var(--accent-ink);
 }
 
 .primary:hover {
-  filter: brightness(1.05);
-  transform: translateY(-1px);
+  background: var(--accent-hover);
+}
+
+.primary:active,
+.ghost:active {
+  transform: translateY(1px);
 }
 
 .primary[aria-disabled="true"] {
-  opacity: 0.55;
+  opacity: 0.6;
   cursor: default;
   transform: none;
 }
 
-.link.subtle {
-  margin-left: auto;
-  color: var(--muted);
+/* The top-bar version sits a little smaller so the bar stays one line on a phone. */
+.help-now {
+  min-height: 2.5rem;
+  padding: 0 0.9rem;
+  font-size: 0.875rem;
 }
 
 .link {
   border: 0;
   background: none;
   padding: 0;
-  color: var(--lavender);
+  color: var(--accent);
+  font-weight: 600;
   text-decoration: underline;
+  text-decoration-thickness: 1px;
   text-underline-offset: 3px;
+}
+
+.link:hover {
+  text-decoration-thickness: 2px;
+}
+
+.link.subtle {
+  margin-left: auto;
+  color: var(--ink-2);
+  font-size: 0.9375rem;
 }
 
 /* ---------- writing view ---------- */
 
 main {
   flex: 1;
-  width: min(100% - 32px, 760px);
+  width: min(100% - 32px, var(--col));
   margin: 0 auto;
-  padding: 2.5rem 0 3rem;
+  padding: 3rem 0 4rem;
 }
 
 h1 {
-  font-family: var(--font-display);
-  font-weight: 350;
-  font-variation-settings: "SOFT" 100, "opsz" 120;
-  font-size: clamp(2.2rem, 6vw, 3.4rem);
-  line-height: 1.08;
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.2;
   letter-spacing: -0.015em;
-  margin: 0 0 0.9rem;
+  margin: 0 0 0.5rem;
+  text-wrap: balance;
 }
 
 .lede {
-  color: var(--muted);
-  max-width: 34rem;
-  margin: 0 0 2rem;
+  color: var(--ink-2);
+  max-width: 36rem;
+  margin: 0 0 1.75rem;
+  text-wrap: pretty;
 }
 
 .dump-form {
   background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: calc(var(--radius) + 6px);
-  padding: 0.5rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 
 textarea {
@@ -401,31 +374,30 @@ textarea {
   min-height: clamp(180px, 34vh, 460px);
   resize: vertical;
   border: 0;
-  border-radius: var(--radius);
-  padding: 1.4rem 1.4rem 1rem;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: 1.25rem 1.25rem 1rem;
   background: transparent;
-  color: var(--text);
+  color: var(--ink);
   font: inherit;
-  font-size: calc(var(--text-size) * 1.05);
-  line-height: 1.8;
-  caret-color: var(--sage);
+  font-size: calc(var(--text-size) * 1.06);
+  line-height: 1.7;
+  caret-color: var(--accent);
 }
 
 textarea:focus {
   outline: none;
 }
 
-/* The textarea has no outline of its own, so this ring is the only focus sign; a full-strength
-   2px edge clears the 3:1 minimum for non-text contrast in both themes. */
+/* The textarea has no outline of its own, so this edge is the only focus sign; the accent border
+   alone clears the 3:1 minimum for non-text contrast in both themes, and the soft ring adds weight. */
 .dump-form:focus-within {
-  border-color: var(--focus);
-  box-shadow: 0 0 0 1px var(--focus);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--ring);
 }
 
 textarea::placeholder {
-  color: var(--muted);
+  color: var(--ink-3);
   opacity: 1;
-  font-style: italic;
 }
 
 .dump-row {
@@ -434,8 +406,8 @@ textarea::placeholder {
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  padding: 0.5rem 0.5rem 0.4rem 1rem;
-  border-top: 1px solid var(--line);
+  padding: 0.75rem 0.75rem 0.75rem 1.25rem;
+  border-top: 1px solid var(--border);
 }
 
 .privacy {
@@ -443,8 +415,13 @@ textarea::placeholder {
   align-items: center;
   gap: 0.45rem;
   margin: 0;
-  color: var(--muted);
-  font-size: 0.88rem;
+  color: var(--ink-3);
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.privacy svg {
+  flex: none;
 }
 
 .dump-actions {
@@ -453,31 +430,40 @@ textarea::placeholder {
   margin-left: auto;
 }
 
-.write-status {
-  margin: 0;
-  padding: 0 1rem 0.6rem;
-}
-
-.kbd-hint {
-  margin: 0;
-  padding: 0 1rem 0.5rem;
-  text-align: right;
-  color: var(--muted);
-  font-size: 0.78rem;
-}
-
-kbd {
+/* The shortcut sits inside the button it triggers, hidden from screen readers, which hear
+   aria-keyshortcuts instead. */
+.shortcut {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--accent-ink) 16%, transparent);
   font-family: inherit;
   font-size: 0.75rem;
-  padding: 0.05rem 0.35rem;
-  border: 1px solid var(--line);
-  border-radius: 6px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.primary[aria-disabled="true"] .shortcut {
+  visibility: hidden;
 }
 
 @media (hover: none) {
-  .kbd-hint {
+  .shortcut {
     display: none;
   }
+}
+
+.write-status {
+  margin: 0;
+  padding: 0 1.25rem 0.75rem;
+}
+
+/* Collapsed, not display: none, so the live region stays in place to announce the next message. */
+.write-status:empty {
+  min-height: 0;
+  padding: 0;
 }
 
 /* ---------- settling animation ---------- */
@@ -492,24 +478,20 @@ kbd {
   position: fixed;
   z-index: 5;
   max-width: 14rem;
-  padding: 0.35rem 0.8rem;
-  border-radius: 999px;
-  background: var(--lavender-soft);
-  border: 1px solid var(--line);
-  color: var(--text);
-  font-size: 0.85rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  color: var(--ink-2);
+  font-size: 0.8125rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   opacity: 0;
-  transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.9s ease;
+  transition: transform 1.2s var(--ease), opacity 0.9s ease;
 }
 
 /* ---------- results ---------- */
-
-.results-head h1 {
-  font-size: clamp(2rem, 5.2vw, 2.9rem);
-}
 
 main:focus,
 .results-head h1:focus,
@@ -519,92 +501,98 @@ main:focus,
 }
 
 .engine-note {
-  color: var(--muted);
-  font-size: 0.9rem;
-  margin: 0 0 1.75rem;
+  color: var(--ink-3);
+  font-size: 0.875rem;
+  margin: 0 0 1.5rem;
 }
 
-.result-cards {
-  display: grid;
-  gap: 1rem;
+.engine-note:empty {
+  margin-bottom: 1rem;
 }
 
+/* The sections read as one sorted page, split by hairlines. Only the one small step and the crisis
+   help sit in boxes, because those are the parts to act on. */
 .card {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 1.4rem 1.5rem 1.5rem;
-  animation: rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
-  animation-delay: calc(var(--i, 0) * 140ms + 120ms);
+  padding: 1.5rem 0;
+  animation: rise 260ms var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 50ms);
+}
+
+.card:not(.small-step, .crisis) + .card:not(.small-step, .crisis) {
+  border-top: 1px solid var(--border);
+}
+
+.result-cards > :first-child {
+  margin-top: 0;
+}
+
+.result-cards > .card:first-child:not(.small-step, .crisis) {
+  padding-top: 0.25rem;
+}
+
+.small-step,
+.crisis {
+  margin: 0.5rem 0;
+  padding: 1.25rem 1.5rem;
+  border-radius: var(--radius-lg);
 }
 
 @keyframes rise {
-  from { opacity: 0; transform: translateY(14px); }
+  from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: none; }
 }
 
 .card-label {
-  margin: 0 0 0.75rem;
-  font-family: var(--font-display);
-  font-weight: 450;
-  font-variation-settings: "SOFT" 100, "opsz" 24;
-  font-size: 1.12rem;
+  margin: 0 0 0.6rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
   line-height: 1.3;
-  color: var(--muted);
+  color: var(--ink-2);
   text-wrap: balance;
 }
 
 .card-hint {
-  margin: -0.3rem 0 1rem;
-  color: var(--muted);
-  font-size: 0.9rem;
+  margin: -0.35rem 0 0.75rem;
+  color: var(--ink-3);
+  font-size: 0.875rem;
 }
 
 .summary-text {
   margin: 0;
-  font-family: var(--font-display);
-  font-weight: 350;
-  font-variation-settings: "SOFT" 100, "opsz" 48;
-  font-size: calc(var(--text-size) * 1.45);
-  line-height: 1.4;
+  font-size: calc(var(--text-size) * 1.18);
+  line-height: 1.5;
+  text-wrap: pretty;
 }
 
 .chips {
   list-style: none;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.45rem;
-  margin: 1.1rem 0 0;
+  gap: 0.4rem;
+  margin: 1rem 0 0;
   padding: 0;
 }
 
 .chip {
-  padding: 0.25rem 0.8rem;
-  border-radius: 999px;
-  background: var(--lavender-soft);
-  color: var(--lavender);
-  font-size: 0.9rem;
+  padding: 0.15rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--ink-2);
+  font-size: 0.875rem;
 }
 
 .thread-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
-  gap: 0.25rem 2rem;
-}
-
-.thread {
-  padding: 0.9rem 0 0.4rem;
-  border-top: 1px solid var(--line);
+  gap: 1.25rem 2rem;
 }
 
 .thread-title {
-  margin: 0 0 0.4rem;
-  font-family: var(--font-display);
-  font-weight: 500;
-  font-style: italic;
-  font-variation-settings: "SOFT" 100, "opsz" 24;
-  font-size: 1.15rem;
-  color: var(--sage);
+  margin: 0 0 0.3rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink);
 }
 
 .thread-points {
@@ -613,11 +601,12 @@ main:focus,
 }
 
 .thread-points li {
-  margin: 0.25rem 0;
+  margin: 0.2rem 0;
+  padding-left: 0.15rem;
 }
 
 .thread-points li::marker {
-  color: var(--muted);
+  color: var(--ink-3);
 }
 
 .todo-list {
@@ -628,39 +617,40 @@ main:focus,
 
 .todo {
   display: flex;
-  gap: 0.8rem;
+  gap: 0.75rem;
   align-items: flex-start;
-  padding: 0.8rem 0;
+  padding: 0.7rem 0;
 }
 
 .todo + .todo {
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--border);
 }
 
 .todo input {
   appearance: none;
   flex: none;
-  width: 1.35rem;
-  height: 1.35rem;
-  margin-top: 0.15rem;
-  border-radius: 50%;
-  border: 1.5px solid var(--muted);
+  width: 1.15rem;
+  height: 1.15rem;
+  margin: 0.25rem 0 0;
+  border-radius: 5px;
+  border: 1.5px solid var(--control-line);
+  background: var(--surface);
   display: grid;
   place-items: center;
   cursor: pointer;
-  transition: background-color 0.4s ease, border-color 0.4s ease;
+  transition: background-color 150ms ease, border-color 150ms ease;
 }
 
 .todo input:checked {
-  background: var(--sage);
-  border-color: var(--sage);
+  background: var(--accent);
+  border-color: var(--accent);
 }
 
 .todo input:checked::after {
   content: "";
-  width: 0.35rem;
-  height: 0.65rem;
-  border: solid var(--sage-ink);
+  width: 0.3rem;
+  height: 0.6rem;
+  border: solid var(--accent-ink);
   border-width: 0 2px 2px 0;
   transform: translateY(-1px) rotate(45deg);
 }
@@ -671,31 +661,26 @@ main:focus,
   cursor: pointer;
 }
 
-.todo-task {
-  transition: opacity 0.4s ease;
-}
-
 .todo-step {
-  color: var(--muted);
-  font-size: 0.9rem;
+  color: var(--ink-3);
+  font-size: 0.9375rem;
 }
 
 .todo input:checked + label .todo-task {
-  opacity: 0.75;
+  color: var(--ink-3);
   text-decoration: line-through;
-  text-decoration-color: var(--sage);
+  text-decoration-color: var(--ink-3);
 }
 
 .reframe + .reframe {
-  margin-top: 1.1rem;
-  padding-top: 1.1rem;
-  border-top: 1px solid var(--line);
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
 }
 
 .reframe-thought {
-  margin: 0 0 0.35rem;
-  color: var(--muted);
-  font-style: italic;
+  margin: 0 0 0.3rem;
+  color: var(--ink-3);
 }
 
 .reframe-text {
@@ -703,38 +688,34 @@ main:focus,
 }
 
 .small-step {
-  background: linear-gradient(135deg, var(--apricot-soft), var(--surface) 70%);
-  border-color: color-mix(in srgb, var(--apricot) 30%, transparent);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-line);
 }
 
 .small-step .card-label {
-  color: var(--apricot);
+  color: var(--accent);
 }
 
 .small-step-text {
   margin: 0;
-  font-family: var(--font-display);
-  font-weight: 400;
-  font-variation-settings: "SOFT" 100, "opsz" 36;
-  font-size: calc(var(--text-size) * 1.3);
+  font-size: calc(var(--text-size) * 1.12);
+  font-weight: 600;
   line-height: 1.45;
 }
 
 .crisis {
-  background: linear-gradient(135deg, var(--rose-soft), var(--surface) 75%);
-  border-color: color-mix(in srgb, var(--rose) 40%, transparent);
+  background: var(--care-soft);
+  border: 1px solid var(--care-line);
 }
 
 .crisis .card-label {
-  color: var(--rose);
-  font-size: 1.45rem;
-  font-weight: 400;
-  font-variation-settings: "SOFT" 100, "opsz" 48;
+  color: var(--care);
+  font-size: 1.25rem;
+  font-weight: 700;
 }
 
 .crisis-lead {
-  margin: 0 0 1rem;
-  font-size: calc(var(--text-size) * 1.08);
+  margin: 0 0 0.75rem;
 }
 
 /* Plain rows with a hairline between, like the to-do list: tiles here were cards inside a card
@@ -747,18 +728,27 @@ main:focus,
 
 .crisis-link + .crisis-link,
 .help-list li + li {
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--border);
+}
+
+.crisis .crisis-link + .crisis-link {
+  border-top-color: var(--care-line);
 }
 
 .crisis-link,
 .help-list a {
   display: grid;
   align-content: center;
-  gap: 0.1rem;
+  gap: 0.05rem;
   min-height: 44px;
   padding: 0.6rem 0;
-  color: var(--text);
+  color: var(--ink);
   text-decoration: none;
+}
+
+.crisis-link strong,
+.help-list a strong {
+  font-weight: 700;
 }
 
 .crisis-link:hover strong,
@@ -767,36 +757,33 @@ main:focus,
   text-underline-offset: 3px;
 }
 
-/* Plain --muted drops to about 4.2:1 where the rose tint meets the sky glow; halfway to --text
-   stays near 6:1 there in both themes. */
 .crisis-link span,
 .help-list a span {
-  color: color-mix(in srgb, var(--text) 50%, var(--muted));
-  font-size: 0.86rem;
+  color: var(--ink-2);
+  font-size: 0.875rem;
 }
 
 .crisis-foot {
-  margin: 1rem 0 0;
-  color: var(--muted);
-  font-size: 0.9rem;
+  margin: 0.75rem 0 0;
+  color: var(--ink-2);
+  font-size: 0.875rem;
 }
 
 /* After a crisis the other pieces wait behind plain text, not another card. */
 /* Left as a list-item so browsers keep their own disclosure triangle; the padding makes a 44px row. */
+.rest {
+  margin-top: 0.5rem;
+}
+
 .rest > summary {
   padding: 0.6rem 0;
-  color: var(--muted);
+  color: var(--ink-2);
+  font-weight: 600;
   cursor: pointer;
 }
 
 .rest > summary:hover {
-  color: var(--text);
-}
-
-.rest-cards {
-  display: grid;
-  gap: 1rem;
-  margin-top: 0.5rem;
+  color: var(--ink);
 }
 
 .result-actions {
@@ -804,24 +791,27 @@ main:focus,
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
-  margin-top: 1.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
 }
 
 .status {
   min-height: 1.5em;
-  color: var(--sage);
-  font-size: 0.9rem;
+  margin: 0.75rem 0 0;
+  color: var(--accent);
+  font-size: 0.875rem;
 }
 
 /* ---------- footer ---------- */
 
 .foot {
-  width: min(100% - 32px, 760px);
+  width: min(100% - 32px, var(--col));
   margin: 0 auto;
-  padding: 1.5rem 0 2rem;
-  border-top: 1px solid var(--line);
-  color: var(--muted);
-  font-size: 0.86rem;
+  padding: 1.25rem 0 2rem;
+  border-top: 1px solid var(--border);
+  color: var(--ink-3);
+  font-size: 0.875rem;
 }
 
 .foot p {
@@ -831,23 +821,26 @@ main:focus,
 /* ---------- dialogs ---------- */
 
 dialog {
-  width: min(100% - 32px, 520px);
+  width: min(100% - 32px, 480px);
   max-height: calc(100vh - 32px);
   padding: 0;
-  border: 1px solid var(--line);
-  border-radius: calc(var(--radius) + 4px);
-  background: var(--surface-solid);
-  color: var(--text);
-  box-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.6);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  color: var(--ink);
 }
 
 dialog::backdrop {
-  background: rgba(10, 9, 15, 0.55);
-  backdrop-filter: blur(4px);
+  background: var(--backdrop);
 }
 
 dialog[open] {
-  animation: rise 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: appear 180ms var(--ease);
+}
+
+@keyframes appear {
+  from { opacity: 0; transform: translateY(4px) scale(0.99); }
+  to { opacity: 1; transform: none; }
 }
 
 /* If app.js never runs (a dropped request, a blocker, a bad deploy), "Need help now?" still jumps here
@@ -863,15 +856,18 @@ dialog[open] {
 }
 
 .dialog-body {
-  padding: 1.6rem;
+  padding: 1.5rem;
 }
 
 .dialog-body h2 {
-  margin: 0 0 0.5rem;
-  font-family: var(--font-display);
-  font-weight: 400;
-  font-variation-settings: "SOFT" 100, "opsz" 48;
-  font-size: 1.7rem;
+  margin: 0 0 0.35rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.dialog-body > p {
+  margin: 0 0 0.75rem;
 }
 
 .dialog-actions {
@@ -879,7 +875,7 @@ dialog[open] {
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 0.5rem;
-  margin-top: 1.25rem;
+  margin-top: 1.5rem;
 }
 
 /* Test sits apart from Cancel and Save, and on a phone wraps onto its own line above them. */
@@ -888,11 +884,15 @@ dialog[open] {
 }
 
 .muted {
-  color: var(--muted);
+  color: var(--ink-3);
+}
+
+.dialog-body > p.muted {
+  font-size: 0.875rem;
 }
 
 .small {
-  font-size: 0.88rem;
+  font-size: 0.875rem;
   min-height: 1.3em;
 }
 
@@ -905,14 +905,16 @@ dialog[open] {
 fieldset {
   border: 0;
   padding: 0;
-  margin: 1rem 0;
+  margin: 1.25rem 0;
   display: grid;
   gap: 0.5rem;
 }
 
 legend {
   margin-bottom: 0.5rem;
-  font-weight: 700;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ink-2);
 }
 
 .option {
@@ -920,28 +922,35 @@ legend {
   gap: 0.75rem;
   align-items: flex-start;
   padding: 0.8rem 0.9rem;
-  border-radius: 12px;
-  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  border: 1px solid var(--border-strong);
   cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease;
 }
 
-.option:has(input:checked) {
-  border-color: color-mix(in srgb, var(--sage) 55%, transparent);
+.option:hover {
   background: var(--surface-2);
 }
 
+.option:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
 .option input {
-  margin-top: 0.35rem;
-  accent-color: var(--sage);
+  margin-top: 0.3rem;
+  accent-color: var(--accent);
 }
 
 .option span {
   display: grid;
+  gap: 0.1rem;
 }
 
 .option small {
-  color: var(--muted);
-  font-size: 0.86rem;
+  color: var(--ink-3);
+  font-size: 0.875rem;
+  line-height: 1.45;
 }
 
 .model-fields {
@@ -956,65 +965,67 @@ legend {
 .field {
   display: grid;
   gap: 0.35rem;
-  font-size: 0.9rem;
-  color: var(--muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ink-2);
 }
 
 .field input {
   font: inherit;
   font-size: 1rem; /* 16px or more stops iOS from zooming the page on focus */
-  color: var(--text);
-  padding: 0.7rem 0.9rem;
-  border-radius: 12px;
-  border: 1px solid var(--line);
-  background: var(--surface-2);
+  font-weight: 400;
+  color: var(--ink);
+  min-height: 2.75rem;
+  padding: 0 0.8rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-strong);
+  background: var(--bg);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.field input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--ring);
 }
 
 /* ---------- small screens ---------- */
 
 @media (max-width: 560px) {
-  /* Larger text widens the help button; a tighter gap keeps the bar on one line at 375px. */
   .topbar {
     gap: 0.5rem;
-  }
-
-  .help-now {
-    padding: 0.5rem 0.8rem;
-    font-size: 0.85rem;
-  }
-
-  .wordmark {
-    font-size: 1.1rem;
+    padding: 0.75rem 0;
   }
 
   main {
-    padding-top: 1.5rem;
+    padding-top: 1.75rem;
+  }
+
+  h1 {
+    font-size: 1.5rem;
   }
 
   .dump-row {
-    padding: 0.5rem 0.25rem 0.4rem 0.6rem;
+    padding: 0.75rem;
   }
 
   .dump-actions {
     width: 100%;
   }
 
-  /* Tighter padding keeps "Sort my thoughts" on one line down to a 320px screen. */
-  .dump-actions .ghost {
-    padding-inline: 0.9rem;
-  }
-
   .dump-actions .primary {
     flex: 1;
-    padding-inline: 1rem;
   }
 
-  .card {
-    padding: 1.2rem;
+  .small-step,
+  .crisis {
+    padding: 1.1rem 1.15rem;
   }
 }
 
-@media (max-width: 400px) {
+/* The mark alone carries the name here, so the help link and the three tools fit at 320px even
+   with larger text on. */
+@media (max-width: 480px) {
   .wordmark {
     display: none;
   }
