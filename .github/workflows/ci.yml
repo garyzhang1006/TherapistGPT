@@ -31,6 +31,7 @@ jobs:
 
       # Installed at the repo root and not saved anywhere, so the script under .github/scripts resolves it.
       - name: Install Playwright and Chromium
+        id: playwright
         run: |
           npm install --no-save --no-package-lock playwright@1.63.0
           npx playwright install --with-deps chromium
@@ -41,6 +42,26 @@ jobs:
         run: |
           python3 -m http.server 8000 --directory web &
           node .github/scripts/browser-check.mjs
+
+      # Photographs this branch's own web/ in both themes, so a change to the look can be reviewed from
+      # the run's summary page without a local browser. Runs even when a check above fails.
+      - name: Photograph every screen
+        if: ${{ !cancelled() && steps.playwright.outcome == 'success' }}
+        env:
+          SITE_URL: http://localhost:8001/
+          OUT_DIR: screenshots
+          ALL_STATES: "1"
+        run: |
+          python3 -m http.server 8001 --directory web &
+          curl -sf --retry 20 --retry-delay 1 --retry-connrefused -o /dev/null "$SITE_URL"
+          node .github/scripts/screenshots.mjs
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() && steps.playwright.outcome == 'success' }}
+        with:
+          name: screenshots
+          path: screenshots/*.png
+          if-no-files-found: warn
 
   compute:
     # Cheap checks only, with no model download or training. smoke.yml runs the real pipeline on a

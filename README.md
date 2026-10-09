@@ -18,10 +18,10 @@ If the text mentions suicide or self-harm, a support card with 988, the Crisis T
 <p>
   <img src="docs/screenshots/write-phone.png" alt="The writing screen on a phone: one text box, a privacy line and a Sort my thoughts button" width="250">
   <img src="docs/screenshots/results-phone.png" alt="A sorted brain dump in the dark theme: what I'm hearing, one small step, a to-do and the threads" width="250">
-  <img src="docs/screenshots/results-phone-light.png" alt="The same results in the light morning theme" width="250">
+  <img src="docs/screenshots/results-phone-light.png" alt="The same results in the light theme" width="250">
 </p>
 
-The [desktop layout](docs/screenshots/results-desktop.png) puts the threads in two columns. `.github/workflows/screenshots.yml` retakes these from the live site.
+On a desktop the [same page](docs/screenshots/results-desktop.png) keeps one reading column. `.github/workflows/screenshots.yml` retakes these from the live site.
 
 TherapistGPT organizes words. It is not a therapist, a diagnosis, or a crisis service.
 
@@ -37,12 +37,12 @@ Both halves share one output contract, defined in [`compute/therapistgpt/schema.
 
 ## Design choices for people who are struggling
 
-- A dusk palette with no pure white and no alarm red, and a light "morning" theme for people who find dark screens heavy. Both themes meet WCAG AA contrast.
+- Dark and light themes built from soft neutrals and one green accent, with no pure white and no alarm red. Both meet WCAG AA contrast.
+- One typeface, Atkinson Hyperlegible Next, drawn for low-vision readers and easy to read on a tired evening.
 - One text box and one button. No accounts, streaks, scores, word counts or timers.
 - The draft is kept on the device as you type, so closing the tab doesn't lose it, and it's erased once sorted. Clearing it by hand can be undone.
 - A larger-text toggle, full keyboard use, and no motion at all when the system asks for reduced motion.
 - Copy that validates first and never lectures. Reframes avoid diagnosing ("that's depression") and avoid false cheer.
-- The moon in the corner breathes at six breaths a minute, the pace of slow, calming breathing.
 
 ## In a crisis
 

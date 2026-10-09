@@ -1,10 +1,10 @@
 // Every local import carries the same ?v= as index.html. Bump them all together on each release, with
 // VERSION in sw.js, or a returning visitor can get a new app.js paired with a stale cached module that
 // lacks an export.
-import { organizeText, loadSettings, saveSettings, testConnection, normalizeEndpoint } from "./engine.js?v=13";
-import { renderResult, resultToText } from "./render.js?v=13";
-import { splitClauses, isSelfCritical } from "./organizer.js?v=13";
-import { mentionsCrisis } from "./safety.js?v=13";
+import { organizeText, loadSettings, saveSettings, testConnection, normalizeEndpoint } from "./engine.js?v=14";
+import { renderResult, resultToText } from "./render.js?v=14";
+import { splitClauses, isSelfCritical } from "./organizer.js?v=14";
+import { mentionsCrisis } from "./safety.js?v=14";
 
 const $ = (id) => document.getElementById(id);
 const DRAFT_KEY = "therapistgpt.draft";
@@ -16,6 +16,7 @@ const form = $("dump-form");
 const writeView = $("write-view");
 const resultView = $("result-view");
 const organizeBtn = $("organize-btn");
+const organizeLabel = $("organize-label");
 const status = $("status");
 let lastResult = null;
 
@@ -128,7 +129,7 @@ function currentTheme() {
 }
 
 // The browser bar color follows the chosen theme, not only the system one.
-const THEME_COLORS = { dark: "#16151d", light: "#f3eee6" };
+const THEME_COLORS = { dark: "#121513", light: "#f4f5f3" };
 
 function syncThemeColor() {
   const chosen = document.documentElement.dataset.theme;
@@ -214,8 +215,8 @@ function updatePrivacyNote() {
   const settings = loadSettings();
   $("privacy-text").textContent =
     settings.engine === "model" && settings.endpoint
-      ? "Sent only to your own model. Your draft is erased once sorted."
-      : "Nothing leaves this device. Your draft is erased once sorted.";
+      ? "Sent only to your own model. Erased once sorted."
+      : "Nothing leaves this device. Erased once sorted.";
 }
 
 $("save-settings").addEventListener("click", (event) => {
@@ -324,7 +325,7 @@ async function run() {
   }
   writeStatus.textContent = "Sorting your thoughts...";
   organizeBtn.setAttribute("aria-disabled", "true");
-  organizeBtn.textContent = "Sorting...";
+  organizeLabel.textContent = "Sorting...";
   try {
     const [outcome] = await Promise.all([organizeText(text), settle(text)]);
     lastResult = outcome.result;
@@ -339,10 +340,10 @@ async function run() {
       clearTimeout(saveTimer);
       write(DRAFT_KEY, null);
     }
-    // After crisis words, "a little quieter" and a privacy footnote read as cheerful and beside the point.
+    // After crisis words, a "sorted" heading and a privacy footnote read as cheerful and beside the point.
     // A fallback notice still shows, so nobody thinks their own model wrote this when it was skipped.
     const crisis = outcome.result.needs_support;
-    $("result-title").textContent = crisis ? "Thank you for writing this down." : "Here it is, a little quieter.";
+    $("result-title").textContent = crisis ? "Thank you for writing this down." : "Here it is, sorted.";
     $("engine-note").textContent =
       outcome.notice ||
       (crisis ? "" : outcome.engine === "model" ? "Sorted by your TherapistGPT model." : "Sorted on this device. Nothing left your browser.");
@@ -360,7 +361,7 @@ async function run() {
     writeStatus.textContent = "Something went wrong while sorting. Your words are still here, so you can try again.";
   } finally {
     organizeBtn.removeAttribute("aria-disabled");
-    organizeBtn.textContent = "Sort my thoughts";
+    organizeLabel.textContent = "Sort my thoughts";
   }
 }
 
@@ -369,7 +370,9 @@ form.addEventListener("submit", (event) => {
   run();
 });
 
-dump.addEventListener("keydown", (event) => {
+// On the whole form, so the shortcut the Sort button announces through aria-keyshortcuts works from
+// any of its controls, not only the textarea.
+form.addEventListener("keydown", (event) => {
   if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
     event.preventDefault();
     run();

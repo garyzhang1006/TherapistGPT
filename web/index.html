@@ -5,16 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>TherapistGPT</title>
     <meta name="description" content="Pour out a messy brain dump and get it back sorted into calm, gentle pieces. Private by default: your words stay on your device." />
-    <meta name="theme-color" content="#16151d" media="(prefers-color-scheme: dark)" />
-    <meta name="theme-color" content="#f3eee6" media="(prefers-color-scheme: light)" />
-    <link rel="icon" href="assets/moon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#121513" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f4f5f3" media="(prefers-color-scheme: light)" />
+    <link rel="icon" href="assets/mark.svg" type="image/svg+xml" />
     <!-- .json, not .webmanifest: GitHub Pages serves .json as application/json, which browsers accept for manifests. -->
     <link rel="manifest" href="manifest.json" />
     <!-- Rendered from assets/icon.svg by the Pages workflow; iOS before Safari 15.4 ignores manifest icons. -->
     <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
     <link rel="preload" href="fonts/atkinson-hyperlegible-next-latin.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="stylesheet" href="css/styles.css?v=13" />
+    <link rel="stylesheet" href="css/styles.css?v=14" />
     <script>
       // Apply saved theme and text size before first paint so the page never flashes bright.
       try {
@@ -25,18 +24,17 @@
     </script>
   </head>
   <body>
-    <div class="sky" aria-hidden="true"></div>
     <a class="skip" href="#main">Skip to main content</a>
 
     <header class="topbar">
       <div class="brand">
-        <span class="orb" aria-hidden="true"></span>
+        <svg class="mark" aria-hidden="true" viewBox="0 0 24 24" width="24" height="24"><rect width="24" height="24" rx="6"/><path d="M7.5 7.5h9M12 7.5v9" fill="none" stroke-width="2.4" stroke-linecap="round"/></svg>
         <span class="wordmark">TherapistGPT</span>
       </div>
       <div class="tools" role="group" aria-label="Page tools">
         <a class="ghost help-now" href="#help-dialog" data-open="help-dialog">Need help now?</a>
         <button type="button" class="icon" id="size-toggle" aria-pressed="false" title="Larger text">
-          <span aria-hidden="true">Aa</span><span class="sr">Larger text</span>
+          <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18"><path d="M3 18.5 8.5 5.5 14 18.5M5.1 13.5h6.8M15 18.5l3-7 3 7M16 16.2h4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr">Larger text</span>
         </button>
         <button type="button" class="icon" id="theme-toggle" title="Switch light or dark">
           <svg class="icon-moon" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
@@ -52,28 +50,30 @@
 
     <main id="main" tabindex="-1">
       <section class="write" id="write-view" aria-labelledby="write-title">
-        <h1 id="write-title">Let it all spill out.</h1>
+        <h1 id="write-title">What's on your mind?</h1>
         <p class="lede">
-          Type whatever is in your head, in any order. Spelling and sense don't matter here.
-          When you're done, we'll set it down in calmer pieces.
+          Write it all out, in any order. Typos and half-finished thoughts are fine.
+          You'll get it back sorted, with one small step to start on.
         </p>
 
         <!-- A tap before app.js runs must not send the words anywhere. Outside a dialog, method="dialog"
              submits nothing, and the textarea has no name, so even a plain GET would carry no text. -->
         <form id="dump-form" class="dump-form" method="dialog">
           <label for="dump" class="sr">Your brain dump</label>
-          <textarea id="dump" rows="6" maxlength="3000" spellcheck="false" autocomplete="off" placeholder="nothing has to make sense here..."></textarea>
+          <textarea id="dump" rows="6" maxlength="3000" spellcheck="false" autocomplete="off" placeholder="Start anywhere."></textarea>
           <div class="dump-row">
             <p class="privacy" id="privacy-note">
               <svg aria-hidden="true" viewBox="0 0 24 24" width="15" height="15"><rect x="5" y="10.5" width="14" height="10" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
-              <span id="privacy-text">Nothing leaves this device. Your draft is erased once sorted.</span>
+              <span id="privacy-text">Nothing leaves this device. Erased once sorted.</span>
             </p>
             <div class="dump-actions">
               <button type="button" class="ghost" id="clear-btn">Clear</button>
-              <button type="submit" class="primary" id="organize-btn">Sort my thoughts</button>
+              <button type="submit" class="primary" id="organize-btn" aria-keyshortcuts="Control+Enter Meta+Enter">
+                <span id="organize-label">Sort my thoughts</span>
+                <kbd class="shortcut" aria-hidden="true"><span id="mod-key">Ctrl</span><span>↵</span></kbd>
+              </button>
             </div>
           </div>
-          <p class="kbd-hint">or press <kbd id="mod-key">Ctrl</kbd> + <kbd>Enter</kbd></p>
           <p class="status write-status" id="write-status" role="status" aria-live="polite"></p>
         </form>
       </section>
@@ -82,7 +82,7 @@
 
       <section class="results" id="result-view" hidden aria-labelledby="result-title">
         <div class="results-head">
-          <h1 id="result-title" tabindex="-1">Here it is, a little quieter.</h1>
+          <h1 id="result-title" tabindex="-1">Here it is, sorted.</h1>
           <p class="engine-note" id="engine-note"></p>
         </div>
         <div class="result-cards" id="result-cards"></div>
@@ -114,7 +114,7 @@
           <li><a href="https://findahelpline.com" target="_blank" rel="noopener noreferrer"><strong>Outside the US</strong><span>findahelpline.com lists lines near you</span></a></li>
         </ul>
         <p class="muted">On a computer? Call or text 988 from any phone. If you're in immediate danger, call your local emergency number.</p>
-        <div class="dialog-actions"><button class="primary" value="close">Close</button></div>
+        <div class="dialog-actions"><button class="ghost" value="close">Close</button></div>
       </form>
     </dialog>
 
@@ -152,6 +152,6 @@
       </form>
     </dialog>
 
-    <script type="module" src="js/app.js?v=13"></script>
+    <script type="module" src="js/app.js?v=14"></script>
   </body>
 </html>
