@@ -215,8 +215,8 @@ function updatePrivacyNote() {
   const settings = loadSettings();
   $("privacy-text").textContent =
     settings.engine === "model" && settings.endpoint
-      ? "Sent only to your own model. Your draft is erased once sorted."
-      : "Nothing leaves this device. Your draft is erased once sorted.";
+      ? "Sent only to your own model. Erased once sorted."
+      : "Nothing leaves this device. Erased once sorted.";
 }
 
 $("save-settings").addEventListener("click", (event) => {
