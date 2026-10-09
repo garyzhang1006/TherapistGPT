@@ -1,0 +1,14 @@
+{
+  "id": "OWNER/therapistgpt-cpu-base-3b",
+  "title": "therapistgpt-cpu-base-3b",
+  "code_file": "baseline3b.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_internet": true,
+  "dataset_sources": [],
+  "kernel_sources": [],
+  "competition_sources": [],
+  "model_sources": []
+}
