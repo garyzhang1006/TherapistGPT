@@ -38,6 +38,8 @@ Then validate, split and train as below. Judge the result by the `handwritten` b
 | `serve.py` | GPU or CPU | FastAPI endpoint the web app can call |
 | `space/` | Hugging Face | Dockerfile for hosting `serve.py` on a Space |
 | `config.yaml` | | Training hyperparameters |
+| `kaggle/` | Kaggle | The script kernels behind the runs below, one folder each with its `kernel-metadata.json` |
+| `results/` | | The eval report from each of those runs |
 
 ## Running the steps by hand
 
@@ -67,7 +69,7 @@ A run takes about two minutes. On the run that merged it, training saw 12 seed r
 These are estimates, not measurements, so check the 20-example run first.
 
 - Synthetic data: about 2.5k input and 1k output tokens per example, so 2,000 examples on `claude-opus-5-5` come to roughly $60 before thinking tokens, which are billed as output and can add a lot. The script prints its token totals at the end, so price the full run from the 20-example one. `--model claude-sonnet-5-5` halves the per-token price, and `--effort low` trims thinking.
-- Training: 2,000 examples for 3 epochs on one T4 should take 40 to 70 minutes.
+- Training: 2,000 examples for 3 epochs on one T4 should take 40 to 70 minutes. That guess was low: on Kaggle, train-v3 took 2.7 hours for 3 epochs over 3,808 rows, and train-v2 took 2.3 hours on a little less.
 - Evaluation: about 5 to 15 seconds per example on a T4 with greedy decoding. The 141 hand-written dumps run after the test split, which adds roughly 12 to 35 minutes; `--limit N` cuts each set to its first N rows.
 
 ## Deploy the API
@@ -88,3 +90,21 @@ The model is small and will make mistakes, so crisis handling never depends on i
 `crisis_recall` matters most; anything below 0.95 means the training data needs more crisis examples (raise `--crisis-rate`). Read it with `crisis_recall_95ci`: `split_data.py` puts 15% of the crisis rows in the test split, about 24 at the default mix, and a perfect 24 of 24 still only shows recall above 0.86. `crisis_precision` on that split runs high because it holds more crisis rows than real use does. `valid_schema` should be above 0.98 after training. A `grounding` score that drops well below the base model's means the fine-tuned model is inventing details.
 
 The `handwritten` block is the more honest crisis test. It scores the 141 brain dumps in `web/tests/fixtures` (44 of them crisis), which people wrote by hand and which never go into training, while the test split comes from the same teacher as the training data. It reports three rows: the model alone, the phrase list alone, and the two together, which is what the app ships. The phrase list was tuned on every one of these dumps, so its full marks there are a ceiling; on sets it had not seen it caught 6 of 11 and then 6 of 12. The model is worth shipping for crisis handling only if `model_missed` is short, and every name in it is a wording to add to the training mix. `model_false_alarms` lists calm dumps the model flagged.
+
+## Kaggle runs so far
+
+Every model so far was trained without an API key, on data from the open teachers. The kernels are in `kaggle/`, with `OWNER` in each `kernel-metadata.json` standing in for a Kaggle username; replace it and push a folder with `kaggle kernels push -p kaggle/<name>`. Each kernel clones `main` and runs the scripts in this folder, so a fix merged here reaches the next push. Data goes from kernel to kernel as private Kaggle datasets and kernel sources, never through git.
+
+The data came from four places. `gpu-train` (7B teacher) kept 1,151 clean rows before it died at training on Kaggle's torchao, `gpu-data2` kept 2,280, `gpu-data3` kept 532 at a crisis rate of 0.25 (147 of them crisis), and the three CPU kernels (3B teacher, crisis rate 0.3) wrote 316 over several resumed sessions, 314 of which passed validation.
+
+The hand-written block is the comparison to trust, since each training run re-split its own data and so scored a different synthetic test split.
+
+| Report | Model | Trained on | Hand-written crisis caught | Calm dumps flagged | `valid_schema` |
+|---|---|---|---|---|---|
+| `base-1.5b-cpu` | Qwen2.5-1.5B, untrained | | 4 of 44 | 0 of 97 | 0.50 (12 seed rows) |
+| `base-3b-cpu` | Qwen2.5-3B, untrained | | 16 of 44 | 9 of 44 | 0.42 (12 seed rows) |
+| `train-v2` | 1.5B LoRA, 3 epochs | gpu-train + gpu-data2 | 11 of 44 | 0 of 97 | 0.985 |
+| `train-3b` | 3B LoRA, 1 epoch | gpu-train + gpu-data2 | 14 of 44 | 0 of 44 | 0.989 |
+| `train-v3` | 1.5B LoRA, 3 epochs | all four sources | 13 of 44 | 1 of 97 | 0.974 |
+
+The 3B rows score only the 88-dump subset (all 44 crisis dumps and 44 calm ones) to fit their time caps. No difference between the fine-tunes is outside the noise: 11, 13 and 14 of 44 all sit inside each other's 95% intervals. Fine-tuning taught the schema: on synthetic test rows the untrained 1.5B (`base-1.5b-gpu-train`, 50 rows) had a `valid_schema` of 0.52 and a `grounding` of 0.66, against about 0.98 and 0.89 after training. The model alone still misses most hand-written crisis wording, so the phrase list stays the floor, and with it the shipped pair catches all 44. `train-v3`'s one false alarm is `heldout/idiom-crawl-in-a-hole`. Its schema failures, like train-v2's, are mostly threads with more than six points.

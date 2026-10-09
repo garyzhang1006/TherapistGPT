@@ -1,0 +1,15 @@
+{
+  "id": "OWNER/therapistgpt-train-3b",
+  "title": "therapistgpt-train-3b",
+  "code_file": "train3b.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_internet": true,
+  "machine_shape": "NvidiaTeslaT4",
+  "dataset_sources": ["OWNER/therapistgpt-data"],
+  "kernel_sources": [],
+  "competition_sources": [],
+  "model_sources": []
+}
