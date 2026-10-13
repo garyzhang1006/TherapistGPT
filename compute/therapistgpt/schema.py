@@ -130,6 +130,22 @@ def extract_json(text: str) -> dict[str, Any]:
     start = text.find("{")
     if start == -1:
         raise SchemaError("no JSON object found in model output")
+    first_error = None
+    while start != -1:
+        try:
+            parsed = _object_at(text, start)
+        except SchemaError as exc:
+            first_error = first_error or exc
+        else:
+            # Stray prose can hold a brace of its own, so later braces get a try. Those need a top-level key,
+            # or a truncated reply would pass as valid JSON through one of its nested objects.
+            if first_error is None or any(key in parsed for key in KEYS):
+                return parsed
+        start = text.find("{", start + 1)
+    raise first_error
+
+
+def _object_at(text: str, start: int) -> dict[str, Any]:
     depth = 0
     in_string = False
     escaped = False
