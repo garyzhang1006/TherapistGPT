@@ -149,6 +149,8 @@ def generate_one(
     if response.stop_reason == "refusal" or example is None:
         return None, *used
     row = {"input": example.brain_dump.strip(), "output": example.organized.model_dump()}
+    if not row["input"]:
+        return None, *used
     # Organized has no list limits, so a reply can parse and still break the schema. It was paid for,
     # so return its tokens instead of raising, or the printed total would undercount the cost.
     try:
