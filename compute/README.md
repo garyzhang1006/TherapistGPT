@@ -62,7 +62,7 @@ python merge_and_export.py --adapter outputs/therapistgpt-lora/final --push your
 
 `.github/workflows/smoke.yml` runs every step above except data generation on a GitHub runner's CPU, whenever a pull request touches `compute/`. `train_lora.py --smoke` swaps in `trl-internal-testing/tiny-Qwen2ForCausalLM-2.5`, a random 2-layer model with the Qwen2.5 chat template, and trains it for two steps on the seed data. Its output is noise, so the job only proves that the scripts and pinned libraries still fit together: the adapter saves, `evaluate.py` writes a report with its hand-written block, the merge loads without peft, and `serve.py` answers `/health` and returns 502 for unusable output.
 
-A run takes about two minutes. On the run that merged it, training saw 12 seed rows (2 of them crisis), the evaluation report scored the 2 test rows with a valid-JSON rate of 0.00 (expected from random weights), and the merged model loaded as a 2,435,016-parameter `Qwen2ForCausalLM`.
+A run takes about two minutes. On the run that merged it, training saw 12 seed rows (2 of them crisis), the evaluation report scored 2 train rows (seed rows never reach the test split) with a valid-JSON rate of 0.00 (expected from random weights), and the merged model loaded as a 2,435,016-parameter `Qwen2ForCausalLM`.
 
 ## Cost and time
 
