@@ -240,10 +240,11 @@ def _normalize(text: str) -> str:
 
 _ELONGATED = re.compile(r"([a-z])\1{2,}", re.IGNORECASE)
 
-# A pause typed between words: an ellipsis, a dash or an emoji ("i want to... die", "i want to 😭 die").
-# Same set as PAUSE in safety.js, which spells the emoji range as surrogate pairs.
+# A pause typed between words: an ellipsis, a dash, an emoji or a sad face ("i want to... die",
+# "i want to 😭 die", "jumping off :("). Same set as PAUSE in safety.js, which spells the emoji range
+# as surrogate pairs.
 _PAUSE = re.compile(
-    r"([\s﻿]*(\.{2,}|…|[–—]|-+(?=[\s﻿]|$)|[\U0001F000-\U0001FBFF☀-➿️‍]))+[\s﻿]*"
+    r"([\s\ufeff]*(\.{2,}|\u2026|[\u2013\u2014]|-+(?=[\s\ufeff]|$)|[\U0001F000-\U0001FBFF\u2600-\u27bf\ufe0f\u200d]|[:;]'?-?[(/|]+))+[\s\ufeff]*"
 )
 
 
@@ -251,10 +252,10 @@ def _readings(text: str) -> list[str]:
     normalized = _normalize(text)
     # Every pattern needs one space between its words, so the text is read again with each pause dropped.
     joined = _normalize(_PAUSE.sub(" ", text))
-    # A line break also often ends a clause ("thinking about stepping off\nthen the train comes"), so
-    # the text is read a second time with each break as a full stop.
+    # A line break or a pause also often ends a clause ("thinking about stepping off\nthen the train
+    # comes", "jumping off 😔"), so the text is read a second time with each one as a full stop.
     # The same whitespace as _normalize, so the JS copy, whose \s differs, reads every break alike.
-    broken = _normalize(re.sub(r"[\s\ufeff]*[\r\n]+[\s\ufeff]*", ". ", text))
+    broken = _normalize(re.sub(r"[\s\ufeff]*[\r\n]+[\s\ufeff]*", ". ", _PAUSE.sub(". ", text)))
     # Texting stretches words ("i wanna dieee", "kmsss"), so each reading is read again with every run
     # of three or more of one letter squeezed to one and to two, since "killl" squeezed to one is "kil".
     out = []
