@@ -6,14 +6,28 @@ import { CRISIS_PATTERNS, WARNING_SIGNS, TYPOS, CRISIS_SUMMARY, CRISIS_STEP, men
 const PY = readFileSync(new URL("../../compute/therapistgpt/safety.py", import.meta.url), "utf8");
 const PATTERN_LINE = /^\s+r"(.*)",$/gm;
 
+// Reads the lines of one block of safety.py. Every line that is not blank or a comment must match
+// `row`, so an entry written another way (single quotes, no r, split in two) fails here instead of
+// slipping past every parity check.
+function pyRows(head, close, row) {
+  const start = PY.indexOf(head);
+  assert.ok(start >= 0, `${head.trim()} not found in safety.py`);
+  const end = PY.indexOf(close, start);
+  assert.ok(end > start, `${head.trim()} has no closing ${close.trim()} in safety.py`);
+  return PY.slice(start + head.length, end)
+    .split("\n")
+    .filter((line) => line.trim() && !line.trim().startsWith("#"))
+    .map((line) => {
+      const m = row.exec(line);
+      assert.ok(m, `${head.trim()} in safety.py has a line the parity check can't read: ${line}`);
+      return m;
+    });
+}
+
 // Reads one named list from safety.py, so a warning sign can never pass as a crisis pattern. A
 // pattern may contain "]", so the list ends at the first "]" alone on its line.
 function pyList(name) {
-  const start = PY.indexOf(`\n${name} = [\n`);
-  assert.ok(start >= 0, `${name} = [ not found in safety.py`);
-  const end = PY.indexOf("\n]\n", start);
-  assert.ok(end > start, `${name} has no closing ] in safety.py`);
-  return [...PY.slice(start, end).matchAll(PATTERN_LINE)].map((m) => m[1]);
+  return pyRows(`\n${name} = [\n`, "\n]\n", /^\s+r"(.*)",$/).map((m) => m[1]);
 }
 
 test("JS crisis patterns match the Python list exactly", () => {
@@ -22,6 +36,10 @@ test("JS crisis patterns match the Python list exactly", () => {
 
 test("JS warning signs match the Python list exactly", () => {
   assert.deepEqual(WARNING_SIGNS.map((p) => p.source), pyList("WARNING_SIGNS"));
+});
+
+test("every JS pattern has exactly the i flag, as Python compiles them all case-insensitive", () => {
+  for (const p of [...CRISIS_PATTERNS, ...WARNING_SIGNS]) assert.equal(p.flags, "i", p.source);
 });
 
 test("every pattern line in safety.py belongs to one of the two lists", () => {
@@ -38,7 +56,7 @@ test("one warning sign alone stays calm, and two different ones flag", () => {
 });
 
 test("JS typo fixes match the Python list exactly", () => {
-  const pyTypos = Object.fromEntries([...PY.matchAll(/^\s+"(\w+)": "([\w ]+)",$/gm)].map((m) => [m[1], m[2]]));
+  const pyTypos = Object.fromEntries(pyRows("\nTYPOS = {\n", "\n}\n", /^\s+"(\w+)": "([\w ]+)",$/).map((m) => [m[1], m[2]]));
   assert.deepEqual(TYPOS, pyTypos);
 });
 
