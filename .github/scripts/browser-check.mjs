@@ -90,10 +90,11 @@ try {
     check(!stored.includes(SECRET), "with JavaScript on, nothing in local or session storage holds the sorted words");
 
     // With a model address saved, crisis words get the help card at once and never reach the model.
-    // The calm dump after it proves the route does catch requests, so zero means none were made.
+    // The calm dump after it proves the route does catch requests, so zero means none were made. The
+    // bodies are checked again once that sort is done, so a request fired after the card is caught too.
     const sent = [];
     await page.route("https://example.invalid/**", (route) => {
-      sent.push(route.request().url());
+      sent.push(route.request().postData() || "");
       return route.abort();
     });
     await page.evaluate(() =>
@@ -109,6 +110,7 @@ try {
     await page.locator("#organize-btn").click();
     await settles(page.locator("#engine-note", { hasText: "organized on your device instead" }), "visible");
     check(sent.length > 0, "with a model saved, calm words are still sent to the model");
+    check(!sent.some((body) => body.includes("want to die")), "with a model saved, crisis words are not sent after the help card shows either");
 
     await page.getByRole("button", { name: "Start fresh" }).click();
     await page.getByRole("button", { name: "Undo" }).click();
