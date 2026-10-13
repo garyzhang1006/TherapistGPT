@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { CRISIS_PATTERNS, WARNING_SIGNS, TYPOS, mentionsCrisis, applySafetyFloor } from "../js/safety.js";
+import { CRISIS_PATTERNS, WARNING_SIGNS, TYPOS, CRISIS_SUMMARY, CRISIS_STEP, mentionsCrisis, applySafetyFloor } from "../js/safety.js";
 
 const PY = readFileSync(new URL("../../compute/therapistgpt/safety.py", import.meta.url), "utf8");
 const PATTERN_LINE = /^\s+r"(.*)",$/gm;
@@ -78,6 +78,18 @@ test("safety floor drops crisis to-dos even when the model flagged the crisis it
   };
   const out = applySafetyFloor("i have to end it all and do laundry", modelOut);
   assert.deepEqual(out.to_dos.map((t) => t.task), ["Do laundry"]);
+});
+
+test("safety floor drops reframes and sets the crisis summary and step even when the model flagged the crisis", () => {
+  const modelOut = {
+    summary: "You want to die and you feel like a failure.", feelings: [], threads: [], to_dos: [], one_small_step: "Do your laundry", needs_support: true,
+    kinder_view: [{ thought: "I want to die", reframe: "That thought is loud right now, and it can pass." }],
+  };
+  const out = applySafetyFloor("i want to die. i'm such a failure", modelOut);
+  assert.equal(out.needs_support, true);
+  assert.deepEqual(out.kinder_view, []);
+  assert.equal(out.summary, CRISIS_SUMMARY);
+  assert.equal(out.one_small_step, CRISIS_STEP);
 });
 
 test("safety floor drops crisis points and any thread they leave empty", () => {

@@ -11,7 +11,7 @@ HERE = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(HERE))
 
 from therapistgpt import handwritten  # noqa: E402
-from therapistgpt.inference import apply_safety_floor  # noqa: E402
+from therapistgpt.inference import CRISIS_STEP, CRISIS_SUMMARY, apply_safety_floor  # noqa: E402
 from therapistgpt.prompt import SYSTEM_PROMPT, build_messages  # noqa: E402
 from therapistgpt.safety import fix_typos, mentions_crisis  # noqa: E402
 from therapistgpt.schema import EXAMPLE_OUTPUT, KEYS, SchemaError, extract_json, to_canonical_json, validate  # noqa: E402
@@ -101,6 +101,16 @@ class SafetyTests(unittest.TestCase):
         todos = [{"task": "End it all", "first_step": "Start small"}, {"task": "Do laundry", "first_step": "Gather clothes"}]
         out = apply_safety_floor("i have to end it all", {**EXAMPLE_OUTPUT, "needs_support": True, "to_dos": todos})
         self.assertEqual([t["task"] for t in out["to_dos"]], ["Do laundry"])
+
+    def test_floor_drops_reframes_and_sets_crisis_text_even_when_model_flagged_it(self):
+        kinder = [{"thought": "I want to die", "reframe": "That thought is loud right now, and it can pass."}]
+        model_out = {**EXAMPLE_OUTPUT, "needs_support": True, "kinder_view": kinder, "one_small_step": "Do your laundry"}
+        out = apply_safety_floor("i want to die. i'm such a failure", model_out)
+        self.assertTrue(out["needs_support"])
+        self.assertEqual(out["kinder_view"], [])
+        self.assertEqual(out["summary"], CRISIS_SUMMARY)
+        self.assertEqual(out["one_small_step"], CRISIS_STEP)
+        validate(out)
 
     def test_floor_drops_crisis_points_and_emptied_threads(self):
         threads = [

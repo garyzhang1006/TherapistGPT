@@ -23,7 +23,7 @@ CRISIS_THREAD_POINT = "Something very heavy, and it deserves real support."
 
 
 def apply_safety_floor(brain_dump: str, output: dict[str, Any]) -> dict[str, Any]:
-    """Force the crisis response when the keyword detector fires, even if the model missed it."""
+    """Force the crisis response when the keyword detector or the model flags a crisis."""
     # A crisis phrase must never come back as a to-do, even when the model flagged the crisis itself.
     to_dos = [t for t in output["to_dos"] if not mentions_crisis(f"{t['task']} {t['first_step']}")]
     # Thread points that mention a crisis go too: the crisis card already answers those words, and
@@ -33,7 +33,9 @@ def apply_safety_floor(brain_dump: str, output: dict[str, Any]) -> dict[str, Any
     if not threads and output["threads"]:
         threads = [{"title": CRISIS_THREAD_TITLE, "points": [CRISIS_THREAD_POINT]}]
     output = {**output, "threads": threads, "to_dos": to_dos}
-    if mentions_crisis(brain_dump) and not output["needs_support"]:
+    # A model that flagged the crisis itself gets the same override: its reframes can quote the crisis
+    # sentence back, and its own small step may not point to help. Same rule as web/js/safety.js.
+    if output["needs_support"] or mentions_crisis(brain_dump):
         output = {
             **output,
             "needs_support": True,

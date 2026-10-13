@@ -250,7 +250,9 @@ export function applySafetyFloor(text, output) {
     .map((thread) => ({ ...thread, points: thread.points.filter((point) => !mentionsCrisis(point)) }))
     .filter((thread) => thread.points.length);
   if (!threads.length && output.threads.length) threads = [{ ...CRISIS_THREAD, points: [...CRISIS_THREAD.points] }];
-  if (mentionsCrisis(text) && !output.needs_support) {
+  // A model that flagged the crisis itself gets the same override: its reframes can quote the crisis
+  // sentence back, and its own small step may not point to help.
+  if (output.needs_support || mentionsCrisis(text)) {
     return { ...output, threads, to_dos, needs_support: true, summary: CRISIS_SUMMARY, one_small_step: CRISIS_STEP, kinder_view: [] };
   }
   return { ...output, threads, to_dos };
