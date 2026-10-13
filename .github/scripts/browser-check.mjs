@@ -103,6 +103,12 @@ try {
     await page.locator("#organize-btn").click();
     await settles(page.locator("#engine-note", { hasText: "organized on your device instead" }), "visible");
     check(sent.length > 0, "with a model saved, calm words are still sent to the model");
+
+    await page.getByRole("button", { name: "Start fresh" }).click();
+    await page.getByRole("button", { name: "Undo" }).click();
+    check((await page.locator("#dump").inputValue()).includes(SECRET), "with JavaScript on, Undo after Start fresh brings the words back");
+    const draft = await page.evaluate(() => localStorage.getItem("therapistgpt.draft") || "");
+    check(!draft.includes(SECRET), "with JavaScript on, Undo after Start fresh does not store the sorted words again");
   });
 
   await withPage(browser, {}, async (page) => {

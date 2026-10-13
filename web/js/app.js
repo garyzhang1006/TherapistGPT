@@ -85,7 +85,8 @@ function clearWithUndo() {
   undo.addEventListener("click", () => {
     clearTimeout(undoTimer);
     dump.value = removed;
-    write(DRAFT_KEY, removed);
+    // Sorted words were taken out of storage on purpose (see run), so Undo puts back only a draft.
+    if (removed.trim() !== sortedText) write(DRAFT_KEY, removed);
     writeStatus.textContent = "";
     dump.focus();
   });
