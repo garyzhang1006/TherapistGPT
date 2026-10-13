@@ -47,6 +47,15 @@ def apply_safety_floor(brain_dump: str, output: dict[str, Any]) -> dict[str, Any
     return output
 
 
+def strip_special_tokens(text: str, special_tokens: list[str]) -> str:
+    """Blank out chat-template control tokens such as <|im_end|>, so a brain dump can't end its own turn."""
+    # Qwen's control tokens hold no spaces, so blanking one with a space can't join its neighbors into another.
+    for token in special_tokens:
+        if token.strip():
+            text = text.replace(token, " ")
+    return text
+
+
 class Organizer:
     def __init__(self, model_id: str, adapter: str | None = None, device: str | None = None):
         """model_id: a base model or a merged TherapistGPT model (Hub id or local path).
@@ -73,6 +82,9 @@ class Organizer:
         self.model = model.to(self.device).train(False)
 
     def generate_raw(self, brain_dump: str, max_new_tokens: int = 1024) -> str:
+        # Tokenizing the rendered prompt reads "<|im_start|>" typed into the text as the real control token,
+        # which would let a brain dump open a system or assistant turn of its own.
+        brain_dump = strip_special_tokens(brain_dump, self.tokenizer.all_special_tokens)
         prompt = self.tokenizer.apply_chat_template(
             build_messages(brain_dump), tokenize=False, add_generation_prompt=True
         )
