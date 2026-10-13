@@ -6,6 +6,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 HERE = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(HERE))
@@ -32,6 +33,25 @@ class SplitDataTests(unittest.TestCase):
             path = Path(tmp) / "rows.jsonl"
             path.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8")
             self.assertEqual(split_data.load(path), rows)
+
+    def split(self, tmp: Path, inputs: list[Path], *extra: str) -> dict[str, list[dict]]:
+        argv = ["split_data.py", "--inputs", *map(str, inputs), "--out-dir", str(tmp), *extra]
+        with mock.patch.object(sys, "argv", argv):
+            self.assertEqual(split_data.main(), 0)
+        return {name: split_data.load(tmp / f"{name}.jsonl") for name in ("train", "val", "test")}
+
+    def test_seed_rows_stay_anchors_when_listed_last(self):
+        seed_path = HERE / "data" / "seed.jsonl"
+        seeds = [json.loads(line) for line in seed_path.read_text(encoding="utf-8").split("\n") if line.strip()]
+        calm = next(r for r in seeds if not r["output"]["needs_support"])
+        copied = {"input": calm["input"], "output": {**calm["output"], "summary": "A synthetic copy."}}
+        with tempfile.TemporaryDirectory() as tmp:
+            synthetic = Path(tmp) / "synthetic.jsonl"
+            synthetic.write_text(json.dumps(copied, ensure_ascii=False) + "\n", encoding="utf-8")
+            splits = self.split(Path(tmp), [synthetic, seed_path])
+        for row in seeds:
+            self.assertIn(row, splits["train"])
+        self.assertNotIn(copied, splits["train"] + splits["val"] + splits["test"])
 
 
 if __name__ == "__main__":

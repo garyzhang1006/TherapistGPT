@@ -71,7 +71,8 @@ def main() -> int:
 
     seed_path = (HERE / "data" / "seed.jsonl").resolve()
     anchors, pool, seen = [], [], set()
-    for path in inputs:
+    # Seed rows first whatever the --inputs order, so a synthetic copy of a seed input is the duplicate that drops.
+    for path in sorted(inputs, key=lambda p: p.resolve() != seed_path):
         for row in load(path):
             key = row["input"].strip().lower()
             if key in seen:
