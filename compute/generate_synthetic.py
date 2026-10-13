@@ -164,6 +164,23 @@ def generate_one(
     return row, *used
 
 
+def resume_count(path: Path) -> int:
+    """Rows already in `path`, after cutting off a half-written last line that a hard kill can leave."""
+    if not path.exists():
+        return 0
+    data = path.read_bytes()
+    head, _, tail = data.rpartition(b"\n")
+    if tail:
+        try:
+            # A complete last row that only lacks its newline stays, so the next row isn't glued to it.
+            json.loads(tail)
+            data += b"\n"
+        except ValueError:
+            data = head + b"\n" if head else b""
+        path.write_bytes(data)
+    return sum(1 for line in data.decode("utf-8").split("\n") if line.strip())
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--n", type=int, default=20, help="total rows wanted in --out (existing rows count)")
@@ -184,9 +201,7 @@ def main() -> int:
         print(f"error: no seed rows in {args.seeds}", file=sys.stderr)
         return 2
 
-    done = 0
-    if args.out.exists():
-        done = sum(1 for line in args.out.read_text(encoding="utf-8").splitlines() if line.strip())
+    done = resume_count(args.out)
     todo = args.n - done
     if todo <= 0:
         print(f"{args.out} already has {done} rows, nothing to do")
@@ -199,10 +214,6 @@ def main() -> int:
     requests = [build_request(rng, seeds, args.crisis_rate) for _ in range(todo)]
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
-    # A hard kill can leave a half-written last line; start on a fresh line so the next row isn't glued to it.
-    if args.out.exists() and args.out.stat().st_size and not args.out.read_bytes().endswith(b"\n"):
-        with args.out.open("a", encoding="utf-8") as fh:
-            fh.write("\n")
     lock = threading.Lock()
     written = failed = unpriced = tokens_in = tokens_out = 0
     with args.out.open("a", encoding="utf-8") as fh, ThreadPoolExecutor(max_workers=args.workers) as pool:

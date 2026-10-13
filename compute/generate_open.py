@@ -22,7 +22,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from generate_synthetic import build_request  # noqa: E402
+from generate_synthetic import build_request, resume_count  # noqa: E402
 from therapistgpt.schema import SchemaError, extract_json, validate  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
@@ -79,9 +79,7 @@ def main() -> int:
         print(f"error: no seed rows in {args.seeds}", file=sys.stderr)
         return 2
 
-    done = 0
-    if args.out.exists():
-        done = sum(1 for line in args.out.read_text(encoding="utf-8").splitlines() if line.strip())
+    done = resume_count(args.out)
     todo = args.n - done
     if todo <= 0:
         print(f"{args.out} already has {done} rows, nothing to do")
@@ -104,10 +102,6 @@ def main() -> int:
     # Offset the RNG by rows already written so a resumed run doesn't repeat the same prompts.
     rng = random.Random(args.seed + done)
     args.out.parent.mkdir(parents=True, exist_ok=True)
-    # A hard kill can leave a half-written last line; start on a fresh line so the next row isn't glued to it.
-    if args.out.exists() and args.out.stat().st_size and not args.out.read_bytes().endswith(b"\n"):
-        with args.out.open("a", encoding="utf-8") as fh:
-            fh.write("\n")
 
     kept = dropped = tried = 0
     gen_start = time.time()
