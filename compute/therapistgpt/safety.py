@@ -169,8 +169,11 @@ WARNING_SIGNS = [
     r"\b(nobody|no one|noone|no-one) (would|'?d|will|'?ll|is going to|is gonna) (even |really |probably |ever |actually |honestly )?(notice|realize|realise|miss me|care)\b(?! (if|when) i (left|leave|skipped?|skip|took|take|missed|miss|came|come|showed|show|wore|wear|didn'?t (come|show|go))\b| (the|my|a|an|it|that|this|anything|what|how|whether)\b)",
 ]
 
-_COMPILED = [re.compile(p, re.IGNORECASE) for p in CRISIS_PATTERNS]
-_WARNING_SIGNS = [re.compile(p, re.IGNORECASE) for p in WARNING_SIGNS]
+# JS \b without the u flag sees only ASCII letters as word letters, so "我真的想kms" has a boundary before
+# "kms" there. re.ASCII gives Python the same \b, and the same ASCII-only case folding as /i.
+_FLAGS = re.IGNORECASE | re.ASCII
+_COMPILED = [re.compile(p, _FLAGS) for p in CRISIS_PATTERNS]
+_WARNING_SIGNS = [re.compile(p, _FLAGS) for p in WARNING_SIGNS]
 
 # Fast typing swaps letters, and a word spelled wrong should still count: "i wnat to die" must flag
 # whichever engine organizes the text. Only slips that are never real words are listed. Same list as
@@ -217,16 +220,16 @@ TYPOS = {
     "kil": "kill",
 }
 
-_TYPO_WORDS = re.compile(r"\b(" + "|".join(TYPOS) + r")\b", re.IGNORECASE)
+_TYPO_WORDS = re.compile(r"\b(" + "|".join(TYPOS) + r")\b", _FLAGS)
 
 
 def fix_typos(text: str) -> str:
-    # IGNORECASE lets "FREİND" match "freind", and "İ".lower() is two characters, so a plain lookup would
-    # raise KeyError inside the safety floor. _normalize maps those letters first; .get covers other callers.
+    # re.ASCII keeps "FREİND" from matching "freind", since "İ".lower() is two characters and a plain lookup
+    # would raise KeyError inside the safety floor. .get still guards callers that change the flags.
     return _TYPO_WORDS.sub(lambda m: TYPOS.get(m.group(1).lower(), m.group(1)), text)
 
 
-# re.IGNORECASE reads these as i, s and k, and JS /i does not, so both detectors swap them first.
+# Neither re.ASCII nor JS /i reads these as i, s and k, so both detectors swap them first and "kıll myself" flags.
 _ASCII_TWINS = str.maketrans({"\u0130": "i", "\u0131": "i", "\u017f": "s", "\u212a": "k"})
 
 

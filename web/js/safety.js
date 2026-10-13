@@ -182,7 +182,7 @@ export function fixTypos(text) {
 function normalize(text) {
   // Phones and keyboards type apostrophes many ways: ‘ ’ ʼ ` ´ and fullwidth ＇. Line breaks and
   // double spaces are collapsed too, so "I want to\ndie" reads the same as "I want to die".
-  // Python's re.IGNORECASE reads Turkish İ and ı, long ſ and the Kelvin sign as i, s and k, and /i does not,
+  // Neither /i nor Python's re.ASCII reads Turkish İ and ı, long ſ and the Kelvin sign as i, s and k,
   // so both detectors swap them first. The space class is the union of \s in JS and in Python.
   return fixTypos(
     String(text)
