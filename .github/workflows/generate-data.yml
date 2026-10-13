@@ -37,13 +37,15 @@ jobs:
       run:
         working-directory: compute
     env:
-      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      # ANTHROPIC_API_KEY is set only on the steps that need it, so the third-party pip install never sees it.
       # Progress lines show up live instead of all at the end.
       PYTHONUNBUFFERED: "1"
     steps:
       # Before checkout, so it runs from the workspace root rather than a compute/ that does not exist yet.
       - name: Check the API key secret
         working-directory: .
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           if [ -z "$ANTHROPIC_API_KEY" ]; then
             echo "::error::ANTHROPIC_API_KEY is not set. Add it under Settings > Secrets and variables > Actions, then rerun."
@@ -75,6 +77,7 @@ jobs:
         # Stops before the job limit, so the upload below still runs; rerun with resume_run to continue.
         timeout-minutes: 300
         env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           N: ${{ inputs.n }}
           MODEL: ${{ inputs.model }}
           EFFORT: ${{ inputs.effort }}
