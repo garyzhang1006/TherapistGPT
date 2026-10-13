@@ -42,8 +42,9 @@ def main() -> int:
     base_id = args.model or yaml.safe_load(args.config.read_text(encoding="utf-8"))["base_model"]
     adapter_path = Path(args.adapter)
     # A Hub id has exactly one slash (user/name); anything else that doesn't exist is a mistyped path,
-    # which would otherwise fail later with a confusing Hub lookup error.
-    if not adapter_path.exists() and args.adapter.count("/") != 1:
+    # which would otherwise fail later with a confusing Hub lookup error. So is a missing user/name whose
+    # first part is a local folder, like outputs/final.
+    if not adapter_path.exists() and (args.adapter.count("/") != 1 or adapter_path.parent.is_dir()):
         print(f"error: adapter {args.adapter} is neither a local folder nor a Hub id like user/name", file=sys.stderr)
         return 2
 
