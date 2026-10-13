@@ -806,9 +806,9 @@ function buildSummary(threadTitles, feelings, hasCritic, clauseCount) {
   return `${feelingPart}${topicPart}${criticPart}.`;
 }
 
-// Only the writer's own missed meal counts: "i haven't eaten" or a clause with no subject, never
-// "my dog didn't eat his dinner".
-const NOT_EATEN = /(?:^|[\n.!?;:,]\s*|\b(?:i|i've|ive|i'm|im|and|but|so)\s+)(?:(?:still|just|really|even|also|literally|have|been|keep|kept)\s+)*(?:(?:haven'?t|havent|didn'?t|didnt|forgot to|not) (?:eaten|eat|had (?:any )?(?:food|breakfast|lunch|dinner))|skipp(?:ed|ing) (?:meals?|breakfast|lunch|dinner))\b/i;
+// Only the writer's own missed meal counts, so "my dog didn't eat his dinner" is ruled out by its
+// subject, while "i totally forgot to eat" or "honestly haven't eaten" still count.
+const NOT_EATEN = /(?<!\b(?:he|she|they|it|you|my \w+|his \w+|her \w+|their \w+|the \w+)\s+(?:\w+\s+)?)(?:\b(haven'?t|havent|didn'?t|didnt|forgot to|not) (eaten|eat|had (any )?(food|breakfast|lunch|dinner))\b|\bskipp(ed|ing) (meals?|breakfast|lunch|dinner)\b)/i;
 
 // Names the task, so "Text Sam back: type one short line" still makes sense read on its own.
 function stepFor(todo) {
