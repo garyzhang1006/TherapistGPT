@@ -132,7 +132,8 @@ try {
     await page.locator("#organize-btn").click();
     await page.locator("#dump").press("End");
     await page.locator("#dump").pressSequentially(" and call grandma");
-    await settles(page.locator("#result-cards .card"), "visible");
+    // The draft is erased only once a sort finishes, so the check below means nothing unless it did.
+    check(await settles(page.locator("#result-cards .card"), "visible"), "with JavaScript on, a slow model's sort still finishes");
     const draft = await page.evaluate(() => localStorage.getItem("therapistgpt.draft") || "");
     check(draft.includes("grandma"), "with JavaScript on, words typed while the model answers stay saved as a draft");
 
