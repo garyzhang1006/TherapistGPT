@@ -28,7 +28,7 @@ class ExtractJsonTests(unittest.TestCase):
 
 class SplitDataTests(unittest.TestCase):
     def test_load_keeps_rows_with_unicode_line_separators(self):
-        rows = [{"input": f"first part{sep}second part", "output": copy.deepcopy(EXAMPLE_OUTPUT)} for sep in " \x85"]
+        rows = [{"input": f"first part{sep}second part", "output": copy.deepcopy(EXAMPLE_OUTPUT)} for sep in "\u2028\x85"]
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "rows.jsonl"
             path.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8")

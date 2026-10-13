@@ -43,7 +43,7 @@ STOPWORDS = set(
 
 def content_words(text: str) -> set[str]:
     # Letters in any script, and every apostrophe a phone types folded to one, so "don’t" matches "don't".
-    text = re.sub("[‘’ʼ`´＇]", "'", text.lower())
+    text = re.sub("[\u2018\u2019\u02bc\u0060\u00b4\uff07]", "'", text.lower())
     return {w for w in re.findall(r"(?:[^\W\d_]|')+", text) if w not in STOPWORDS and len(w) > 2}
 
 
