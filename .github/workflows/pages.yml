@@ -16,7 +16,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # The same checks as ci.yml, on this commit, so a change that breaks the crisis card or the help links
+  # never reaches the live site. Called rather than awaited through workflow_run, so workflow_dispatch is
+  # gated too and only pushes that touch web/ deploy.
+  ci:
+    uses: ./.github/workflows/ci.yml
+    permissions:
+      contents: read
+
   deploy:
+    needs: ci
     runs-on: ubuntu-latest
     environment:
       name: github-pages
