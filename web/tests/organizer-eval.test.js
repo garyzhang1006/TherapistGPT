@@ -41,11 +41,30 @@ const THRESHOLDS = {
 };
 
 const has = (haystack, keyword) => haystack.toLowerCase().includes(keyword.toLowerCase());
+// A to-do names a keyword only as a word of its own, plural allowed: "rent" is not in "parents".
+const names = (task, keyword) => new RegExp(`\\b${keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?:e?s)?\\b`, "i").test(task);
+
+// Pairs each expected keyword with a to-do of its own, so one merged to-do counts for one keyword
+// at most. Returns, for each to-do, the index of its keyword or -1.
+function pairTodos(tasks, keywords) {
+  const owner = tasks.map(() => -1);
+  const claim = (k, seen) =>
+    tasks.some((task, i) => {
+      if (seen.has(i) || !names(task, keywords[k])) return false;
+      seen.add(i);
+      if (owner[i] !== -1 && !claim(owner[i], seen)) return false;
+      owner[i] = k;
+      return true;
+    });
+  keywords.forEach((_, k) => claim(k, new Set()));
+  return owner;
+}
 
 function score(c) {
   const out = organize(c.text);
   const tasks = out.to_dos.map((t) => t.task);
   const titles = out.threads.map((t) => t.title);
+  const owner = pairTodos(tasks, c.todos);
   return {
     id: c.id,
     case: c,
@@ -54,9 +73,9 @@ function score(c) {
     tasks,
     titles,
     feelings: out.feelings,
-    todoMisses: c.todos.filter((k) => !tasks.some((t) => has(t, k))),
-    // A to-do counts as precise when it names one of the things the reader expected.
-    extraTasks: tasks.filter((t) => !c.todos.some((k) => has(t, k))),
+    todoMisses: c.todos.filter((_, k) => !owner.includes(k)),
+    // A to-do counts as precise when it is paired with one of the things the reader expected.
+    extraTasks: tasks.filter((_, i) => owner[i] === -1),
     violations: c.not_todos.filter((k) => tasks.some((t) => has(t, k))),
     threadMisses: c.threads.filter((x) => !titles.includes(x)),
     feelingMisses: c.feelings.filter((f) => !out.feelings.includes(f)),
