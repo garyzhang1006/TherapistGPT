@@ -850,9 +850,12 @@ export function organize(text) {
     const unmet = unmetTask(clause) !== null;
     const promise = clause.match(PROMISED);
     const promised = promise !== null && !PAST_WHEN.test(promise[1] || promise[2]);
+    // A plan, a doctor's ask, a chore left or a thing to buy looks ahead, so "the exam I missed" or
+    // "my bloodwork was off" beside it is only the reason for it.
+    const ahead = MY_PLAN.test(clause) || MEDICAL_ASK.test(clause) || LEFT_TO.test(clause) || (NEED_THING.test(clause) && !NO_NEED_THING.test(clause));
     const isTask =
-      (TASK_CUE.test(clause) || IMPERATIVE.test(clause) || unmet || MEDICAL_ASK.test(clause) || (NEED_THING.test(clause) && !NO_NEED_THING.test(clause)) || LEFT_TO.test(clause) || isDeadline(clause) || promised || MY_PLAN.test(clause) || (items[i].listed && isWorkItem(clause))) &&
-      !(PAST.test(clause) && !INTENT.test(clause) && !unmet && !promised) &&
+      (TASK_CUE.test(clause) || IMPERATIVE.test(clause) || unmet || ahead || isDeadline(clause) || promised || (items[i].listed && isWorkItem(clause))) &&
+      !(PAST.test(clause) && !INTENT.test(clause) && !unmet && !promised && !ahead) &&
       // A promise is a plan made in the past, so "but I bailed" rules it out just as it does "was supposed to".
       !((PAST_PLAN.test(clause) || promised) && !STILL_OWED.test(clause) && (FELL_THROUGH.test(clause) || FELL_THROUGH_LEAD.test(clauses[i + 1] || ""))) &&
       !((SOMEONE_ELSES.test(clause) || OTHERS_TASK.test(clause)) && !MY_INTENT.test(clause)) &&
