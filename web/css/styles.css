@@ -289,6 +289,12 @@ button {
   background: var(--surface-2);
 }
 
+/* The display above outranks the browser's own [hidden] rule, so a hidden button would still show. */
+.primary[hidden],
+.ghost[hidden] {
+  display: none;
+}
+
 .primary {
   border: 1px solid transparent;
   background: var(--accent);

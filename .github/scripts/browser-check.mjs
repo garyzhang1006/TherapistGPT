@@ -69,6 +69,12 @@ try {
     await page.keyboard.press("Escape");
     check(await settles(page.locator("#help-dialog"), "hidden"), "with JavaScript on, Escape closes the help dialog and no copy stays on the page");
 
+    // With This device chosen there is no address to test, so Test connection stays out of sight.
+    await page.locator('[data-open="settings-dialog"]').click();
+    check(await settles(page.locator("#settings-dialog[open]"), "visible"), "with JavaScript on, Settings opens");
+    check(!(await page.locator("#test-endpoint").isVisible()), "with JavaScript on, Test connection is hidden while This device is chosen");
+    await page.locator("#cancel-settings").click();
+
     await page.locator("#dump").fill(DUMP);
     await page.locator("#organize-btn").click();
     check(await settles(page.locator("#result-cards .card"), "visible"), "with JavaScript on, Sort shows the results");
