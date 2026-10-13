@@ -248,7 +248,7 @@ $("test-endpoint").addEventListener("click", async () => {
   }
   endpointStatus.textContent = "Checking...";
   try {
-    await testConnection(endpoint);
+    await testConnection(endpoint, apiKeyInput.value.trim());
     endpointStatus.textContent = "Connected. Your model is ready.";
   } catch (error) {
     endpointStatus.textContent =

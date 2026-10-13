@@ -67,6 +67,29 @@ test("a health answer that isn't a JSON object gets a plain explanation", async 
   assert.equal(await testConnection("https://example.invalid"), true);
 });
 
+test("Test connection checks the access key the way a sort would send it", async () => {
+  const calls = [];
+  let keyStatus = 422;
+  globalThis.fetch = async (url, options) => {
+    calls.push({ url, key: options.headers?.["X-API-Key"] });
+    if (url.endsWith("/health")) return { ok: true, status: 200, json: async () => ({ ok: true }) };
+    return { ok: false, status: keyStatus, json: async () => ({}) };
+  };
+  assert.equal(await testConnection("https://example.invalid", "right-key"), true);
+  assert.deepEqual(calls.at(-1), { url: "https://example.invalid/organize", key: "right-key" });
+  keyStatus = 401;
+  await assert.rejects(testConnection("https://example.invalid", "wrong-key"), /access key is missing or wrong/);
+
+  calls.length = 0;
+  // A curly quote and a zero-width space, the usual strays in a pasted key.
+  const [curly, zeroWidth] = [String.fromCharCode(0x201c), String.fromCharCode(0x200b)];
+  await assert.rejects(testConnection("https://example.invalid", `${curly}key${curly}`), /can't be sent/);
+  assert.equal(calls.length, 0);
+  const { notice } = await organizeText("so tired today", { engine: "model", endpoint: "https://example.invalid", apiKey: `key${zeroWidth}` });
+  assert.match(notice, /can't be sent/);
+  assert.equal(calls.length, 0);
+});
+
 test("plain http endpoints are refused unless they are localhost", async () => {
   globalThis.fetch = async () => assert.fail("should not fetch");
   const { notice } = await organizeText("so tired", { engine: "model", endpoint: "http://example.com" });

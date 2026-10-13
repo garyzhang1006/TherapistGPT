@@ -100,9 +100,18 @@ const STATUS_REASONS = {
   503: "Your model is busy with another request right now.",
 };
 
+// fetch rejects a header holding a character past U+00FF, such as a curly quote or a zero-width space,
+// with a TypeError that would read as a network fault.
+function keyHeaders(apiKey) {
+  if (!apiKey) return {};
+  if (!/^[\x20-\xff]+$/.test(apiKey)) {
+    throw new Error("Your access key has a character that can't be sent, like a curly quote. Paste it again as plain text.");
+  }
+  return { "X-API-Key": apiKey };
+}
+
 async function organizeRemote(text, endpoint, apiKey) {
-  const headers = { "Content-Type": "application/json" };
-  if (apiKey) headers["X-API-Key"] = apiKey;
+  const headers = { "Content-Type": "application/json", ...keyHeaders(apiKey) };
   const { response, body } = await fetchJsonWithTimeout(
     `${normalizeEndpoint(endpoint)}/organize`,
     { method: "POST", headers, body: JSON.stringify({ text }) },
@@ -147,13 +156,21 @@ export async function organizeText(text, settings = loadSettings()) {
 
 const NOT_A_MODEL = "Something answered at that address, but it isn't a TherapistGPT model. Check the address.";
 
-export async function testConnection(endpoint) {
+export async function testConnection(endpoint, apiKey = "") {
+  const base = normalizeEndpoint(endpoint);
+  const headers = { "Content-Type": "application/json", ...keyHeaders(apiKey) };
   // A sleeping Space or a wrong host can answer 200 with a web page, and the parse error would be shown as is.
-  const { response, body } = await fetchJsonWithTimeout(`${normalizeEndpoint(endpoint)}/health`, {}, 15000).catch((error) => {
-    throw error.name === "SyntaxError" ? new Error(NOT_A_MODEL) : error;
-  });
+  const ask = (path, options) =>
+    fetchJsonWithTimeout(`${base}${path}`, options, 15000).catch((error) => {
+      throw error.name === "SyntaxError" ? new Error(NOT_A_MODEL) : error;
+    });
+  const { response, body } = await ask("/health", {});
   if (!response.ok) throw new Error(`The server answered with status ${response.status}.`);
   if (!body || typeof body !== "object") throw new Error(NOT_A_MODEL);
   if (!body.ok) throw new Error("The server is up but the model hasn't finished loading.");
+  // /health takes no key, so the key is tried on /organize with blank text. serve.py checks the key
+  // before it turns blank text away with 422, so a wrong key gets 401 and nothing reaches the model.
+  const probe = await ask("/organize", { method: "POST", headers, body: JSON.stringify({ text: " " }) });
+  if (probe.response.status === 401) throw new Error("The server is up but says the access key is missing or wrong.");
   return true;
 }
