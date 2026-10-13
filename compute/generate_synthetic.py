@@ -232,9 +232,10 @@ def main() -> int:
                     written += 1
                     if written % 25 == 0:
                         print(f"{written}/{todo} written, {failed} skipped")
-        except KeyboardInterrupt:
+        except BaseException:
             # Leaving the with block waits for every queued call, which would keep paying for rows nobody
-            # writes. Drop the queue first; the few calls already running finish, and a rerun resumes.
+            # writes. Drop the queue first, on Ctrl-C or any error such as a failed write; the few calls
+            # already running finish, and a rerun resumes.
             pool.shutdown(wait=False, cancel_futures=True)
             print(f"stopped: {written} written this run -> {args.out}", file=sys.stderr)
             raise
