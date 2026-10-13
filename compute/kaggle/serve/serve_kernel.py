@@ -3,6 +3,7 @@
 # quick tunnel to it. The tunnel's random https URL and the access key are printed to this kernel's log every
 # 10 minutes; paste both into the app's Settings. The kernel stops after HOURS, which also ends the tunnel.
 import glob
+import hashlib
 import json
 import os
 import re
@@ -20,6 +21,8 @@ API_KEY = secrets.token_hex(16)
 HOURS = 10
 ORIGIN = "https://garyzhang1006.github.io"
 CLOUDFLARED = "https://github.com/cloudflare/cloudflared/releases/download/2026.10.0/cloudflared-linux-amd64"
+# From the release notes of that version, so a truncated or swapped download stops here instead of at tunnel start.
+CLOUDFLARED_SHA256 = "d33ff2d14475178d2012c2c56beba87389ac5ded27649519f198a7d3134a99db"
 LOCAL = "http://127.0.0.1:8000"
 
 
@@ -44,7 +47,10 @@ if not configs:
     raise SystemExit("no merged model under /kaggle/input; attach the output of therapistgpt-train-v3")
 model_dir = os.path.dirname(configs[0])
 
-run("curl", "-sSL", "-o", "/tmp/cloudflared", CLOUDFLARED)
+run("curl", "-fsSL", "-o", "/tmp/cloudflared", CLOUDFLARED)
+with open("/tmp/cloudflared", "rb") as fh:
+    if hashlib.sha256(fh.read()).hexdigest() != CLOUDFLARED_SHA256:
+        raise SystemExit(f"/tmp/cloudflared does not match the SHA-256 published for {CLOUDFLARED}")
 os.chmod("/tmp/cloudflared", 0o755)
 
 env = {**os.environ, "CUDA_VISIBLE_DEVICES": "0", "MODEL_ID": model_dir, "API_KEY": API_KEY, "ALLOWED_ORIGINS": ORIGIN}
