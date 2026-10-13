@@ -167,7 +167,7 @@ test("device results never print a crisis sentence back and stay renderable", as
     assert.equal(result.needs_support, true, text);
     assert.ok(result.threads.every((t) => t.points.length && t.points.every((p) => !mentionsCrisis(p))), text);
     // A clause split off from its crisis phrase can look calm to mentionsCrisis, so check the words too.
-    assert.ok(result.threads.every((t) => t.points.every((p) => !/wake up|pills|rope/i.test(p))), text);
+    assert.ok(result.threads.every((t) => t.points.every((p) => !/wake up|pills|rope|sleep/i.test(p))), text);
     assert.ok(result.to_dos.every((t) => !/pills|rope|sleep/i.test(t.task)), `${text}: ${result.to_dos.map((t) => t.task).join(" | ")}`);
   }
 });
