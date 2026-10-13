@@ -53,6 +53,17 @@ class SplitDataTests(unittest.TestCase):
             self.assertIn(row, splits["train"])
         self.assertNotIn(copied, splits["train"] + splits["val"] + splits["test"])
 
+    def test_every_split_gets_a_crisis_row_from_a_small_group(self):
+        crisis = {**copy.deepcopy(EXAMPLE_OUTPUT), "needs_support": True}
+        rows = [{"input": f"crisis dump {i}", "output": crisis} for i in range(3)]
+        rows += [{"input": f"calm dump {i}", "output": copy.deepcopy(EXAMPLE_OUTPUT)} for i in range(20)]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "synthetic.jsonl"
+            path.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8")
+            splits = self.split(Path(tmp), [path])
+        for name, split in splits.items():
+            self.assertEqual(sum(r["output"]["needs_support"] for r in split), 1, name)
+
 
 if __name__ == "__main__":
     unittest.main()

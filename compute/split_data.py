@@ -89,6 +89,10 @@ def main() -> int:
         rng.shuffle(group)
         n_val = round(len(group) * args.val_frac)
         n_test = round(len(group) * (args.crisis_test_frac if is_crisis else args.test_frac))
+        # round() gives 0 on a small crisis group (round(0.5) is 0), which would leave a split with no crisis rows.
+        if is_crisis and len(group) >= 3:
+            n_val = max(n_val, 1 if args.val_frac > 0 else 0)
+            n_test = max(n_test, 1 if args.crisis_test_frac > 0 else 0)
         splits["val"] += group[:n_val]
         splits["test"] += group[n_val : n_val + n_test]
         splits["train"] += group[n_val + n_test :]
