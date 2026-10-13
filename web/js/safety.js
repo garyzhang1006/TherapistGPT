@@ -184,12 +184,16 @@ function normalize(text) {
   // double spaces are collapsed too, so "I want to\ndie" reads the same as "I want to die".
   // Neither /i nor Python's re.ASCII reads Turkish İ and ı, long ſ and the Kelvin sign as i, s and k,
   // so both detectors swap them first. The space class is the union of \s in JS and in Python.
+  // NFKC then folds fullwidth letters ("ｄｉｅ") to ASCII, and soft hyphens and zero-width characters,
+  // which come along unseen in pasted text, are dropped so they can't split a word.
   return fixTypos(
     String(text)
       .replace(/[\u2018\u2019\u02BC\u0060\u00B4\uFF07]/g, "'")
       .replace(/[\u0130\u0131]/g, "i")
       .replace(/\u017F/g, "s")
       .replace(/\u212A/g, "k")
+      .normalize("NFKC")
+      .replace(/[\u00AD\u200B-\u200D\u2060]/g, "")
       .replace(/[\s\u0085\u001C-\u001F]+/g, " "),
   );
 }
@@ -198,8 +202,9 @@ const ELONGATED = /([a-z])\1{2,}/gi;
 
 // A pause typed between words: an ellipsis, a dash, an emoji or a sad face ("i want to... die",
 // "i want to 😭 die", "jumping off :("). Without the u flag an emoji is a surrogate pair, so the pair
-// range stands for U+1F000 to U+1FBFF.
-const PAUSE = /([\s\u0085\u001C-\u001F]*(\.{2,}|\u2026|[\u2013\u2014]|-+(?=[\s\u0085\u001C-\u001F]|$)|[\uD83C-\uD83E][\uDC00-\uDFFF]|[\u2600-\u27BF\uFE0F\u200D]|[:;]'?-?[(/|]+))+[\s\u0085\u001C-\u001F]*/g;
+// range stands for U+1F000 to U+1FBFF. A zero-width character may stand in for the space between two
+// words, so it counts as a pause here as well as being dropped inside a word by normalize.
+const PAUSE = /([\s\u0085\u001C-\u001F]*(\.{2,}|\u2026|[\u2013\u2014]|-+(?=[\s\u0085\u001C-\u001F]|$)|[\uD83C-\uD83E][\uDC00-\uDFFF]|[\u2600-\u27BF\uFE0F\u00AD\u200B-\u200D\u2060]|[:;]'?-?[(/|]+))+[\s\u0085\u001C-\u001F]*/g;
 
 function readings(text) {
   const normalized = normalize(text);
