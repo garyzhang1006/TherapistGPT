@@ -368,6 +368,14 @@ test("a stretched crisis word leaves the calm clauses beside it their own points
   }
 });
 
+test("a crisis phrase that only safety.js reads still leaves the calm clauses beside it alone", () => {
+  // A double space and a stretched typo match no crisis pattern as typed, but mentionsCrisis reads both.
+  const points = organize("i have a chem quiz tmrw and rent is late and i want to  die").threads.flatMap((t) => t.points);
+  assert.ok(points.some((p) => /quiz/i.test(p) && !mentionsCrisis(p)), points.join(" | "));
+  assert.ok(points.some((p) => /rent/i.test(p) && !mentionsCrisis(p)), points.join(" | "));
+  assert.deepEqual(organize("need to call mom and i want to kiiil myself").to_dos.map((t) => t.task), ["Call mom"]);
+});
+
 test("rejoining a crisis thought leaves calm chores and causes beside it alone", () => {
   const tasks = (text) => organize(text).to_dos.map((t) => t.task);
   // "so tired" is an intensifier, not a reason, and a late rent is a cause, not a means.

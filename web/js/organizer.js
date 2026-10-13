@@ -374,7 +374,14 @@ function crisisSpan(part) {
     // A span found in a squeezed copy maps back to the raw part, and its end takes in the letters squeezed away.
     if (best) return at ? { start: at[best.start], end: at[best.end] } : best;
   }
-  return null;
+  // mentionsCrisis also reads collapsed spaces, other apostrophes, typo fixes and warning signs, so a
+  // part it flags may match no pattern as typed. The span is then the narrowest run of pieces it
+  // still flags, which keeps the calm pieces around it out of the crisis clause.
+  const breaks = [...part.matchAll(BREAK)];
+  let start = 0;
+  for (const m of breaks) if (mentionsCrisis(part.slice(m.index + m[0].length))) start = m.index + m[0].length;
+  const end = breaks.find((m) => m.index >= start && mentionsCrisis(part.slice(start, m.index)));
+  return { start, end: end ? end.index : part.length };
 }
 
 // "i have a chem quiz tmrw and rent is late and i dont want to be here anymore": only the crisis
@@ -384,7 +391,6 @@ function crisisSpan(part) {
 // right before "and", which cleanClause strips as filler, leaving a calm-looking "Never wake up".
 function splitAroundCrisis(part, listed) {
   const span = crisisSpan(part);
-  if (!span) return [part];
   const breaks = [...part.matchAll(BREAK)];
   const pieceBefore = (k) => part.slice(k ? breaks[k - 1].index + breaks[k - 1][0].length : 0, breaks[k].index);
   const pieceAfter = (k) => part.slice(breaks[k].index + breaks[k][0].length, k + 1 < breaks.length ? breaks[k + 1].index : part.length);
