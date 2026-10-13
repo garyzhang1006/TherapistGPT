@@ -299,6 +299,11 @@ test("isSelfCritical matches the thoughts that get a kinder view, and nothing el
   for (const text of ["I always love seeing my dog", "need to do laundry", "my mom called"]) assert.equal(isSelfCritical(text), false, text);
 });
 
+test("a crisis dump keeps hopeless even when many feelings come before it", () => {
+  const { feelings } = organize("so tired, too much, scared, crying, so alone, my fault, i want to die");
+  assert.ok(feelings.includes("hopeless") && feelings.length <= 6, feelings.join(", "));
+});
+
 test("feelings come from feeling words, not colors or objects", () => {
   assert.deepEqual(organize("wore my grey hoodie, got a flat tire, told him to leave me alone").feelings, []);
   assert.ok(organize("i miss sam so much").feelings.includes("sad"));

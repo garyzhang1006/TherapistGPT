@@ -58,15 +58,16 @@ const OTHERS_UPSET = /\b(?:she|he|they|everyone|my (?:\w+ )?(?:mom|mum|dad|mothe
 function feelingsIn(lower, crisis) {
   const othersUpset = OTHERS_UPSET.test(lower);
   const own = lower.replace(NOT_FELT, " ").replace(new RegExp(OTHERS_UPSET.source, "gi"), " ");
-  return FEELINGS.filter(
+  const felt = FEELINGS.filter(
     ([label, pattern]) =>
       pattern.test(own) ||
       (othersUpset && (label === "anxious" || label === "guilty")) ||
       // Wanting to die or disappear is hopelessness, even when no hopeless word is used.
       (crisis && label === "hopeless")
-  )
-    .map(([label]) => label)
-    .slice(0, LIMITS.feelings);
+  ).map(([label]) => label);
+  // Hopeless sits late in the list, and the limit must not cut the one feeling a crisis always carries.
+  const kept = felt.slice(0, LIMITS.feelings);
+  return crisis && !kept.includes("hopeless") ? [...kept.slice(0, -1), "hopeless"] : kept;
 }
 
 // Only explicit intentions and concrete chores count as to-dos. "I didn't pick up" is a memory, not a task.
