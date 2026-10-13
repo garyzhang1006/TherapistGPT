@@ -52,7 +52,7 @@ else:
 for path in glob.glob("data/synthetic*.jsonl") + [f"data/{name}" for name in SPLITS]:
     shutil.copy(path, f"{OUT}/data/")
 
-run(sys.executable, "evaluate.py", "--base-only", "--limit", "50", "--report", f"{OUT}/eval_base.json")
+run(sys.executable, "evaluate.py", "--base-only", "--report", f"{OUT}/eval_base.json")
 run(sys.executable, "train_lora.py", "--config", "config.yaml")
 # Checkpoints stay in the clone: the final adapter is what evaluate.py, merge and serve.py load.
 shutil.copytree("outputs/therapistgpt-lora/final", f"{OUT}/adapter", dirs_exist_ok=True)
