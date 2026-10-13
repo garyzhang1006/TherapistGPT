@@ -234,6 +234,7 @@ test("plans that already fell through are not to-dos, but plans still ahead are"
 test("a plan or a doctor's ask stays a to-do when its reason is in the past", () => {
   assert.deepEqual(organize("i'm gonna email my professor about the exam i missed").to_dos.map((t) => t.task), ["Email my professor about the exam I missed"]);
   assert.deepEqual(organize("my doctor wants me to come in for a checkup because my bloodwork was off").to_dos.map((t) => t.task), ["See the doctor for a checkup"]);
+  assert.deepEqual(organize("my doctor told me to get bloodwork and i already did").to_dos, []);
 });
 
 test("a promise to my someone is a to-do", () => {

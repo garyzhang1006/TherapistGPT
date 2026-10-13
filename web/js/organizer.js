@@ -79,6 +79,9 @@ const INTENT = /\b(need to|needs to|have to|has to|gotta|got to|should|must|supp
 const INTENT_AT = /\b(?:need to|needs to|have to|has to|gotta|got to|should(?: really)?|supposed to|must|forgot to)\s+(.+)$/i;
 // Things that already happened are memories unless an intent is stated: "I finally did laundry".
 const PAST = /\b(did|finally|already|yesterday|last (night|week|month|year)|missed|went|was|were)\b/i;
+// The past words that say the task itself is finished: "my doctor told me to get bloodwork and I
+// already did". "I'm finally gonna call" is still a plan.
+const DONE = /\b(?:already|did)\b|\bfinally\b(?!\s+(?:gonna|going to)\b)/i;
 // "Deck for Marisol by thurs" sets a deadline, and a deadline means there is something to do.
 const DEADLINE = /\bby (?:end of (?:the )?(?:day|week|month)|eod|eow|cob|tonight|tomorrow|tmrw|tmr|noon|midnight|monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tues?|wed|thu|thurs?|fri|sat|sun|next week|the \d+(?:st|nd|rd|th)?|\d{1,2}(?::\d\d)?\s?(?:am|pm)|\d{1,2}:\d\d)\b/i;
 // "My mom gets home by 6pm" is a time in someone's sentence, not a deadline. A clause that opens
@@ -860,7 +863,7 @@ export function organize(text) {
     const ahead = MY_PLAN.test(clause) || MEDICAL_ASK.test(clause) || LEFT_TO.test(clause) || (NEED_THING.test(clause) && !NO_NEED_THING.test(clause));
     const isTask =
       (TASK_CUE.test(clause) || IMPERATIVE.test(clause) || unmet || ahead || isDeadline(clause) || promised || (items[i].listed && isWorkItem(clause))) &&
-      !(PAST.test(clause) && !INTENT.test(clause) && !unmet && !promised && !ahead) &&
+      !(PAST.test(clause) && !INTENT.test(clause) && !unmet && !promised && !(ahead && !DONE.test(clause))) &&
       // A promise is a plan made in the past, so "but I bailed" rules it out just as it does "was supposed to".
       !((PAST_PLAN.test(clause) || promised) && !STILL_OWED.test(clause) && (FELL_THROUGH.test(clause) || FELL_THROUGH_LEAD.test(clauses[i + 1] || ""))) &&
       !((SOMEONE_ELSES.test(clause) || OTHERS_TASK.test(clause)) && !MY_INTENT.test(clause)) &&
