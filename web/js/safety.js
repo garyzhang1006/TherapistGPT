@@ -181,7 +181,8 @@ export function fixTypos(text) {
 
 function normalize(text) {
   // Phones and keyboards type apostrophes many ways: ‘ ’ ʼ ` ´ and fullwidth ＇. Line breaks and
-  // double spaces are collapsed too, so "I want to\ndie" reads the same as "I want to die".
+  // double spaces are collapsed too, so "I want to\ndie" reads the same as "I want to die". The ends are
+  // trimmed, since a trailing space would hide the end of the text from every pattern that ends in $.
   // Neither /i nor Python's re.ASCII reads Turkish İ and ı, long ſ and the Kelvin sign as i, s and k,
   // so both detectors swap them first. The space class is the union of \s in JS and in Python.
   // NFKC then folds fullwidth letters ("ｄｉｅ") to ASCII, and soft hyphens and zero-width characters,
@@ -194,7 +195,8 @@ function normalize(text) {
       .replace(/\u212A/g, "k")
       .normalize("NFKC")
       .replace(/[\u00AD\u200B-\u200D\u2060]/g, "")
-      .replace(/[\s\u0085\u001C-\u001F]+/g, " "),
+      .replace(/[\s\u0085\u001C-\u001F]+/g, " ")
+      .trim(),
   );
 }
 

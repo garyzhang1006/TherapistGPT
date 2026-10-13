@@ -214,7 +214,11 @@
     "kill my\u00adself",
     "sui\u200bcide",
     "i want to\u2060 die",
-    "ｉ ｗａｎｔ ｔｏ ｄｉｅ"
+    "ｉ ｗａｎｔ ｔｏ ｄｉｅ",
+    "i want to jump off ",
+    "i keep thinking about stepping off\t",
+    " cut again last night",
+    "gave my guitar to sam and said my goodbyes "
   ],
   "should_not_flag": [
     "MY FREİND STOPPED TALKING TO ME",

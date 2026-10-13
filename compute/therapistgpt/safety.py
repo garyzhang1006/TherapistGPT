@@ -237,11 +237,13 @@ _ASCII_TWINS = str.maketrans({"\u0130": "i", "\u0131": "i", "\u017f": "s", "\u21
 def _normalize(text: str) -> str:
     # Phones and keyboards type apostrophes many ways: ‘ ’ ʼ ` ´ and fullwidth ＇. Same set as safety.js.
     # Whitespace runs collapse too, so "I want to\ndie" reads the same as "I want to die". The space class is
-    # the union of \s in Python and in JS, which also counts U+FEFF. NFKC folds fullwidth letters ("ｄｉｅ") to
-    # ASCII, and soft hyphens and zero-width characters, which come along unseen in pasted text, are dropped.
+    # the union of \s in Python and in JS, which also counts U+FEFF. The ends are trimmed, since a trailing
+    # space would hide the end of the text from every pattern that ends in $. NFKC folds fullwidth letters
+    # ("ｄｉｅ") to ASCII, and soft hyphens and zero-width characters, which come along unseen in pasted text,
+    # are dropped.
     text = re.sub("[\u2018\u2019\u02bc\u0060\u00b4\uff07]", "'", text).translate(_ASCII_TWINS)
     text = re.sub("[\u00ad\u200b-\u200d\u2060]", "", unicodedata.normalize("NFKC", text))
-    return fix_typos(re.sub(r"[\s\ufeff]+", " ", text))
+    return fix_typos(re.sub(r"[\s\ufeff]+", " ", text).strip())
 
 
 _ELONGATED = re.compile(r"([a-z])\1{2,}", re.IGNORECASE)
