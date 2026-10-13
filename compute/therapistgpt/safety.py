@@ -114,8 +114,9 @@ CRISIS_PATTERNS = [
     # "a lethal amount of coffee" is a joke. Caffeine stays in, since caffeine pills are a real method.
     r"\b(lethal|fatal|deadly) (dose|doses|dosage|amount|amounts|quantity)\b(?! of (coffee|espresso|sugar|homework|work|cringe|sarcasm)\b)",
     r"\bhow long (does it|would it|will it|it'?d|it would|it will|it does|it|to|(until|till|before) (you|i|someone|a person|people)) (take |takes )?(to )?(die|dies|bleed out|bleeds out|drown|drowns|suffocate)\b(?! (my|your|his|her|their) hair| of (boredom|embarrassment|laughter|old age)\b)",
-    # "dumb ways to die in minecraft" and "how to die my hair" are calm, so a place or hair after it stays out.
-    r"\b((look(s|ed|ing)? up|search(es|ed|ing)?( for| up)?|googl(e|es|ed|ing)|research(es|ed|ing)?|read(ing)? up on) ([^ .!?,;]+ ){0,2}(ways?|methods?|how) to|(painless|easiest|quickest|fastest|least painful|surest) (ways?|methods?) to) (die|bleed out|overdose)\b(?! (in|on|from|of|my hair|your hair|her hair|his hair|their hair)\b)",
+    # "dumb ways to die in minecraft" and "how to die my hair" are calm, so a place or hair after it stays out,
+    # unless the place is "in my sleep", "from pills" or "on purpose". A painless or surest way is never a game.
+    r"\b(((look(s|ed|ing)? up|search(es|ed|ing)?( for| up)?|googl(e|es|ed|ing)|research(es|ed|ing)?|read(ing)? up on) ([^ .!?,;]+ ){0,2}(ways?|methods?|how) to|(easiest|quickest|fastest) (ways?|methods?) to) (die|bleed out|overdose)\b(?! (in|on|from|of)\b(?! (my sleep|pills|(an )?overdose|purpose)\b)| (my|your|her|his|their) hair\b)|(painless|least painful|surest) (ways?|methods?) to (die|bleed out|overdose)\b(?! (my|your|her|his|their) hair\b))",
     # An urge to step or jump off somewhere. "stepping off the train at my stop" and "jumping off the
     # diving board" name a calm place, so only a height or a bare "off" that ends the clause counts.
     # Texting often runs clauses together, so a word that opens a new clause ends it too.
