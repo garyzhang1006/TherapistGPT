@@ -82,7 +82,16 @@ jobs:
           MODEL: ${{ inputs.model }}
           EFFORT: ${{ inputs.effort }}
           WORKERS: ${{ inputs.workers }}
-        run: python generate_synthetic.py --n "$N" --model "$MODEL" --effort "$EFFORT" --workers "$WORKERS" --out data/synthetic.jsonl
+        # The script skips a failed row and exits 0, so a mistyped model or a key with no credit writes nothing
+        # and would still go green; the done line is the only place that shows it.
+        run: |
+          set -o pipefail
+          python generate_synthetic.py --n "$N" --model "$MODEL" --effort "$EFFORT" --workers "$WORKERS" \
+            --out data/synthetic.jsonl | tee "$RUNNER_TEMP/generate.log"
+          if grep -q '^done: 0 written' "$RUNNER_TEMP/generate.log"; then
+            echo "::error::No rows were written because every request failed. Check the model name and the key's credit in the log above, then rerun."
+            exit 1
+          fi
 
       # With --drop-invalid it exits 0 and keeps only valid rows, so bad rows are dropped without failing the job.
       - name: Validate and drop invalid rows
