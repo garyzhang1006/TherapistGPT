@@ -52,7 +52,7 @@ python generate_synthetic.py --n 2000
 python validate_data.py data/synthetic.jsonl --drop-invalid data/synthetic.clean.jsonl
 python split_data.py --inputs data/seed.jsonl data/synthetic.clean.jsonl
 
-python evaluate.py --base-only --limit 50 --report outputs/eval_base.json
+python evaluate.py --base-only --report outputs/eval_base.json
 python train_lora.py --config config.yaml
 python evaluate.py --adapter outputs/therapistgpt-lora/final --report outputs/eval_finetuned.json
 python merge_and_export.py --adapter outputs/therapistgpt-lora/final --push your-hf-username/therapistgpt-1.5b
