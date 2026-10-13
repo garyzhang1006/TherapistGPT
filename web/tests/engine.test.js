@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { organizeText, looksValid, normalizeEndpoint, loadSettings, saveSettings } from "../js/engine.js";
+import { organizeText, looksValid, normalizeEndpoint, loadSettings, saveSettings, testConnection } from "../js/engine.js";
 import { mentionsCrisis, applySafetyFloor } from "../js/safety.js";
 
 test("device engine returns valid output with no network", async () => {
@@ -54,6 +54,17 @@ test("a reply with null entries or a thread with no points is called unreadable,
     assert.equal(engine, "device");
     assert.match(notice, /couldn't read/);
   }
+});
+
+test("a health answer that isn't a JSON object gets a plain explanation", async () => {
+  for (const json of [async () => { throw new SyntaxError("Unexpected token '<'"); }, async () => null, async () => 5]) {
+    globalThis.fetch = async () => ({ ok: true, status: 200, json });
+    await assert.rejects(testConnection("https://example.invalid"), /isn't a TherapistGPT model/);
+  }
+  globalThis.fetch = async () => ({ ok: true, status: 200, json: async () => ({ ok: false }) });
+  await assert.rejects(testConnection("https://example.invalid"), /hasn't finished loading/);
+  globalThis.fetch = async () => ({ ok: true, status: 200, json: async () => ({ ok: true }) });
+  assert.equal(await testConnection("https://example.invalid"), true);
 });
 
 test("plain http endpoints are refused unless they are localhost", async () => {

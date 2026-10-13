@@ -145,9 +145,15 @@ export async function organizeText(text, settings = loadSettings()) {
   return { result: applySafetyFloor(text, organizeOnDevice(text)), engine: "device", notice: "" };
 }
 
+const NOT_A_MODEL = "Something answered at that address, but it isn't a TherapistGPT model. Check the address.";
+
 export async function testConnection(endpoint) {
-  const { response, body } = await fetchJsonWithTimeout(`${normalizeEndpoint(endpoint)}/health`, {}, 15000);
+  // A sleeping Space or a wrong host can answer 200 with a web page, and the parse error would be shown as is.
+  const { response, body } = await fetchJsonWithTimeout(`${normalizeEndpoint(endpoint)}/health`, {}, 15000).catch((error) => {
+    throw error.name === "SyntaxError" ? new Error(NOT_A_MODEL) : error;
+  });
   if (!response.ok) throw new Error(`The server answered with status ${response.status}.`);
+  if (!body || typeof body !== "object") throw new Error(NOT_A_MODEL);
   if (!body.ok) throw new Error("The server is up but the model hasn't finished loading.");
   return true;
 }
