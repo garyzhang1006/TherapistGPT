@@ -195,15 +195,21 @@ function normalize(text) {
 
 const ELONGATED = /([a-z])\1{2,}/gi;
 
+// A pause typed between words: an ellipsis, a dash or an emoji ("i want to... die", "i want to 😭 die").
+// Without the u flag an emoji is a surrogate pair, so the pair range stands for U+1F000 to U+1FBFF.
+const PAUSE = /([\s\u0085\u001C-\u001F]*(\.{2,}|…|[–—]|-+(?=[\s\u0085\u001C-\u001F]|$)|[\uD83C-\uD83E][\uDC00-\uDFFF]|[☀-➿️‍]))+[\s\u0085\u001C-\u001F]*/g;
+
 function readings(text) {
   const normalized = normalize(text);
+  // Every pattern needs one space between its words, so the text is read again with each pause dropped.
+  const joined = normalize(String(text).replace(PAUSE, " "));
   // A line break also often ends a clause ("thinking about stepping off\nthen the train comes"), so
   // the text is read a second time with each break as a full stop.
   // The same whitespace as normalize, so the Python copy, whose \s differs, reads every break alike.
   const broken = normalize(String(text).replace(/[\s\u0085\u001C-\u001F]*[\r\n]+[\s\u0085\u001C-\u001F]*/g, ". "));
   // Texting stretches words ("i wanna dieee", "kmsss"), so each reading is read again with every run
   // of three or more of one letter squeezed to one and to two, since "killl" squeezed to one is "kil".
-  return [normalized, broken].flatMap((t) => [t, fixTypos(t.replace(ELONGATED, "$1")), fixTypos(t.replace(ELONGATED, "$1$1"))]);
+  return [normalized, joined, broken].flatMap((t) => [t, fixTypos(t.replace(ELONGATED, "$1")), fixTypos(t.replace(ELONGATED, "$1$1"))]);
 }
 
 export function mentionsCrisis(text) {

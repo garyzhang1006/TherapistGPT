@@ -184,7 +184,13 @@
     "thinking about ending it",
     "i want to end it tonight",
     "i want to off myself",
-    "i'm going to take my life and nobody will stop me"
+    "i'm going to take my life and nobody will stop me",
+    "i just want to... die",
+    "i want to.. die",
+    "i want to…die",
+    "i want to 😭 die",
+    "i want to — die",
+    "gonna kill... myself"
   ],
   "should_not_flag": [
     "MY FREİND STOPPED TALKING TO ME",
