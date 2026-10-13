@@ -35,19 +35,24 @@ function isString(v) {
   return typeof v === "string" && v.trim().length > 0;
 }
 
+function isObject(v) {
+  return v !== null && typeof v === "object";
+}
+
 // Light shape check on remote output. The server already validated it, but the browser should
-// never render something malformed from a URL the user typed.
+// never render something malformed from a URL the user typed. A thread with no points fails here, as
+// in schema.py, because the safety floor would turn a reply with only empty threads into its crisis thread.
 export function looksValid(out) {
-  if (!out || typeof out !== "object") return false;
+  if (!isObject(out)) return false;
   return (
     isString(out.summary) &&
     isString(out.one_small_step) &&
     typeof out.needs_support === "boolean" &&
     Array.isArray(out.feelings) && out.feelings.every(isString) &&
     Array.isArray(out.threads) && out.threads.length > 0 &&
-    out.threads.every((t) => isString(t.title) && Array.isArray(t.points) && t.points.every(isString)) &&
-    Array.isArray(out.to_dos) && out.to_dos.every((t) => isString(t.task) && isString(t.first_step)) &&
-    Array.isArray(out.kinder_view) && out.kinder_view.every((k) => isString(k.thought) && isString(k.reframe))
+    out.threads.every((t) => isObject(t) && isString(t.title) && Array.isArray(t.points) && t.points.length > 0 && t.points.every(isString)) &&
+    Array.isArray(out.to_dos) && out.to_dos.every((t) => isObject(t) && isString(t.task) && isString(t.first_step)) &&
+    Array.isArray(out.kinder_view) && out.kinder_view.every((k) => isObject(k) && isString(k.thought) && isString(k.reframe))
   );
 }
 

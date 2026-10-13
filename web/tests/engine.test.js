@@ -35,6 +35,27 @@ test("a malformed model reply is rejected and falls back", async () => {
   assert.equal(engine, "device");
 });
 
+test("a reply with null entries or a thread with no points is called unreadable, not unreachable", async () => {
+  const good = {
+    summary: "You're tired.", feelings: ["tired"], threads: [{ title: "Now", points: ["Tired"] }],
+    to_dos: [{ task: "Rest", first_step: "Sit down." }], kinder_view: [{ thought: "I'm lazy", reframe: "You're tired." }],
+    one_small_step: "Rest.", needs_support: false,
+  };
+  assert.ok(looksValid(good));
+  for (const bad of [
+    { ...good, threads: [null] },
+    { ...good, threads: [{ title: "Now", points: [] }] },
+    { ...good, to_dos: [null] },
+    { ...good, kinder_view: [null] },
+  ]) {
+    assert.equal(looksValid(bad), false);
+    globalThis.fetch = async () => ({ ok: true, status: 200, json: async () => bad });
+    const { engine, notice } = await organizeText("so tired today", { engine: "model", endpoint: "https://example.invalid" });
+    assert.equal(engine, "device");
+    assert.match(notice, /couldn't read/);
+  }
+});
+
 test("plain http endpoints are refused unless they are localhost", async () => {
   globalThis.fetch = async () => assert.fail("should not fetch");
   const { notice } = await organizeText("so tired", { engine: "model", endpoint: "http://example.com" });
