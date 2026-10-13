@@ -65,6 +65,9 @@ test("plain http endpoints are refused unless they are localhost", async () => {
 test("an address pasted without https gets it added", () => {
   assert.equal(normalizeEndpoint("  my-space.hf.space/ "), "https://my-space.hf.space");
   assert.equal(normalizeEndpoint("http://localhost:8000"), "http://localhost:8000");
+  assert.equal(normalizeEndpoint("https://my-space.hf.space/?logs=container"), "https://my-space.hf.space");
+  assert.equal(normalizeEndpoint("https://my-space.hf.space/#app"), "https://my-space.hf.space");
+  assert.equal(normalizeEndpoint("https://my-space.hf.space/api/?a=1#b"), "https://my-space.hf.space/api");
 });
 
 test("an address that can't be parsed gets a plain explanation", () => {

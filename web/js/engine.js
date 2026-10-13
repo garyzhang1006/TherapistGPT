@@ -73,6 +73,10 @@ export function normalizeEndpoint(endpoint) {
   if (url.protocol !== "https:" && url.hostname !== "localhost" && url.hostname !== "127.0.0.1") {
     throw new Error("Use an https address for your model (http is only allowed for localhost).");
   }
+  // A Space address copied from the browser can carry "?logs=container" or "#app", and the routes
+  // are appended to this string, so they would land inside the query or fragment.
+  url.search = "";
+  url.hash = "";
   return url.toString().replace(/\/+$/, "");
 }
 
