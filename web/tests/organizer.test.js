@@ -355,6 +355,14 @@ test("not eating comes before anything else in the one small step", () => {
   assert.match(out.one_small_step, /food/);
 });
 
+test("a first step comes from a whole word, not the start of a longer one", () => {
+  const step = (text) => organize(text).to_dos[0].first_step;
+  assert.equal(step("need to pay my roommate back"), "Open the bill or app and look at the number, nothing else");
+  assert.equal(step("need to buy a card for my mom"), "Spend two minutes on only the very first part");
+  assert.equal(step("the kids need textbooks"), "Spend two minutes on only the very first part");
+  assert.equal(step("need to clean my room"), "Pick up five things, then stop if you want");
+});
+
 test("the one small step names the to-do it comes from", () => {
   assert.match(organize("- laundry\n- text sam back").one_small_step, /^Text sam back: type one short line/);
 });

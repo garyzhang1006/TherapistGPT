@@ -209,30 +209,32 @@ const REFRAMES = [
 ];
 const DEFAULT_REFRAME = "You'd likely speak more gently to a friend who said this about themselves. You deserve that gentleness too.";
 
+// A short stem ends at its word, because "room", "mess", "car" and "text" start "roommate",
+// "message", "card" and "textbooks".
 const FIRST_STEPS = [
   [/\bemail/i, "Open a new email and write only the subject line"],
   [/\b(call|phone)/i, "Find the number and save it where you'll see it"],
-  [/\btext/i, "Type one short line, even just \"hey, thinking of you\""],
+  [/\btext(?:s|ed|ing)?\b/i, "Type one short line, even just \"hey, thinking of you\""],
   [/\b(essay|report|paper|homework|assignment|thesis|slides|project)/i, "Open the file and write one sentence, any sentence"],
   [/\bform\b/i, "Put the form and a pen on the table"],
   [/\b(exam|test|quiz|study)/i, "Put your notes on the table, open to the first page"],
   [/\b(read|chapters?)\b/i, "Open to the page and read one paragraph"],
   [/\bdishes/i, "Carry one dish to the sink"],
   [/\blaundry/i, "Gather the clothes into one pile"],
-  [/\b(clean|room|mess|tidy)/i, "Pick up five things, then stop if you want"],
+  [/\b(clean\w*|rooms?|mess|messy|tidy\w*)\b/i, "Pick up five things, then stop if you want"],
   [/\bgroceries|shopping/i, "Write down the three things you need most"],
   [/\b(bill|rent|pay|bank|money)/i, "Open the bill or app and look at the number, nothing else"],
   [/\b(meds|medication|pharmacy|refill|prescription)/i, "Find the pharmacy's number or app"],
   [/\b(appointment|doctor|dentist|therapist)/i, "Look up the number and save it in your phone"],
   [/\bshower/i, "Turn on the water and let it warm up"],
   [/\b(eat|food|lunch|dinner|breakfast)/i, "Grab the easiest food within reach"],
-  [/\b(lock|car|stove|door)/i, "Check it once, then let yourself stop checking"],
+  [/\b(lock\w*|cars?|stoves?|doors?)\b/i, "Check it once, then let yourself stop checking"],
   [/\b(unpack|boxes)/i, "Open one box and put away three things"],
 ];
 const DEFAULT_FIRST_STEP = "Spend two minutes on only the very first part";
 
 // Body basics first: when everything is heavy, water and food make every other step easier.
-const STEP_PRIORITY = [/\b(meds|medication|refill|prescription)/i, /\b(eat|food|lunch|dinner)/i, /\b(text|call|email)/i];
+const STEP_PRIORITY = [/\b(meds|medication|refill|prescription)/i, /\b(eat|food|lunch|dinner)/i, /\b(text(?:s|ed|ing)?\b|call|email)/i];
 
 function capitalize(s) {
   return s.charAt(0).toUpperCase() + s.slice(1);
