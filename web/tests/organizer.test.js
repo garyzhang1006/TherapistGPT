@@ -355,6 +355,11 @@ test("not eating comes before anything else in the one small step", () => {
   assert.match(out.one_small_step, /food/);
 });
 
+test("someone else's missed meal does not take the writer's small step", () => {
+  assert.match(organize("my dog didn't eat his dinner, need to call the vet").one_small_step, /^Call the vet: /);
+  assert.match(organize("i didnt eat lunch, need to call the vet").one_small_step, /food/);
+});
+
 test("a first step comes from a whole word, not the start of a longer one", () => {
   const step = (text) => organize(text).to_dos[0].first_step;
   assert.equal(step("need to pay my roommate back"), "Open the bill or app and look at the number, nothing else");
