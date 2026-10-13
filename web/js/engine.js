@@ -9,25 +9,27 @@ const SETTINGS_KEY = "therapistgpt.settings";
 const REMOTE_TIMEOUT_MS = 60000;
 const DEFAULTS = { engine: "device", endpoint: "", apiKey: "" };
 
-// Private mode or blocked storage: settings live here for this visit instead of being dropped.
+// Private mode, blocked or full storage: when a save fails, settings live here for this visit instead
+// of being dropped, and they win over any older stored copy, which would undo the person's last choice.
 let visitSettings = null;
 
 export function loadSettings() {
+  if (visitSettings) return { ...DEFAULTS, ...visitSettings };
   try {
     const saved = localStorage.getItem(SETTINGS_KEY);
     if (saved !== null) return { ...DEFAULTS, ...JSON.parse(saved) };
   } catch {
-    // fall through to this visit's copy
+    // fall through to the defaults
   }
-  return { ...DEFAULTS, ...visitSettings };
+  return { ...DEFAULTS };
 }
 
 export function saveSettings(settings) {
-  visitSettings = { ...settings };
   try {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    visitSettings = null;
   } catch {
-    // kept in visitSettings above
+    visitSettings = { ...settings };
   }
 }
 

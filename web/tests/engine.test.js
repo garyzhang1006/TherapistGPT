@@ -175,3 +175,31 @@ test("settings survive the visit when storage is blocked", () => {
     else delete globalThis.localStorage;
   }
 });
+
+test("a save that storage refuses still wins over the older stored copy", () => {
+  const original = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
+  const stored = new Map([["therapistgpt.settings", JSON.stringify({ engine: "model", endpoint: "https://old.hf.space", apiKey: "" })]]);
+  let full = true;
+  Object.defineProperty(globalThis, "localStorage", {
+    configurable: true,
+    value: {
+      getItem: (key) => stored.get(key) ?? null,
+      setItem(key, value) {
+        if (full) throw new DOMException("The quota has been exceeded.", "QuotaExceededError");
+        stored.set(key, value);
+      },
+    },
+  });
+  try {
+    saveSettings({ engine: "device", endpoint: "", apiKey: "" });
+    assert.equal(loadSettings().engine, "device");
+    // Once a save goes through, storage is the source again, so another tab's later save is seen.
+    full = false;
+    saveSettings({ engine: "device", endpoint: "", apiKey: "" });
+    stored.set("therapistgpt.settings", JSON.stringify({ engine: "model", endpoint: "https://new.hf.space", apiKey: "" }));
+    assert.equal(loadSettings().endpoint, "https://new.hf.space");
+  } finally {
+    if (original) Object.defineProperty(globalThis, "localStorage", original);
+    else delete globalThis.localStorage;
+  }
+});
