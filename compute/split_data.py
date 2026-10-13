@@ -27,7 +27,8 @@ HERE = Path(__file__).resolve().parent
 
 def load(path: Path) -> list[dict]:
     rows, bad = [], 0
-    for line in path.read_text(encoding="utf-8").splitlines():
+    # Not splitlines(): it also breaks on U+2028 and U+0085, which JSON allows raw inside a string.
+    for line in path.read_text(encoding="utf-8").split("\n"):
         if not line.strip():
             continue
         try:

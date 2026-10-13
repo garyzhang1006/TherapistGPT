@@ -77,7 +77,7 @@ def main() -> int:
         print("error: pass --adapter, --model, or --base-only", file=sys.stderr)
         return 2
 
-    rows = [json.loads(line) for line in args.test.read_text(encoding="utf-8").splitlines() if line.strip()]
+    rows = [json.loads(line) for line in args.test.read_text(encoding="utf-8").split("\n") if line.strip()]
     if args.limit:
         rows = rows[: args.limit]
     # Checked before loading the model so an empty split fails in a second, not after a download.

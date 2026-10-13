@@ -177,7 +177,7 @@ def main() -> int:
     parser.add_argument("--seed", type=int, default=0)
     args = parser.parse_args()
 
-    seeds = [json.loads(line) for line in args.seeds.read_text(encoding="utf-8").splitlines() if line.strip()]
+    seeds = [json.loads(line) for line in args.seeds.read_text(encoding="utf-8").split("\n") if line.strip()]
     if not seeds:
         print(f"error: no seed rows in {args.seeds}", file=sys.stderr)
         return 2

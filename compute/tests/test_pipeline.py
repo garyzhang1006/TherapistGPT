@@ -1,13 +1,17 @@
 """Stdlib-only tests for the data and output plumbing in compute/. Run: python -m unittest discover -s tests"""
 
+import copy
+import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(HERE))
 
-from therapistgpt.schema import SchemaError, extract_json  # noqa: E402
+import split_data  # noqa: E402
+from therapistgpt.schema import EXAMPLE_OUTPUT, SchemaError, extract_json  # noqa: E402
 
 
 class ExtractJsonTests(unittest.TestCase):
@@ -19,6 +23,15 @@ class ExtractJsonTests(unittest.TestCase):
         cut = '{"summary": "s", "threads": [{"title": "t", "points": ["p"]}, {"title": "u"'
         with self.assertRaisesRegex(SchemaError, "unclosed"):
             extract_json(cut)
+
+
+class SplitDataTests(unittest.TestCase):
+    def test_load_keeps_rows_with_unicode_line_separators(self):
+        rows = [{"input": f"first part{sep}second part", "output": copy.deepcopy(EXAMPLE_OUTPUT)} for sep in " \x85"]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "rows.jsonl"
+            path.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8")
+            self.assertEqual(split_data.load(path), rows)
 
 
 if __name__ == "__main__":
