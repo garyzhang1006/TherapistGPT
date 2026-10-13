@@ -402,10 +402,13 @@ function splitAroundCrisis(part, listed) {
         mentionsCrisis(cleanClause(part.slice(m.index + m[0].length, span.end))),
     )
     .pop();
-  const after = breaks.find((m, k) => m.index >= span.end && !(REASON_BREAK.test(m[0]) && planned(pieceAfter(k))));
+  const a = breaks.findIndex((m, k) => m.index >= span.end && !(REASON_BREAK.test(m[0]) && planned(pieceAfter(k))));
+  const after = breaks[a];
   // In "i want to die and never wake up" the second phrase needs its "and", so the "and" stays with it
-  // and clauseItems joins the two back together.
-  const rest = after ? part.slice(after.index + (crisisLead(part.slice(after.index)) === "join" ? 0 : after[0].length)) : "";
+  // and clauseItems joins the two back together. Only the piece up to the next break is read, so a
+  // later crisis phrase ("and i want to kill myself") does not make the "and" look unneeded.
+  const joins = after && crisisLead(part.slice(after.index, a + 1 < breaks.length ? breaks[a + 1].index : part.length)) === "join";
+  const rest = after ? part.slice(after.index + (joins ? 0 : after[0].length)) : "";
   return [
     ...(before ? splitLoose(part.slice(0, before.index)) : []),
     part.slice(before ? before.index + before[0].length : 0, after ? after.index : part.length),

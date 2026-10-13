@@ -391,3 +391,8 @@ test("a comma before a crisis phrase does not split off a calm-looking piece of 
   const points = organize("i just want to sleep, and never wake up").threads.flatMap((t) => t.points);
   assert.ok(points.filter((p) => /wake up/i.test(p)).every(mentionsCrisis), points.join(" | "));
 });
+
+test("a second crisis phrase later in the line does not strand the first one's ending", () => {
+  const points = organize("i want to die and never wake up and i want to kill myself").threads.flatMap((t) => t.points);
+  assert.ok(points.filter((p) => /wake up/i.test(p)).every(mentionsCrisis), points.join(" | "));
+});
