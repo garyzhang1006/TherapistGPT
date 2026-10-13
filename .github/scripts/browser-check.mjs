@@ -128,8 +128,17 @@ try {
     const draft = await page.evaluate(() => localStorage.getItem("therapistgpt.draft") || "");
     check(draft.includes("grandma"), "with JavaScript on, words typed while the model answers stay saved as a draft");
 
-    // The box takes 3000 characters, and a paste cut to fit says so.
+    // Clear also works while the model answers, and its Undo must outlast the results arriving.
     await page.getByRole("button", { name: "Back to my words" }).click();
+    await page.locator("#dump").fill(DUMP);
+    await page.locator("#organize-btn").click();
+    await page.locator("#clear-btn").click();
+    check(await settles(page.locator("#result-cards .card"), "visible"), "with JavaScript on, a sort cleared while the model answers still shows the results");
+    await page.getByRole("button", { name: "Back to my words" }).click();
+    await page.getByRole("button", { name: "Undo" }).click();
+    check((await page.locator("#dump").inputValue()) === DUMP, "with JavaScript on, Undo still brings back words cleared while the model answered");
+
+    // The box takes 3000 characters, and a paste cut to fit says so.
     await page.locator("#dump").fill("a".repeat(2990));
     await page.locator("#dump").evaluate((box) => {
       const data = new DataTransfer();

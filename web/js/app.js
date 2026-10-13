@@ -351,7 +351,8 @@ async function run() {
       outcome.notice ||
       (crisis ? "" : outcome.engine === "model" ? "Sorted by your TherapistGPT model." : "Sorted on this device. Nothing left your browser.");
     status.textContent = "";
-    writeStatus.textContent = "";
+    // Clear still works while a model answers, and its Undo is the only copy of those words.
+    if (!writeStatus.querySelector("button")) writeStatus.textContent = "";
     writeView.hidden = true;
     resultView.hidden = false;
     window.scrollTo({ top: 0 });
