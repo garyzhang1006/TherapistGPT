@@ -119,7 +119,9 @@ $("clear-btn").addEventListener("click", () => {
 
 // ---------- preferences: theme and text size ----------
 
-const prefs = read(PREFS_KEY, {});
+// A stored "null" or a bare number would throw below at load and leave Sort and Settings dead.
+const storedPrefs = read(PREFS_KEY, {});
+const prefs = storedPrefs && typeof storedPrefs === "object" && !Array.isArray(storedPrefs) ? storedPrefs : {};
 const sizeToggle = $("size-toggle");
 sizeToggle.setAttribute("aria-pressed", String(Boolean(prefs.large)));
 

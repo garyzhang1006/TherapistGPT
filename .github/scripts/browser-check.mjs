@@ -134,6 +134,14 @@ try {
     });
     check(await settles(page.locator("#write-status", { hasText: "Only the first" }), "visible"), "with JavaScript on, a paste the box cuts short says so");
   });
+
+  await withPage(browser, {}, async (page) => {
+    await page.evaluate(() => localStorage.setItem("therapistgpt.prefs", "null"));
+    await page.reload({ waitUntil: "load" });
+    await page.locator("#dump").fill(DUMP);
+    await page.locator("#organize-btn").click();
+    check(await settles(page.locator("#result-cards .card"), "visible"), "with JavaScript on, a corrupt preferences value does not stop Sort");
+  });
 } finally {
   await browser.close();
 }
