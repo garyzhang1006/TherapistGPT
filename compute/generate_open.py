@@ -49,7 +49,13 @@ def parse_reply(reply: str, crisis: bool) -> dict | None:
     # the label we asked for and drop the row when the teacher disagreed.
     if organized["needs_support"] != crisis:
         return None
-    return {"input": dump.strip(), "output": organized}
+    row = {"input": dump.strip(), "output": organized}
+    try:
+        # A lone surrogate escape such as "\ud83d" parses but can't be written as UTF-8, which would end the run.
+        json.dumps(row, ensure_ascii=False).encode("utf-8")
+    except UnicodeEncodeError:
+        return None
+    return row
 
 
 def main() -> int:
