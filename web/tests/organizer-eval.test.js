@@ -28,8 +28,9 @@ const FIXTURES = readdirSync(FIXTURES_URL)
     return fixture;
   });
 
-// Floors for the tuned set only, at 90% of the score CI last reported (100% on every metric),
-// rounded down. A general rule may cost a tuned case or two, but not the tuned set as a whole.
+// Floors for the tuned set only, at 90% of the score CI reported when they were set (100% on every
+// metric, before to-dos were paired one to one with keywords), rounded down. A general rule may cost
+// a tuned case or two, but not the tuned set as a whole.
 // The other sets are report-only, apart from crisis recall.
 const THRESHOLDS = {
   todoRecall: 0.9,
