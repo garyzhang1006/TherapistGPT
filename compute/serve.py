@@ -113,5 +113,10 @@ async def organize(req: OrganizeRequest, x_api_key: str | None = Header(default=
         except SchemaError as exc:
             # The client falls back to its on-device organizer when it sees this.
             raise HTTPException(status_code=502, detail=f"model output was unusable: {exc}") from exc
+        except Exception as exc:
+            # An uncaught error becomes a 500 outside CORSMiddleware, so the browser would only see a network
+            # failure. Log the type alone, since some messages quote the input.
+            print(f"organize failed: {type(exc).__name__}")
+            raise HTTPException(status_code=500, detail="the model failed while generating") from exc
     print(f"organized {len(req.text)} chars in {time.time() - start:.1f}s")
     return result
