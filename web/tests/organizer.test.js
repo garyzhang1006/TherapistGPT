@@ -210,6 +210,8 @@ test("list lines become separate to-dos without their bullets", () => {
     ["Email professor", "Call landlord", "Book dentist"]
   );
   assert.deepEqual(organize("i gotta do the dishes, the laundry, and the trash").to_dos.map((t) => t.task), ["Do the dishes", "Do the laundry", "Do the trash"]);
+  // A filler word before a later item does not hide its chore.
+  assert.deepEqual(organize("call mom, also text dad, also call grandma").to_dos.map((t) => t.task), ["Call mom", "Text dad", "Call grandma"]);
 });
 
 test("memories and self-judgments are not to-dos", () => {

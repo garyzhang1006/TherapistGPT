@@ -415,7 +415,7 @@ function splitList(part, listed) {
   if ((part.match(/,/g) || []).length < 2 || INTENT.test(part)) return [part];
   const pieces = part.split(/,\s*(?:and\s+)?/).filter((p) => p.trim());
   const topics = new Set(pieces.filter((p) => TOPICS.some((t) => t.words.test(p))).map((p) => topicFor(p)));
-  const tasks = pieces.map(cleanClause).filter((c) => TASK_CUE.test(c) || IMPERATIVE.test(c) || isWorkItem(c));
+  const tasks = pieces.map((p) => cleanClause(p)).filter((c) => TASK_CUE.test(c) || IMPERATIVE.test(c) || isWorkItem(c));
   if (topics.size < 2 && tasks.length < 2) return [part];
   for (const piece of pieces) listed.add(piece.trim());
   return pieces;
